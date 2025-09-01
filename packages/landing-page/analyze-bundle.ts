@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 import fs from 'fs';
 import path from 'path';
@@ -7,7 +7,25 @@ import { promisify } from 'util';
 
 const gzipAsync = promisify(gzip);
 
-async function analyzeBundleSize() {
+interface FileResult {
+  file: string;
+  size: number;
+  gzipSize: number;
+  type: string;
+}
+
+interface Budget {
+  budget: number;
+  current: number;
+}
+
+async function analyzeBundleSize(): Promise<{
+  totalSize: number;
+  totalGzipSize: number;
+  results: FileResult[];
+  budgets: Record<string, Budget>;
+  recommendations: string[];
+} | void> {
   const distPath = path.join(process.cwd(), 'dist');
   const assetsPath = path.join(distPath, 'assets');
   
@@ -23,7 +41,7 @@ async function analyzeBundleSize() {
   let totalSize = 0;
   let totalGzipSize = 0;
   
-  const results = [];
+  const results: FileResult[] = [];
   
   for (const file of files) {
     if (file.endsWith('.map')) continue;
@@ -77,7 +95,7 @@ async function analyzeBundleSize() {
   console.log('-'.repeat(50));
   
   // Define budgets
-  const budgets = {
+  const budgets: Record<string, Budget> = {
     'JavaScript': { budget: 50000, current: results.filter(f => f.type === 'JavaScript').reduce((sum, f) => sum + f.gzipSize, 0) },
     'CSS': { budget: 10000, current: results.filter(f => f.type === 'CSS').reduce((sum, f) => sum + f.gzipSize, 0) },
     'Total': { budget: 100000, current: totalGzipSize }
@@ -97,7 +115,7 @@ async function analyzeBundleSize() {
   console.log('\n💡 Recommendations:');
   console.log('-'.repeat(50));
   
-  const recommendations = [];
+  const recommendations: string[] = [];
   
   if (budgets.JavaScript.current > budgets.JavaScript.budget * 0.8) {
     recommendations.push('Consider code splitting for JavaScript bundles');
@@ -160,7 +178,7 @@ async function analyzeBundleSize() {
   };
 }
 
-function getFileType(filename) {
+function getFileType(filename: string): string {
   if (filename.endsWith('.js')) return 'JavaScript';
   if (filename.endsWith('.css')) return 'CSS';
   if (filename.endsWith('.html')) return 'HTML';
@@ -169,7 +187,7 @@ function getFileType(filename) {
   return 'Other';
 }
 
-function formatSize(bytes) {
+function formatSize(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -177,7 +195,7 @@ function formatSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
-function getProgressBar(ratio, width = 20) {
+function getProgressBar(ratio: number, width: number = 20): string {
   const filled = Math.floor(ratio * width);
   const empty = width - filled;
   return '█'.repeat(filled) + '░'.repeat(empty);

@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
+import { defineConfig, UserConfig } from 'vite';
 import { resolve } from 'path';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig(async ({ command, mode }) => {
-  const config = {
+  const config: UserConfig = {
     root: 'src',
     build: {
       outDir: '../dist',
