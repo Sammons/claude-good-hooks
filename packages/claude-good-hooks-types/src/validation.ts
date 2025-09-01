@@ -35,12 +35,17 @@ export function validateSettings(settings: unknown): SchemaValidationResult {
     return { valid: true, errors: [] };
   }
   
-  const errors: SchemaValidationError[] = (validateClaudeSettings.errors || []).map(error => ({
-    path: error.instancePath || error.schemaPath || 'root',
-    message: error.message || 'Validation error',
-    value: error.data,
-    expected: error.schema ? String(error.schema) : undefined
-  }));
+  const errors: SchemaValidationError[] = (validateClaudeSettings.errors || []).map(error => {
+    const result: SchemaValidationError = {
+      path: error.instancePath || error.schemaPath || 'root',
+      message: error.message || 'Validation error',
+      value: error.data
+    };
+    if (error.schema) {
+      result.expected = String(error.schema);
+    }
+    return result;
+  });
   
   return { valid: false, errors };
 }
@@ -132,6 +137,8 @@ export function performCustomValidation(settings: VersionedClaudeSettings): Sche
     
     for (let configIndex = 0; configIndex < configurations.length; configIndex++) {
       const config = configurations[configIndex];
+      if (!config) continue;
+      
       const configPath = `hooks.${eventType}[${configIndex}]`;
       
       // Validate matcher patterns for tools that support them
@@ -149,8 +156,12 @@ export function performCustomValidation(settings: VersionedClaudeSettings): Sche
       }
       
       // Validate hook commands
+      if (!config.hooks || !Array.isArray(config.hooks)) continue;
+      
       for (let hookIndex = 0; hookIndex < config.hooks.length; hookIndex++) {
         const hook = config.hooks[hookIndex];
+        if (!hook) continue;
+        
         const hookPath = `${configPath}.hooks[${hookIndex}]`;
         
         // Check for potentially dangerous commands
@@ -252,7 +263,7 @@ export function convertLegacySettings(
   const versionedSettings: VersionedClaudeSettings = {
     $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
     version: CURRENT_SCHEMA_VERSION,
-    hooks: legacySettings.hooks ? {} : undefined,
+    hooks: {},
     meta: {
       createdAt: now,
       updatedAt: now,
@@ -272,16 +283,22 @@ export function convertLegacySettings(
     
     for (const [eventType, configurations] of Object.entries(legacySettings.hooks)) {
       if (configurations && Array.isArray(configurations)) {
-        hooks[eventType as keyof typeof hooks] = configurations.map(config => ({
-          matcher: config.matcher,
-          enabled: true,
-          hooks: config.hooks.map(hook => ({
-            type: hook.type,
-            command: hook.command,
-            timeout: hook.timeout,
-            enabled: true
-          }))
-        }));
+        const mappedConfigs = configurations.map(config => {
+          const mappedConfig: any = {
+            enabled: true,
+            hooks: config.hooks.map((hook: any) => ({
+              type: hook.type as 'command',
+              command: hook.command,
+              timeout: hook.timeout,
+              enabled: true
+            }))
+          };
+          if (config.matcher) {
+            mappedConfig.matcher = config.matcher;
+          }
+          return mappedConfig;
+        });
+        (hooks as any)[eventType] = mappedConfigs;
       }
     }
   }

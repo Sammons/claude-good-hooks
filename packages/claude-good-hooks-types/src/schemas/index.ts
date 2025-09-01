@@ -170,7 +170,7 @@ export interface VersionedClaudeSettings {
 // Utility functions
 export function parseVersion(version: string): SettingsVersion {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
-  if (!match) {
+  if (!match || !match[1] || !match[2] || !match[3]) {
     throw new Error(`Invalid version format: ${version}`);
   }
   

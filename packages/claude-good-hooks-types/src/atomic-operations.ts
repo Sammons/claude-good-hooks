@@ -141,7 +141,11 @@ export function atomicWriteFile(
     // Atomically move temporary file to target location
     renameSync(tempPath, filePath);
 
-    return { success: true, backupPath };
+    const result: AtomicOperationResult = { success: true };
+    if (backupPath) {
+      result.backupPath = backupPath;
+    }
+    return result;
 
   } catch (error) {
     // Clean up temporary file if it exists
@@ -153,11 +157,14 @@ export function atomicWriteFile(
       }
     }
 
-    return {
+    const result: AtomicOperationResult = {
       success: false,
-      error: error as Error,
-      backupPath
+      error: error as Error
     };
+    if (backupPath) {
+      result.backupPath = backupPath;
+    }
+    return result;
   }
 }
 
@@ -272,7 +279,7 @@ export function cleanupBackups(filePath: string, keepCount: number = 5): void {
         path: join(dir, file),
         mtime: statSync(join(dir, file)).mtime
       }))
-      .sort((a, b) => b.mtime.getTime() - a.mtime.getTime()); // Sort by newest first
+      .sort((a: {mtime: Date}, b: {mtime: Date}) => b.mtime.getTime() - a.mtime.getTime()); // Sort by newest first
 
     // Remove old backups beyond keepCount
     const filesToDelete = files.slice(keepCount);
@@ -312,7 +319,11 @@ export function verifyFileIntegrity(filePath: string): {
       };
     }
 
-    return { valid: true, settings: validation.settings };
+    const result: { valid: boolean; error?: Error; settings?: VersionedClaudeSettings } = { valid: true };
+    if (validation.settings) {
+      result.settings = validation.settings;
+    }
+    return result;
 
   } catch (error) {
     return { valid: false, error: error as Error };
