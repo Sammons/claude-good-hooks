@@ -116,7 +116,6 @@ const PUBLISHABLE_PACKAGES = [
 ];
 
 const INTERNAL_PACKAGES = [
-  'claude-good-hooks-testing',
   'claude-good-hooks-smoke-tests',
   'claude-good-hooks-examples',
   'landing-page'

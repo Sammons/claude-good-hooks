@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*",
-    "@sammons/claude-good-hooks-testing": "workspace:*",
     "commander": "^14.0.0",
     "fs-extra": "^11.2.0",
     "glob": "^11.0.0",
