@@ -1,53 +1,40 @@
-import type { HookPlugin, HookConfiguration } from '@sammons/claude-good-hooks-types';
+import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
 const dirtyHook: HookPlugin = {
   name: 'dirty',
   description: 'Shows git dirty status before user prompts',
   version: '1.0.0',
-  hooks: {
-    UserPromptSubmit: [
-      {
-        hooks: [
-          {
-            type: 'command',
-            command: 'git status --short',
-            timeout: 5000
-          }
-        ]
-      }
-    ]
-  },
   customArgs: {
     staged: {
       description: 'Show only staged changes',
       type: 'boolean',
-      default: false
+      default: false,
     },
     unstaged: {
       description: 'Show only unstaged changes',
       type: 'boolean',
-      default: false
+      default: false,
     },
     filenames: {
       description: 'Show only filenames without status codes',
       type: 'boolean',
-      default: false
+      default: false,
     },
     diffs: {
       description: 'Include diff output',
       type: 'boolean',
-      default: false
-    }
+      default: false,
+    },
   },
-  applyHook: (args: Record<string, any>): HookConfiguration[] => {
+  makeHook: (args: Record<string, any>) => {
     let command = 'git status --short';
-    
+
     if (args.staged && !args.unstaged) {
       command = 'git diff --cached --name-status';
     } else if (!args.staged && args.unstaged) {
       command = 'git diff --name-status';
     }
-    
+
     if (args.filenames) {
       if (args.staged && !args.unstaged) {
         command = 'git diff --cached --name-only';
@@ -57,7 +44,7 @@ const dirtyHook: HookPlugin = {
         command = 'git status --short | cut -c4-';
       }
     }
-    
+
     if (args.diffs) {
       if (args.staged && !args.unstaged) {
         command = 'git diff --cached';
@@ -67,20 +54,21 @@ const dirtyHook: HookPlugin = {
         command = 'git diff HEAD';
       }
     }
-    
-    return [
-      {
-        hooks: [
-          {
-            type: 'command',
-            command,
-            timeout: 10000
-          }
-        ]
-      }
-    ];
-  }
+
+    return {
+      UserPromptSubmit: [
+        {
+          hooks: [
+            {
+              type: 'command',
+              command,
+              timeout: 10000,
+            },
+          ],
+        },
+      ],
+    };
+  },
 };
 
 export default dirtyHook;
-export const HookPlugin = dirtyHook;

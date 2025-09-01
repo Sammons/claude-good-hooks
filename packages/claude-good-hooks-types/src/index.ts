@@ -13,7 +13,16 @@ export interface HookPlugin {
   name: string;
   description: string;
   version: string;
-  hooks: {
+  customArgs?: Record<
+    string,
+    {
+      description: string;
+      type: 'string' | 'boolean' | 'number';
+      default?: any;
+      required?: boolean;
+    }
+  >;
+  makeHook: (args: Record<string, any>) => {
     PreToolUse?: HookConfiguration[];
     PostToolUse?: HookConfiguration[];
     UserPromptSubmit?: HookConfiguration[];
@@ -24,13 +33,6 @@ export interface HookPlugin {
     SessionStart?: HookConfiguration[];
     PreCompact?: HookConfiguration[];
   };
-  customArgs?: Record<string, {
-    description: string;
-    type: 'string' | 'boolean' | 'number';
-    default?: any;
-    required?: boolean;
-  }>;
-  applyHook?: (args: Record<string, any>) => HookConfiguration[];
 }
 
 export interface ClaudeSettings {

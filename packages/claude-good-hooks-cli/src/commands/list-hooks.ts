@@ -4,14 +4,14 @@ import { getInstalledHookModules, getRemoteHooks, loadHookPlugin } from '../util
 import type { HookMetadata } from '@sammons/claude-good-hooks-types';
 
 export async function listHooks(options: any): Promise<void> {
-  const { installed, global, project, json } = options;
+  const { installed, global, json } = options;
   const scope = global ? 'global' : 'project';
-  
+
   const hooks: HookMetadata[] = [];
-  
+
   if (installed) {
     const installedModules = getInstalledHookModules(global);
-    
+
     for (const moduleName of installedModules) {
       const plugin = await loadHookPlugin(moduleName, global);
       if (plugin) {
@@ -21,11 +21,11 @@ export async function listHooks(options: any): Promise<void> {
           version: plugin.version,
           source: global ? 'global' : 'local',
           packageName: moduleName,
-          installed: true
+          installed: true,
         });
       }
     }
-    
+
     const settings = readSettings(scope);
     if (settings.hooks) {
       for (const [eventName, configs] of Object.entries(settings.hooks)) {
@@ -35,7 +35,7 @@ export async function listHooks(options: any): Promise<void> {
             description: `Configured ${eventName} hook`,
             version: 'n/a',
             source: global ? 'global' : 'local',
-            installed: true
+            installed: true,
           });
         }
       }
@@ -51,11 +51,11 @@ export async function listHooks(options: any): Promise<void> {
           version: plugin.version,
           source: 'remote',
           packageName: moduleName,
-          installed: getInstalledHookModules(false).includes(moduleName)
+          installed: getInstalledHookModules(false).includes(moduleName),
         });
       }
     }
-    
+
     const installedModules = getInstalledHookModules(global);
     for (const moduleName of installedModules) {
       const plugin = await loadHookPlugin(moduleName, global);
@@ -66,12 +66,12 @@ export async function listHooks(options: any): Promise<void> {
           version: plugin.version,
           source: global ? 'global' : 'local',
           packageName: moduleName,
-          installed: true
+          installed: true,
         });
       }
     }
   }
-  
+
   if (json) {
     console.log(JSON.stringify(hooks, null, 2));
   } else {
@@ -79,9 +79,9 @@ export async function listHooks(options: any): Promise<void> {
       console.log(chalk.yellow('No hooks found'));
       return;
     }
-    
+
     console.log(chalk.bold(`\nAvailable Hooks (${scope}):\n`));
-    
+
     for (const hook of hooks) {
       const status = hook.installed ? chalk.green('✓') : chalk.red('✗');
       console.log(`${status} ${chalk.bold(hook.name)} v${hook.version}`);

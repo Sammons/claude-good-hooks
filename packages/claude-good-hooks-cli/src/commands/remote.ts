@@ -1,16 +1,21 @@
 import chalk from 'chalk';
-import { isModuleInstalled, addRemoteHook, removeRemoteHook, getRemoteHooks } from '../utils/modules.js';
+import {
+  isModuleInstalled,
+  addRemoteHook,
+  removeRemoteHook,
+  getRemoteHooks,
+} from '../utils/modules.js';
 
 export async function remoteCommand(options: any): Promise<void> {
   const { add, remove, json } = options;
   const isJson = options.parent?.json || json;
-  
+
   if (add) {
     const installed = isModuleInstalled(add, false) || isModuleInstalled(add, true);
-    
+
     if (!installed) {
       const message = `Module ${add} is not installed. Please install it first using:\n  npm install ${add}\n  or\n  npm install -g ${add}`;
-      
+
       if (isJson) {
         console.log(JSON.stringify({ success: false, error: message }));
       } else {
@@ -18,9 +23,9 @@ export async function remoteCommand(options: any): Promise<void> {
       }
       process.exit(1);
     }
-    
+
     addRemoteHook(add);
-    
+
     if (isJson) {
       console.log(JSON.stringify({ success: true, action: 'added', module: add }));
     } else {
@@ -28,7 +33,7 @@ export async function remoteCommand(options: any): Promise<void> {
     }
   } else if (remove) {
     removeRemoteHook(remove);
-    
+
     if (isJson) {
       console.log(JSON.stringify({ success: true, action: 'removed', module: remove }));
     } else {
@@ -36,7 +41,7 @@ export async function remoteCommand(options: any): Promise<void> {
     }
   } else {
     const remotes = getRemoteHooks();
-    
+
     if (isJson) {
       console.log(JSON.stringify({ remotes }));
     } else {

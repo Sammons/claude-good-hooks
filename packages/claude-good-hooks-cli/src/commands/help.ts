@@ -2,7 +2,7 @@ import chalk from 'chalk';
 
 export async function helpCommand(options: any): Promise<void> {
   const isJson = options.parent?.json;
-  
+
   const helpText = `
 ${chalk.bold('claude-good-hooks')} - CLI for managing Claude Code hooks
 
@@ -49,17 +49,19 @@ ${chalk.bold('EXAMPLES')}
 `;
 
   if (isJson) {
-    console.log(JSON.stringify({
-      commands: {
-        help: 'Show help information',
-        'list-hooks': 'List available hooks',
-        remote: 'Manage remote hook sources',
-        apply: 'Apply a hook',
-        update: 'Update claude-good-hooks CLI',
-        doctor: 'Check system configuration',
-        version: 'Show version information'
-      }
-    }));
+    console.log(
+      JSON.stringify({
+        commands: {
+          help: 'Show help information',
+          'list-hooks': 'List available hooks',
+          remote: 'Manage remote hook sources',
+          apply: 'Apply a hook',
+          update: 'Update claude-good-hooks CLI',
+          doctor: 'Check system configuration',
+          version: 'Show version information',
+        },
+      })
+    );
   } else {
     console.log(helpText);
   }

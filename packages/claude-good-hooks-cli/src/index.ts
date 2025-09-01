@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { listHooks } from './commands/list-hooks.js';
 import { remoteCommand } from './commands/remote.js';
 import { applyCommand } from './commands/apply.js';
@@ -18,10 +17,7 @@ program
   .version('1.0.0')
   .option('--json', 'Output in JSON format');
 
-program
-  .command('help')
-  .description('Show help information')
-  .action(helpCommand);
+program.command('help').description('Show help information').action(helpCommand);
 
 program
   .command('list-hooks')
@@ -49,19 +45,10 @@ program
   .argument('[args...]', 'Hook-specific arguments')
   .action(applyCommand);
 
-program
-  .command('update')
-  .description('Update claude-good-hooks CLI')
-  .action(updateCommand);
+program.command('update').description('Update claude-good-hooks CLI').action(updateCommand);
 
-program
-  .command('doctor')
-  .description('Check system configuration')
-  .action(doctorCommand);
+program.command('doctor').description('Check system configuration').action(doctorCommand);
 
-program
-  .command('version')
-  .description('Show version information')
-  .action(versionCommand);
+program.command('version').description('Show version information').action(versionCommand);
 
 program.parse();

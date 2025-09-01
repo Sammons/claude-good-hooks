@@ -3,21 +3,27 @@
   "version": "1.0.0",
   "description": "CLI for managing Claude Code hooks",
   "bin": {
-    "claude-good-hooks": "./dist/index.js"
+    "claude-good-hooks": "./dist/index.mjs"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --shims",
     "test": "vitest run",
     "dev": "tsup src/index.ts --format esm --watch"
   },
-  "keywords": ["claude", "hooks", "cli"],
+  "keywords": [
+    "claude",
+    "hooks",
+    "cli"
+  ],
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*",

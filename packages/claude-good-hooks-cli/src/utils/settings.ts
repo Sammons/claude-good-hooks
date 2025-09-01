@@ -28,14 +28,17 @@ export function readSettings(scope: 'global' | 'project' | 'local'): ClaudeSetti
   }
 }
 
-export function writeSettings(scope: 'global' | 'project' | 'local', settings: ClaudeSettings): void {
+export function writeSettings(
+  scope: 'global' | 'project' | 'local',
+  settings: ClaudeSettings
+): void {
   const path = getSettingsPath(scope);
   const dir = dirname(path);
-  
+
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-  
+
   writeFileSync(path, JSON.stringify(settings, null, 2));
 }
 
@@ -45,15 +48,15 @@ export function addHookToSettings(
   hookConfig: HookConfiguration
 ): void {
   const settings = readSettings(scope);
-  
+
   if (!settings.hooks) {
     settings.hooks = {};
   }
-  
+
   if (!settings.hooks[eventName]) {
     settings.hooks[eventName] = [];
   }
-  
+
   settings.hooks[eventName].push(hookConfig);
   writeSettings(scope, settings);
 }
@@ -64,11 +67,11 @@ export function removeHookFromSettings(
   matcher?: string
 ): void {
   const settings = readSettings(scope);
-  
+
   if (!settings.hooks || !settings.hooks[eventName]) {
     return;
   }
-  
+
   if (matcher) {
     settings.hooks[eventName] = settings.hooks[eventName].filter(
       config => config.matcher !== matcher
@@ -78,6 +81,6 @@ export function removeHookFromSettings(
       config => config.matcher !== undefined
     );
   }
-  
+
   writeSettings(scope, settings);
 }

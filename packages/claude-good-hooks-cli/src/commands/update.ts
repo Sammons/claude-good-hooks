@@ -3,26 +3,28 @@ import { execSync } from 'child_process';
 
 export async function updateCommand(options: any): Promise<void> {
   const isJson = options.parent?.json;
-  
+
   try {
     console.log(chalk.cyan('Updating @sammons/claude-good-hooks...'));
-    
-    const output = execSync('npm install -g @sammons/claude-good-hooks@latest', { 
+
+    execSync('npm install -g @sammons/claude-good-hooks@latest', {
       encoding: 'utf-8',
-      stdio: isJson ? 'pipe' : 'inherit'
+      stdio: isJson ? 'pipe' : 'inherit',
     });
-    
+
     if (isJson) {
-      console.log(JSON.stringify({ 
-        success: true, 
-        message: 'Successfully updated to latest version' 
-      }));
+      console.log(
+        JSON.stringify({
+          success: true,
+          message: 'Successfully updated to latest version',
+        })
+      );
     } else {
       console.log(chalk.green('✓ Successfully updated to latest version'));
     }
-  } catch (error: any) {
-    const message = `Failed to update: ${error.message}`;
-    
+  } catch (error) {
+    const message = `Failed to update: ${error instanceof Error ? error.message : String(error)}`;
+
     if (isJson) {
       console.log(JSON.stringify({ success: false, error: message }));
     } else {

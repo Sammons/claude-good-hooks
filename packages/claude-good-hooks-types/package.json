@@ -4,16 +4,22 @@
   "description": "TypeScript types for Claude Good Hooks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
     "test": "vitest run"
   },
-  "keywords": ["claude", "hooks", "types"],
+  "keywords": [
+    "claude",
+    "hooks",
+    "types"
+  ],
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

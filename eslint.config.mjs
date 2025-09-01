@@ -24,11 +24,11 @@ export default [
         module: 'writable',
         require: 'readonly',
         global: 'readonly',
-      }
+      },
     },
     plugins: {
       '@typescript-eslint': typescript,
-      prettier: prettierPlugin
+      prettier: prettierPlugin,
     },
     rules: {
       ...typescript.configs.recommended.rules,
@@ -37,10 +37,10 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
-    }
+    },
   },
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/*.js', '**/*.mjs']
+    ignores: ['**/dist/**', '**/node_modules/**', '**/*.js', '**/*.mjs'],
   },
-  prettier
+  prettier,
 ];

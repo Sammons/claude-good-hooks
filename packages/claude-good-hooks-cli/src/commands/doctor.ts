@@ -7,21 +7,20 @@ import { homedir } from 'os';
 export async function doctorCommand(options: any): Promise<void> {
   const isJson = options.parent?.json;
   const checks: Array<{ name: string; status: boolean; message?: string }> = [];
-  
+
   // Check if claude-good-hooks is in PATH
-  let inPath = false;
   try {
     execSync('which claude-good-hooks', { encoding: 'utf-8' });
-    inPath = true;
     checks.push({ name: 'claude-good-hooks in PATH', status: true });
   } catch {
-    checks.push({ 
-      name: 'claude-good-hooks in PATH', 
+    checks.push({
+      name: 'claude-good-hooks in PATH',
       status: false,
-      message: 'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks'
+      message:
+        'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks',
     });
   }
-  
+
   // Check Node.js version
   const nodeVersion = process.version;
   const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
@@ -29,61 +28,59 @@ export async function doctorCommand(options: any): Promise<void> {
   checks.push({
     name: 'Node.js version',
     status: nodeOk,
-    message: nodeOk ? `v${nodeVersion}` : `v${nodeVersion} (requires Node.js 22+)`
+    message: nodeOk ? `v${nodeVersion}` : `v${nodeVersion} (requires Node.js 22+)`,
   });
-  
+
   // Check for Claude settings directory
   const claudeDir = join(homedir(), '.claude');
   const claudeDirExists = existsSync(claudeDir);
   checks.push({
     name: 'Claude settings directory',
     status: claudeDirExists,
-    message: claudeDirExists ? claudeDir : 'Claude Code may not be installed'
+    message: claudeDirExists ? claudeDir : 'Claude Code may not be installed',
   });
-  
+
   // Check for global settings file
   const globalSettingsPath = join(claudeDir, 'settings.json');
   const globalSettingsExists = existsSync(globalSettingsPath);
   checks.push({
     name: 'Global settings file',
     status: globalSettingsExists,
-    message: globalSettingsExists ? 'Found' : 'Not found (will be created when needed)'
+    message: globalSettingsExists ? 'Found' : 'Not found (will be created when needed)',
   });
-  
+
   // Check for project settings
   const projectClaudeDir = join(process.cwd(), '.claude');
   const projectSettingsExists = existsSync(join(projectClaudeDir, 'settings.json'));
   checks.push({
     name: 'Project settings',
     status: projectSettingsExists,
-    message: projectSettingsExists ? 'Found' : 'Not found (will be created when needed)'
+    message: projectSettingsExists ? 'Found' : 'Not found (will be created when needed)',
   });
-  
+
   // Check npm/pnpm
-  let npmOk = false;
   try {
     execSync('npm --version', { encoding: 'utf-8' });
-    npmOk = true;
     checks.push({ name: 'npm available', status: true });
   } catch {
-    checks.push({ 
-      name: 'npm available', 
+    checks.push({
+      name: 'npm available',
       status: false,
-      message: 'npm not found. Please install Node.js/npm'
+      message: 'npm not found. Please install Node.js/npm',
     });
   }
-  
+
   if (isJson) {
     console.log(JSON.stringify({ checks }, null, 2));
   } else {
     console.log(chalk.bold('\nSystem Check:\n'));
-    
+
     for (const check of checks) {
       const status = check.status ? chalk.green('✓') : chalk.red('✗');
       const message = check.message ? chalk.dim(` - ${check.message}`) : '';
       console.log(`${status} ${check.name}${message}`);
     }
-    
+
     const allPassed = checks.every(c => c.status);
     console.log();
     if (allPassed) {

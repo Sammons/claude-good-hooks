@@ -10,14 +10,18 @@ Install the CLI and the dirty hook to automatically show git status before Claud
 # Install the CLI globally
 npm install -g @sammons/claude-good-hooks
 
-# Install the dirty hook
+# Install the dirty hook for example
+# The dirty hook will tell claude what changes you have locally that aren't committed
 npm install -g @sammons/dirty-good-claude-hook
 
 # Apply the dirty hook globally
 claude-good-hooks apply --global dirty
 
-# Or apply with custom options
+# Or apply with custom options, and only to the local project
 claude-good-hooks apply --project dirty --staged --filenames
+
+# Or apply without sharing it with coworkers
+claude-good-hooks apply --local dirty --staged --filenames
 ```
 
 ## Publishing Your Own Hook
@@ -46,30 +50,36 @@ const myHook: HookPlugin = {
           {
             type: 'command',
             command: 'echo "About to modify a file"',
-            timeout: 5000
-          }
-        ]
-      }
-    ]
+            timeout: 5000,
+          },
+        ],
+      },
+    ],
   },
   customArgs: {
     verbose: {
       description: 'Enable verbose output',
       type: 'boolean',
-      default: false
-    }
+      default: false,
+    },
   },
-  applyHook: (args) => {
+  makeHook: args => {
     // Custom logic based on arguments
-    return [{
-      matcher: '*',
-      hooks: [{
-        type: 'command',
-        command: args.verbose ? 'echo "Verbose mode"' : 'echo "Normal mode"',
-        timeout: 5000
-      }]
-    }];
-  }
+    return {
+      UserPromptSubmit: [
+        {
+          matcher: '*',
+          hooks: [
+            {
+              type: 'command',
+              command: args.verbose ? 'echo "Verbose mode"' : 'echo "Normal mode"',
+              timeout: 5000,
+            },
+          ],
+        },
+      ],
+    };
+  },
 };
 
 export default myHook;
@@ -80,7 +90,7 @@ export const HookPlugin = myHook;
 
 ```bash
 npm run build
-npm publish
+npm publish # you will need to login to npm  for this to work
 ```
 
 4. Users can now install and use your hook:
@@ -98,11 +108,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 [Buy me a coffee](https://buymeacoffee.com) (placeholder)
 
+## Project Status
+
+Experimental. I created this in September 2025 to streamline the hooks I am experimenting with around `claude` (Claude Code).
+
 ## License
 
 MIT License
 
-Copyright (c) 2024
+Copyright (c) Sammons Software LLC 2025
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -4,16 +4,23 @@
   "description": "Git dirty status hook for Claude Code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
     "test": "vitest run"
   },
-  "keywords": ["claude", "hooks", "git", "dirty"],
+  "keywords": [
+    "claude",
+    "hooks",
+    "git",
+    "dirty"
+  ],
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*"
