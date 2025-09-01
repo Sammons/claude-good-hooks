@@ -9,7 +9,7 @@
     "template"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean --tsconfig tsconfig.build.json",
+    "build": "tsup src/index.ts --format esm,cjs --clean --tsconfig tsconfig.build.json",
     "test": "vitest run"
   },
   "keywords": [
@@ -23,7 +23,8 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@sammons/claude-good-hooks-types": "workspace:*"
+    "@sammons/claude-good-hooks-types": "workspace:*",
+    "@sammons/claude-good-hooks-factories": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

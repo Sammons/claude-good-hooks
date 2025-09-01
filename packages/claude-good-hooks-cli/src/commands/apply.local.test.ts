@@ -167,19 +167,21 @@ describe('applyCommand - Local Scope', () => {
 
       await applyCommand('project-formatter', ['--checkOnly'], { local: true, parent: { json: true } });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        JSON.stringify({
-          success: true,
-          hook: 'project-formatter',
-          scope: 'local',
-          args: {
-            configFile: './.prettierrc',
-            checkOnly: true,
-            extensions: 'js,ts,json,md',
-            maxLineLength: 100,
-          },
-        })
-      );
+      const expectedOutput = {
+        success: true,
+        hook: 'project-formatter',
+        scope: 'local',
+        args: {
+          configFile: './.prettierrc',
+          checkOnly: true,
+          extensions: 'js,ts,json,md',
+          maxLineLength: 100,
+        },
+      };
+
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+      const actualOutput = JSON.parse(consoleSpy.mock.calls[0][0]);
+      expect(actualOutput).toEqual(expectedOutput);
     });
   });
 

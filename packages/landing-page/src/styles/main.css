@@ -390,8 +390,17 @@ body {
   font-size: var(--font-size-sm);
 }
 
+.code-block pre {
+  flex: 1;
+  margin: 0;
+  background: none !important;
+  padding: 0 !important;
+}
+
 .code-block code {
   flex: 1;
+  background: none !important;
+  color: inherit !important;
 }
 
 .copy-btn {
@@ -645,6 +654,10 @@ body {
   .copy-btn {
     align-self: flex-end;
   }
+  
+  .code-block pre {
+    margin-bottom: var(--space-sm);
+  }
 }
 
 /* Accessibility */
@@ -661,4 +674,117 @@ body {
 .footer-links a:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+/* Syntax Highlighting Customization */
+/* Override Prism.js theme to match our design */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #ffffff;
+  background: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  tab-size: 4;
+  hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+  background: var(--color-gray-900);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+  background: var(--color-gray-900);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius);
+}
+
+/* Syntax highlighting colors that match our theme */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--color-gray-400);
+}
+
+.token.punctuation {
+  color: #ffffff;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff6b6b;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #4ecdc4;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #feca57;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--color-primary);
+}
+
+.token.function,
+.token.class-name {
+  color: #48dbfb;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #ff9ff3;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+/* Ensure code blocks in our custom containers maintain styling */
+.code-block pre[class*="language-"],
+.example-code pre[class*="language-"] {
+  background: var(--color-gray-900);
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  font-size: var(--font-size-sm);
+}
+
+.code-block code[class*="language-"],
+.example-code code[class*="language-"] {
+  color: #ffffff;
+  font-size: var(--font-size-sm);
 }

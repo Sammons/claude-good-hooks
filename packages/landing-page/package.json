@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:docs": "vite build --outDir ../../docs --emptyOutDir --base /claude-good-hooks/"
+    "build:docs": "vite build --outDir ../../../docs --emptyOutDir --base /claude-good-hooks/"
   },
   "keywords": [
     "claude",

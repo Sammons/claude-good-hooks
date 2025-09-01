@@ -62,9 +62,9 @@ describe('listHooks - Installed Hooks', () => {
 
       await listHooks({ installed: true, parent: {} });
 
-      expect(mockGetInstalledHookModules).toHaveBeenCalledWith(false);
-      expect(mockLoadHookPlugin).toHaveBeenCalledWith('local-formatter', false);
-      expect(mockLoadHookPlugin).toHaveBeenCalledWith('another-local-hook', false);
+      expect(mockGetInstalledHookModules).toHaveBeenCalledWith(undefined);
+      expect(mockLoadHookPlugin).toHaveBeenCalledWith('local-formatter', undefined);
+      expect(mockLoadHookPlugin).toHaveBeenCalledWith('another-local-hook', undefined);
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Available Hooks (project):'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ local-formatter v1.2.3'));
@@ -192,9 +192,9 @@ describe('listHooks - Installed Hooks', () => {
 
       await listHooks({ installed: true, parent: {} });
 
-      expect(mockLoadHookPlugin).toHaveBeenCalledWith('broken-plugin', false);
-      // Should not crash and should not display the broken plugin
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Available Hooks (project):'));
+      expect(mockLoadHookPlugin).toHaveBeenCalledWith('broken-plugin', undefined);
+      // Should not crash and should show "No hooks found" since plugin loading failed
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No hooks found'));
     });
 
     it('should handle settings reading errors', async () => {

@@ -1,40 +1,82 @@
+# ===================================================================
+# Continuous Integration (CI) Workflow
+# ===================================================================
+# 
+# This workflow runs comprehensive tests and validation on every push 
+# to main and pull request. It ensures code quality, runs tests,
+# validates package structure, and generates coverage reports.
+#
+# Triggers:
+# - Push to main branch
+# - Pull requests targeting main branch
+#
+# Jobs:
+# 1. test: Run tests, linting, formatting checks, and coverage
+# 2. validate-packages: Validate package structure and simulate publishing
+#
+# The workflow uses concurrency control to cancel previous runs when 
+# new commits are pushed to the same branch/PR.
+# ===================================================================
+
 name: CI
 
 on:
+  # Trigger on pushes to main branch to validate changes going to production
   push:
     branches: [main]
+  # Trigger on pull requests to main to validate changes before merging
   pull_request:
     branches: [main]
 
+# Concurrency control: Cancel previous runs for the same workflow + ref
+# This saves CI resources by stopping outdated runs when new commits are pushed
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # ===================================================================
+  # Primary Test Job
+  # ===================================================================
+  # Runs the core validation pipeline including tests, linting, 
+  # formatting checks, builds, and coverage reporting.
+  # ===================================================================
   test:
     name: Test & Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Use latest Ubuntu runner for consistency
     
     steps:
+      # Step 1: Get the source code
+      # Uses v4 for latest features and security updates
       - name: Checkout
         uses: actions/checkout@v4
         
+      # Step 2: Setup Node.js environment
+      # Pin to Node.js 20.x for consistency with development environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           
+      # Step 3: Setup pnpm package manager
+      # Pin to specific version for reproducible builds
+      # run_install: false to control installation timing
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
-          run_install: false
+          version: 10.12.4 # Pinned version for consistency
+          run_install: false # We'll install manually to use caching
           
+      # Step 4: Get pnpm store location for caching
+      # This step determines where pnpm stores packages for cache optimization
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
           
+      # Step 5: Cache pnpm store for faster builds
+      # Cache key includes pnpm-lock.yaml hash to invalidate when dependencies change
+      # Fallback to previous cache if exact match not found
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -43,57 +85,90 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
+      # Step 6: Install dependencies
+      # --frozen-lockfile ensures we use exact versions from lockfile
+      # Fails if lockfile is out of sync with package.json
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
+      # Step 7: Code quality checks
+      # Verify code is properly formatted according to project standards
       - name: Check formatting
         run: pnpm check-format
         
+      # Step 8: Run ESLint checks
+      # Catch potential bugs and enforce coding standards
       - name: Run linting
         run: pnpm lint
         
+      # Step 9: Run test suite
+      # Execute all unit and integration tests
       - name: Run tests
         run: pnpm test
         
+      # Step 10: Build all packages
+      # Verify that all packages can be built successfully
+      # This catches TypeScript compilation errors and build issues
       - name: Build all packages
         run: pnpm build
         
+      # Step 11: Generate test coverage report
+      # continue-on-error: true means workflow continues even if coverage fails
+      # This prevents flaky coverage tools from breaking the build
       - name: Generate coverage report
         run: pnpm test:coverage
         continue-on-error: true
         
+      # Step 12: Upload coverage to external service
+      # Provides coverage tracking and reporting via Codecov
+      # fail_ci_if_error: false prevents Codecov issues from failing the build
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
-          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }} # Required for private repos
+          fail_ci_if_error: false # Don't fail CI if Codecov has issues
+          verbose: true # Enable detailed logging for debugging
 
+  # ===================================================================
+  # Package Validation Job
+  # ===================================================================
+  # This job validates that packages are structured correctly and ready
+  # for publishing. It runs after the test job completes successfully.
+  # 
+  # Purpose: Simulate publishing to catch packaging issues before release
+  # Dependency: Requires the 'test' job to complete successfully
+  # ===================================================================
   validate-packages:
     name: Validate Package Structure
     runs-on: ubuntu-latest
-    needs: test
+    needs: test # Only run if tests pass - saves resources on test failures
     
     steps:
+      # Step 1: Get the source code (same as test job)
       - name: Checkout
         uses: actions/checkout@v4
         
+      # Step 2: Setup Node.js (consistent with test job)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           
+      # Step 3: Setup pnpm (same configuration as test job)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
           run_install: false
           
+      # Step 4: Get pnpm store directory for caching
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
           
+      # Step 5: Reuse cache from test job
+      # Same cache key ensures we reuse downloaded dependencies
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -102,22 +177,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
+      # Step 6: Install dependencies (should be fast due to caching)
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
+      # Step 7: Build packages to ensure they're ready for validation
       - name: Build packages
         run: pnpm build
         
+      # Step 8: Validate package structure and contents
+      # This simulates what would be published to NPM without actually publishing
+      # Helps catch missing files, incorrect package.json configs, etc.
       - name: Check package contents
         run: |
-          echo "Checking package contents..."
+          echo "Validating package structure for publishable packages..."
+          echo "This simulates 'npm publish --dry-run' to catch packaging issues"
+          
+          # Loop through all package directories
           for pkg in packages/*/; do
+            # Only check packages that aren't marked as private
             if [ -f "$pkg/package.json" ] && [ "$(cat "$pkg/package.json" | grep -c '"private".*true')" -eq 0 ]; then
-              echo "Checking $pkg"
+              echo "📦 Checking package: $pkg"
               cd "$pkg"
+              
+              # Run npm pack --dry-run to simulate publishing
+              # This shows what files would be included and catches common issues
               if [ -f "package.json" ]; then
                 npm pack --dry-run
               fi
               cd - > /dev/null
+            else
+              echo "⏭️  Skipping private package: $pkg"
             fi
           done
+          
+          echo "✅ Package validation completed"

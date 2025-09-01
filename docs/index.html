@@ -24,8 +24,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/claude-good-hooks/assets/main-C8l6SDbK.js"></script>
-  <link rel="stylesheet" crossorigin href="/claude-good-hooks/assets/main-jH8C_1gk.css">
+  
+  <!-- Prism.js for syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+  <script type="module" crossorigin src="/claude-good-hooks/assets/main-LQ92qsDg.js"></script>
+  <link rel="stylesheet" crossorigin href="/claude-good-hooks/assets/main-yyQGiYqV.css">
 </head>
 <body>
   <!-- Header -->
@@ -38,16 +42,10 @@
       <div class="nav-menu" id="nav-menu">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="#home" class="nav-link">Home</a>
+            <a href="#getting-started" class="nav-link">Get Started</a>
           </li>
           <li class="nav-item">
             <a href="#features" class="nav-link">Features</a>
-          </li>
-          <li class="nav-item">
-            <a href="#getting-started" class="nav-link">Getting Started</a>
-          </li>
-          <li class="nav-item">
-            <a href="#docs" class="nav-link">Documentation</a>
           </li>
           <li class="nav-item">
             <a href="#examples" class="nav-link">Examples</a>
@@ -55,7 +53,6 @@
         </ul>
         <div class="nav-cta">
           <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline" target="_blank">
-            <span class="github-icon">⭐</span>
             GitHub
           </a>
         </div>
@@ -73,33 +70,18 @@
     <div class="hero-container container">
       <div class="hero-content">
         <h1 class="hero-title">
-          Supercharge Your
+          Automate Your
           <span class="gradient-text">Claude Code</span>
           Workflow
         </h1>
         <p class="hero-description">
-          Claude Good Hooks is a professional CLI tool that lets you create, share, and apply powerful automation hooks 
-          to enhance your Claude Code development experience. Streamline repetitive tasks and boost productivity.
+          Create, share, and apply powerful automation hooks to enhance your Claude Code development experience.
         </p>
         <div class="hero-actions">
           <a href="#getting-started" class="btn btn-primary">Get Started</a>
           <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-secondary" target="_blank">
-            View on GitHub
+            GitHub
           </a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat">
-            <span class="stat-number">1.0.0</span>
-            <span class="stat-label">Latest Version</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">MIT</span>
-            <span class="stat-label">License</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">Node 20+</span>
-            <span class="stat-label">Requirements</span>
-          </div>
         </div>
       </div>
       <div class="hero-visual">
@@ -110,7 +92,6 @@
               <span></span>
               <span></span>
             </div>
-            <span class="code-title">Terminal</span>
           </div>
           <div class="code-content">
             <div class="code-line">
@@ -119,7 +100,7 @@
             </div>
             <div class="code-line">
               <span class="code-prompt">$</span>
-              <span class="code-command">claude-good-hooks apply --global dirty</span>
+              <span class="code-command">claude-good-hooks apply dirty --global</span>
             </div>
             <div class="code-line code-output">
               <span class="code-success">✓ Hook applied successfully!</span>
@@ -134,58 +115,31 @@
   <section class="features" id="features">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">Why Choose Claude Good Hooks?</h2>
-        <p class="section-description">
-          Everything you need to create a powerful, automated development workflow with Claude Code.
-        </p>
+        <h2 class="section-title">Key Features</h2>
       </div>
       
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">🚀</div>
-          <h3 class="feature-title">Easy Installation</h3>
+          <h3 class="feature-title">Simple Setup</h3>
           <p class="feature-description">
-            Install globally with npm and start using hooks immediately. No complex configuration required.
+            Install with npm and apply hooks instantly. No complex configuration needed.
           </p>
         </div>
         
         <div class="feature-card">
           <div class="feature-icon">🔧</div>
-          <h3 class="feature-title">Flexible Configuration</h3>
+          <h3 class="feature-title">Flexible Scoping</h3>
           <p class="feature-description">
-            Apply hooks globally, per-project, or locally. Full control over when and where your hooks run.
+            Apply hooks globally, per-project, or locally with full control.
           </p>
         </div>
         
         <div class="feature-card">
           <div class="feature-icon">📦</div>
-          <h3 class="feature-title">NPM Package System</h3>
+          <h3 class="feature-title">NPM Ecosystem</h3>
           <p class="feature-description">
-            Share your hooks as NPM packages. Install community hooks with a single command.
-          </p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3 class="feature-title">TypeScript Support</h3>
-          <p class="feature-description">
-            Built with TypeScript for excellent developer experience and type safety.
-          </p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">🛠️</div>
-          <h3 class="feature-title">Custom Arguments</h3>
-          <p class="feature-description">
-            Create hooks with custom CLI arguments for maximum flexibility and reusability.
-          </p>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon">🔍</div>
-          <h3 class="feature-title">Built-in Diagnostics</h3>
-          <p class="feature-description">
-            Doctor command helps diagnose configuration issues and ensures everything works correctly.
+            Share hooks as packages and install community hooks easily.
           </p>
         </div>
       </div>
@@ -196,10 +150,7 @@
   <section class="getting-started" id="getting-started">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">Get Started in Minutes</h2>
-        <p class="section-description">
-          Follow these simple steps to start using Claude Good Hooks in your development workflow.
-        </p>
+        <h2 class="section-title">Quick Start</h2>
       </div>
       
       <div class="steps">
@@ -207,9 +158,8 @@
           <div class="step-number">1</div>
           <div class="step-content">
             <h3 class="step-title">Install the CLI</h3>
-            <p class="step-description">Install Claude Good Hooks globally using npm.</p>
             <div class="code-block">
-              <code>npm install -g @sammons/claude-good-hooks</code>
+              <pre><code class="language-bash">npm install -g @sammons/claude-good-hooks</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/claude-good-hooks')">
                 📋
               </button>
@@ -220,10 +170,9 @@
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h3 class="step-title">Install a Hook</h3>
-            <p class="step-description">Install your first hook, like the dirty hook for git status.</p>
+            <h3 class="step-title">Install a Hook Package</h3>
             <div class="code-block">
-              <code>npm install -g @sammons/dirty-good-claude-hook</code>
+              <pre><code class="language-bash">npm install -g @sammons/dirty-good-claude-hook</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/dirty-good-claude-hook')">
                 📋
               </button>
@@ -235,24 +184,9 @@
           <div class="step-number">3</div>
           <div class="step-content">
             <h3 class="step-title">Apply the Hook</h3>
-            <p class="step-description">Apply the hook to your project or globally.</p>
             <div class="code-block">
-              <code>claude-good-hooks apply --global dirty</code>
-              <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply --global dirty')">
-                📋
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3 class="step-title">Start Using Claude</h3>
-            <p class="step-description">Launch Claude Code and see your hooks in action!</p>
-            <div class="code-block">
-              <code>claude</code>
-              <button class="copy-btn" onclick="copyToClipboard('claude')">
+              <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
+              <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply dirty --global')">
                 📋
               </button>
             </div>
@@ -262,214 +196,57 @@
     </div>
   </section>
 
-  <!-- Documentation Section -->
-  <section class="docs" id="docs">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">API Documentation</h2>
-        <p class="section-description">
-          Comprehensive guide to creating and using Claude Good Hooks.
-        </p>
-      </div>
-      
-      <div class="docs-grid">
-        <div class="docs-category">
-          <h3 class="docs-category-title">CLI Commands</h3>
-          <div class="docs-list">
-            <div class="docs-item">
-              <code class="docs-command">claude-good-hooks list-hooks</code>
-              <p class="docs-description">List all available hooks</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">claude-good-hooks apply &lt;hook-name&gt;</code>
-              <p class="docs-description">Apply a hook with optional arguments</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">claude-good-hooks remote --add &lt;module&gt;</code>
-              <p class="docs-description">Add a remote hook source</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">claude-good-hooks doctor</code>
-              <p class="docs-description">Check system configuration</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="docs-category">
-          <h3 class="docs-category-title">Hook Plugin Interface</h3>
-          <div class="code-example">
-            <pre><code class="language-typescript">interface HookPlugin {
-  name: string;
-  description: string;
-  version: string;
-  hooks: HookConfiguration;
-  customArgs?: CustomArgs;
-  makeHook?: (args: any) => HookConfiguration;
-}</code></pre>
-          </div>
-        </div>
-        
-        <div class="docs-category">
-          <h3 class="docs-category-title">Hook Events</h3>
-          <div class="docs-list">
-            <div class="docs-item">
-              <code class="docs-command">PreToolUse</code>
-              <p class="docs-description">Before Claude executes a tool</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">PostToolUse</code>
-              <p class="docs-description">After Claude executes a tool</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">UserPromptSubmit</code>
-              <p class="docs-description">When user submits a prompt</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">SessionStart</code>
-              <p class="docs-description">When Claude session starts</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="docs-category">
-          <h3 class="docs-category-title">Configuration Options</h3>
-          <div class="docs-list">
-            <div class="docs-item">
-              <code class="docs-command">--global</code>
-              <p class="docs-description">Apply to ~/.claude/settings.json</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">--project</code>
-              <p class="docs-description">Apply to .claude/settings.json</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">--local</code>
-              <p class="docs-description">Apply to .claude/settings.local.json</p>
-            </div>
-            <div class="docs-item">
-              <code class="docs-command">[args...]</code>
-              <p class="docs-description">Hook-specific arguments</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Examples Section -->
   <section class="examples" id="examples">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">Real-World Examples</h2>
-        <p class="section-description">
-          See how Claude Good Hooks can enhance your development workflow with these practical examples.
-        </p>
+        <h2 class="section-title">Popular Examples</h2>
       </div>
       
       <div class="examples-grid">
         <div class="example-card">
-          <div class="example-header">
-            <h3 class="example-title">Git Status Hook</h3>
-            <span class="example-badge">Built-in</span>
-          </div>
+          <h3 class="example-title">Git Status Hook</h3>
           <p class="example-description">
-            Automatically show git status and uncommitted changes to Claude before each response.
+            Automatically show git status to Claude before each response.
           </p>
           <div class="example-code">
-            <pre><code># Install the dirty hook
-npm install -g @sammons/dirty-good-claude-hook
-
-# Apply with options
-claude-good-hooks apply --global dirty --staged --filenames</code></pre>
-          </div>
-          <div class="example-result">
-            <strong>Result:</strong> Claude will always know about your uncommitted changes and can help you manage them.
+            <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
           </div>
         </div>
         
         <div class="example-card">
-          <div class="example-header">
-            <h3 class="example-title">Custom Linting Hook</h3>
-            <span class="example-badge">Community</span>
-          </div>
+          <h3 class="example-title">Lint Before Edit</h3>
           <p class="example-description">
-            Run ESLint or Prettier automatically before Claude modifies any files.
+            Run linting automatically before file modifications.
           </p>
           <div class="example-code">
-            <pre><code>const lintHook: HookPlugin = {
-  name: 'lint',
-  description: 'Run linting before file modifications',
-  version: '1.0.0',
+            <pre><code class="language-javascript">const lintHook = {
   hooks: {
     PreToolUse: [{
       matcher: 'Write|Edit',
-      hooks: [{
-        type: 'command',
-        command: 'npm run lint'
-      }]
+      hooks: [{ command: 'npm run lint' }]
     }]
   }
 };</code></pre>
           </div>
-          <div class="example-result">
-            <strong>Result:</strong> Ensures code quality by running linters before any file changes.
-          </div>
         </div>
         
         <div class="example-card">
-          <div class="example-header">
-            <h3 class="example-title">Project Context Hook</h3>
-            <span class="example-badge">Custom</span>
-          </div>
+          <h3 class="example-title">Session Context</h3>
           <p class="example-description">
-            Inject project-specific context like current branch, recent commits, and active issues.
+            Add git branch and recent commits to session context.
           </p>
           <div class="example-code">
-            <pre><code>const contextHook: HookPlugin = {
-  name: 'project-context',
-  description: 'Add project context to Claude sessions',
-  version: '1.0.0',
+            <pre><code class="language-javascript">const contextHook = {
   hooks: {
     SessionStart: [{
       hooks: [{
-        type: 'command',
-        command: 'git branch --show-current && git log --oneline -5'
+        command: 'git branch --show-current'
       }]
     }]
   }
 };</code></pre>
-          </div>
-          <div class="example-result">
-            <strong>Result:</strong> Claude starts each session with knowledge of your current git context.
-          </div>
-        </div>
-        
-        <div class="example-card">
-          <div class="example-header">
-            <h3 class="example-title">Testing Hook</h3>
-            <span class="example-badge">Workflow</span>
-          </div>
-          <p class="example-description">
-            Automatically run tests after code changes and report results to Claude.
-          </p>
-          <div class="example-code">
-            <pre><code>const testHook: HookPlugin = {
-  name: 'auto-test',
-  description: 'Run tests after code changes',
-  version: '1.0.0',
-  hooks: {
-    PostToolUse: [{
-      matcher: 'Write|Edit',
-      hooks: [{
-        type: 'command',
-        command: 'npm test -- --reporter=json'
-      }]
-    }]
-  }
-};</code></pre>
-          </div>
-          <div class="example-result">
-            <strong>Result:</strong> Immediate feedback on test results after any code modification.
           </div>
         </div>
       </div>
@@ -480,14 +257,11 @@ claude-good-hooks apply --global dirty --staged --filenames</code></pre>
   <section class="cta">
     <div class="container">
       <div class="cta-content">
-        <h2 class="cta-title">Ready to Supercharge Your Workflow?</h2>
-        <p class="cta-description">
-          Join developers who are already using Claude Good Hooks to automate their development workflow.
-        </p>
+        <h2 class="cta-title">Ready to Get Started?</h2>
         <div class="cta-actions">
-          <a href="#getting-started" class="btn btn-primary btn-large">Get Started Now</a>
+          <a href="#getting-started" class="btn btn-primary btn-large">Install Now</a>
           <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline btn-large" target="_blank">
-            Star on GitHub
+            View on GitHub
           </a>
         </div>
       </div>
@@ -498,57 +272,28 @@ claude-good-hooks apply --global dirty --staged --filenames</code></pre>
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
-        <div class="footer-section">
-          <div class="footer-brand">
-            <span class="footer-logo">🪝</span>
-            <span class="footer-title">Claude Good Hooks</span>
-          </div>
-          <p class="footer-description">
-            Professional hooks management system for Claude Code developers.
-          </p>
+        <div class="footer-brand">
+          <span class="footer-logo">🪝</span>
+          <span class="footer-title">Claude Good Hooks</span>
         </div>
-        
-        <div class="footer-section">
-          <h4 class="footer-heading">Quick Links</h4>
-          <ul class="footer-links">
-            <li><a href="#getting-started">Getting Started</a></li>
-            <li><a href="#docs">Documentation</a></li>
-            <li><a href="#examples">Examples</a></li>
-            <li><a href="https://github.com/your-username/claude-good-hooks/issues" target="_blank">Support</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h4 class="footer-heading">Resources</h4>
-          <ul class="footer-links">
-            <li><a href="https://github.com/your-username/claude-good-hooks" target="_blank">GitHub Repository</a></li>
-            <li><a href="https://www.npmjs.com/package/@sammons/claude-good-hooks" target="_blank">NPM Package</a></li>
-            <li><a href="https://github.com/your-username/claude-good-hooks/releases" target="_blank">Changelog</a></li>
-            <li><a href="https://github.com/your-username/claude-good-hooks/blob/main/CONTRIBUTING.md" target="_blank">Contributing</a></li>
-          </ul>
-        </div>
-        
-        <div class="footer-section">
-          <h4 class="footer-heading">Community</h4>
-          <ul class="footer-links">
-            <li><a href="https://buymeacoffee.com" target="_blank">Buy me a coffee</a></li>
-            <li><a href="https://github.com/your-username/claude-good-hooks/discussions" target="_blank">Discussions</a></li>
-            <li><a href="mailto:support@example.com">Contact</a></li>
-          </ul>
+        <div class="footer-links">
+          <a href="https://github.com/your-username/claude-good-hooks" target="_blank">GitHub</a>
+          <a href="https://www.npmjs.com/package/@sammons/claude-good-hooks" target="_blank">NPM</a>
+          <a href="#getting-started">Get Started</a>
         </div>
       </div>
       
       <div class="footer-bottom">
         <p class="footer-copyright">
-          © 2025 Sammons Software LLC. Licensed under MIT License.
+          © 2025 Sammons Software LLC • MIT License
         </p>
-        <div class="footer-meta">
-          <span>Made with ❤️ for the Claude Code community</span>
-        </div>
       </div>
     </div>
   </footer>
 
   <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 </body>
 </html>

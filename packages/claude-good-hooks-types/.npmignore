@@ -28,6 +28,7 @@ tsup.config.*
 vite.config.*
 vitest.config.*
 .turbo/
+*.tsbuildinfo
 
 # Documentation
 docs/

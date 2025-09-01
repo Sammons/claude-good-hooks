@@ -1,0 +1,25 @@
+{
+  "name": "@claude-good-hooks/badge-scripts",
+  "version": "1.0.0",
+  "description": "TypeScript scripts for generating project badges",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate-all": "tsx generate-all-badges.ts",
+    "cleanup": "tsx cleanup-badges.ts",
+    "generate-build": "tsx generate-build-badge.ts",
+    "generate-version": "tsx generate-version-badge.ts",
+    "generate-license": "tsx generate-license-badge.ts",
+    "generate-coverage": "tsx generate-coverage-badge.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,47 +1,93 @@
+# ===================================================================
+# GitHub Pages Deployment Workflow
+# ===================================================================
+#
+# This workflow builds and deploys the project's landing page to 
+# GitHub Pages. It's optimized to only run when relevant files change
+# to save CI resources and deployment time.
+#
+# Triggers:
+# - Push to main branch (only when landing page files change)
+# - Manual trigger via workflow_dispatch
+#
+# Process:
+# 1. Build the landing page from packages/landing-page
+# 2. Generate static files in ./docs directory
+# 3. Deploy to GitHub Pages using official GitHub actions
+#
+# Path filtering ensures this only runs when:
+# - Files in packages/landing-page/** change
+# - This workflow file itself changes
+#
+# The workflow uses concurrency control to cancel previous deployments
+# when new commits are pushed, ensuring only the latest version is deployed.
+# ===================================================================
+
 name: GitHub Pages
 
 on:
+  # Trigger on pushes to main, but only when landing page files change
+  # This path filtering prevents unnecessary deployments when other parts of the repo change
   push:
     branches: [main]
     paths:
-      - 'packages/landing-page/**'
-      - '.github/workflows/pages.yml'
+      - 'packages/landing-page/**'    # Landing page source files
+      - '.github/workflows/pages.yml' # This workflow file itself
+  
+  # Allow manual triggering for testing or emergency deployments
   workflow_dispatch:
 
+# Concurrency control for deployments
+# Only one deployment should run at a time, cancel previous ones if new commits arrive
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
+# Required permissions for GitHub Pages deployment
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read    # Read repository contents
+  pages: write      # Deploy to GitHub Pages
+  id-token: write   # Generate OIDC token for secure deployment
 
 jobs:
+  # ===================================================================
+  # Build Job - Generate Static Site Files
+  # ===================================================================
+  # This job builds the landing page and prepares it for deployment.
+  # It outputs static files that will be served by GitHub Pages.
+  # ===================================================================
   build:
     name: Build Landing Page
     runs-on: ubuntu-latest
     
     steps:
+      # Step 1: Get the source code
       - name: Checkout
         uses: actions/checkout@v4
         
+      # Step 2: Setup Node.js environment
+      # Consistent with other workflows for reproducibility
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           
+      # Step 3: Setup pnpm package manager
+      # Same version as CI/release workflows for consistency
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
           run_install: false
           
+      # Step 4: Setup caching for dependencies
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
           
+      # Step 5: Cache pnpm store for faster builds
+      # Reuses cache from other workflows to save time and bandwidth
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -50,31 +96,66 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
+      # Step 6: Install project dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
+      # Step 7: Build the landing page
+      # This generates static HTML/CSS/JS files in the ./docs directory
+      # The build:docs script is specific to the landing page package
       - name: Build landing page
         run: |
+          echo "🏗️  Building landing page for GitHub Pages..."
           cd packages/landing-page
           pnpm build:docs
+          echo "✅ Landing page build completed"
           
+      # Step 8: Configure GitHub Pages
+      # This sets up the environment for GitHub Pages deployment
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
+      # Step 9: Upload build artifacts for deployment
+      # The ./docs directory contains the built static site
+      # This artifact will be used by the deploy job
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./docs # Directory containing the built static site
 
+  # ===================================================================
+  # Deploy Job - Publish to GitHub Pages
+  # ===================================================================
+  # This job takes the artifacts from the build job and deploys them
+  # to GitHub Pages. It runs only after the build job completes successfully.
+  # 
+  # The deployment uses GitHub's protected environment 'github-pages'
+  # which provides additional security and audit logging.
+  # ===================================================================
   deploy:
     name: Deploy to GitHub Pages
+    
+    # GitHub Pages environment provides:
+    # - Protection rules (if configured)
+    # - Deployment history and rollback capabilities  
+    # - Environment-specific secrets and variables
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }} # URL where the site is deployed
+    
     runs-on: ubuntu-latest
-    needs: build
+    needs: build # Wait for build job to complete successfully
     
     steps:
+      # This step handles the entire deployment process:
+      # 1. Downloads the artifact created by the build job
+      # 2. Deploys it to GitHub Pages
+      # 3. Returns the deployment URL
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        # The action automatically:
+        # - Downloads the pages artifact from the build job
+        # - Uploads it to GitHub Pages
+        # - Configures the custom domain (if set in repository settings)
+        # - Provides deployment URL in outputs.page_url

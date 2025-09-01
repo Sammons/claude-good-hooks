@@ -8,7 +8,12 @@
     "build": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "smoke": "vitest run --reporter=verbose"
+    "smoke": "vitest run --reporter=verbose",
+    "docker:build": "docker-compose build smoke-tests",
+    "docker:test": "docker-compose run --rm smoke-tests",
+    "docker:test:watch": "docker-compose run --rm smoke-tests-dev",
+    "docker:build:check": "docker-compose run --rm smoke-tests-build",
+    "docker:clean": "docker-compose down && docker system prune -f"
   },
   "keywords": [
     "claude",

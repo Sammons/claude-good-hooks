@@ -38,6 +38,8 @@ The smoke tests cover:
 
 ## Running the Tests
 
+### Local Environment
+
 ```bash
 # Run all smoke tests
 pnpm test
@@ -52,6 +54,41 @@ pnpm run smoke
 pnpm build
 ```
 
+### Docker Environment (Recommended)
+
+For isolated, reproducible testing in a clean environment:
+
+```bash
+# Run tests once in Docker
+pnpm run docker:test
+
+# Run tests in Docker with watch mode
+pnpm run docker:test:watch
+
+# Build Docker image
+pnpm run docker:build
+
+# Verify build in Docker
+pnpm run docker:build:check
+
+# Clean Docker resources
+pnpm run docker:clean
+```
+
+**From monorepo root:**
+```bash
+# Run Docker smoke tests
+pnpm test:smoke:docker
+
+# Watch mode
+pnpm test:smoke:docker:watch
+
+# Build Docker image
+pnpm test:smoke:docker:build
+```
+
+📖 **See [DOCKER.md](./DOCKER.md) for comprehensive Docker setup and usage guide.**
+
 ## Test Structure
 
 - `src/cli-utils.ts` - Utilities for executing CLI commands and validating output
@@ -60,9 +97,26 @@ pnpm build
 
 ## Requirements
 
+### Local Environment
 - Node.js >= 20.0.0
 - The CLI package must be built before running tests
 - Tests run against the compiled CLI at `../claude-good-hooks-cli/dist/index.mjs`
+
+### Docker Environment
+- Docker and Docker Compose
+- No Node.js installation required on host
+- Automatic dependency management and CLI building
+
+## Why Use Docker?
+
+The Docker setup provides several advantages:
+
+- ✅ **Isolated Environment**: Tests run in a clean container without affecting your system
+- ✅ **Reproducible Results**: Consistent Node.js version and dependencies across machines
+- ✅ **No Local Dependencies**: No need to manage Node.js versions or global packages
+- ✅ **CI/CD Ready**: Perfect for automated testing in pipelines
+- ✅ **Easy Cleanup**: Container removes all test artifacts automatically
+- ✅ **Development Friendly**: Volume mounting enables live code changes
 
 ## Test Philosophy
 

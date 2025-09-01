@@ -12,12 +12,13 @@ This directory contains self-hosted SVG badges that replace external badge servi
 ## How It Works
 
 1. **Scripts** (in `.github/scripts/`):
-   - `generate-build-badge.js` - Creates build status badges
-   - `generate-version-badge.js` - Creates npm version badges
-   - `generate-license-badge.js` - Creates license badges
-   - `generate-coverage-badge.js` - Creates coverage badges
-   - `generate-all-badges.js` - Orchestrates all badge generation
-   - `cleanup-badges.js` - Removes unused badge files
+   - `generate-build-badge.ts` - Creates build status badges (TypeScript)
+   - `generate-version-badge.ts` - Creates npm version badges (TypeScript)
+   - `generate-license-badge.ts` - Creates license badges (TypeScript)
+   - `generate-coverage-badge.ts` - Creates coverage badges (TypeScript)
+   - `generate-all-badges.ts` - Orchestrates all badge generation (TypeScript)
+   - `cleanup-badges.ts` - Removes unused badge files (TypeScript)
+   - `package.json` - Dependencies for tsx and TypeScript support
 
 2. **GitHub Actions** (`.github/workflows/update-badges.yml`):
    - Runs on push to main branch
@@ -65,17 +66,55 @@ Use self-hosted badges:
 To update badges manually:
 
 ```bash
+# Install dependencies first (if not already done)
+cd .github/scripts && npm install
+
 # Generate all badges
-node .github/scripts/generate-all-badges.js
+npx tsx generate-all-badges.ts
 
 # Clean up unused badges
-node .github/scripts/cleanup-badges.js
+npx tsx cleanup-badges.ts
 
 # Generate specific badge
-node .github/scripts/generate-build-badge.js success
-node .github/scripts/generate-coverage-badge.js 95
-node .github/scripts/generate-license-badge.js MIT
+npx tsx generate-build-badge.ts success
+npx tsx generate-coverage-badge.ts 95
+npx tsx generate-license-badge.ts MIT
 ```
+
+Or using npm scripts:
+
+```bash
+cd .github/scripts
+
+# Generate all badges
+npm run generate-all
+
+# Clean up badges
+npm run cleanup
+
+# Generate specific badges
+npm run generate-build
+npm run generate-coverage
+npm run generate-license
+```
+
+## TypeScript Migration
+
+The badge scripts have been converted from JavaScript to TypeScript for better type safety and maintainability:
+
+- **Type Safety**: All functions have proper TypeScript types and interfaces
+- **Error Handling**: Enhanced error handling with TypeScript's type system
+- **ESM Modules**: Using modern ES modules with proper imports/exports
+- **Runtime**: Scripts run with `tsx` for direct TypeScript execution
+- **Validation**: Input validation with TypeScript types
+
+### Development
+
+The scripts include:
+- Comprehensive type definitions for all data structures
+- Input validation and sanitization
+- Proper error handling with typed error messages
+- ESM module exports for potential reuse
 
 ## Troubleshooting
 
@@ -83,3 +122,5 @@ node .github/scripts/generate-license-badge.js MIT
 2. **Wrong coverage**: Ensure test coverage reports are generated
 3. **Build status**: Check CI workflow completion status
 4. **Permissions**: Ensure GitHub Action has write permissions to repository
+5. **TypeScript errors**: Check that tsx is installed (`npm install` in scripts directory)
+6. **Module errors**: Ensure all imports/exports are properly defined in TypeScript files

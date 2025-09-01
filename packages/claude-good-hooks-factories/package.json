@@ -1,0 +1,34 @@
+{
+  "name": "@sammons/claude-good-hooks-factories",
+  "version": "1.0.0",
+  "description": "Helper functions and factories to simplify creating Claude Good Hooks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --clean && tsc --project tsconfig.build.json",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "claude",
+    "hooks",
+    "factories",
+    "builders",
+    "utilities"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@sammons/claude-good-hooks-types": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  }
+}

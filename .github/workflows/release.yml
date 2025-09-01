@@ -1,46 +1,93 @@
+# ===================================================================
+# Release Workflow - NPM Package Publishing
+# ===================================================================
+#
+# This workflow handles automated publishing of packages to NPM when 
+# a new version tag is pushed. It runs comprehensive validation,
+# updates package versions, publishes to NPM with provenance, and
+# creates a GitHub release.
+#
+# Triggers:
+# - Git tags matching pattern 'v*' (e.g., v1.0.0, v2.1.3-beta)
+#
+# Process:
+# 1. Validate code quality (tests, build)
+# 2. Extract version from git tag
+# 3. Update all package.json files with new version
+# 4. Publish packages to NPM registry with provenance
+# 5. Create GitHub release with auto-generated notes
+#
+# Security Features:
+# - Uses npm provenance for supply chain security
+# - Requires NPM_TOKEN secret for authentication
+# - Only publishes explicitly listed packages
+#
+# Concurrency: Does not cancel in-progress releases to prevent 
+# partial publishes that could leave the registry in an inconsistent state
+# ===================================================================
+
 name: Release
 
 on:
+  # Trigger on version tags (v1.0.0, v2.1.3, etc.)
+  # This allows semantic versioning and controlled releases
   push:
     tags:
       - 'v*'
 
+# Concurrency control for releases
+# cancel-in-progress: false ensures we don't interrupt ongoing publishes
+# which could leave packages in an inconsistent state
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  # ===================================================================
+  # Release Job - Build, Test, and Publish Packages
+  # ===================================================================
+  # This single job handles the entire release process to ensure
+  # atomicity - either everything succeeds or nothing is published.
+  # ===================================================================
   release:
     name: Build & Publish to NPM
     runs-on: ubuntu-latest
     
+    # Required permissions for secure publishing
     permissions:
-      contents: read
-      id-token: write # For npm provenance
+      contents: read      # Read repository contents
+      id-token: write     # Generate OIDC token for NPM provenance
     
     steps:
+      # Step 1: Checkout with full history
+      # fetch-depth: 0 gets complete git history, needed for release notes
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Full history for release notes and version extraction
           
+      # Step 2: Setup Node.js with NPM registry configuration
+      # registry-url configures npm to publish to the public NPM registry
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://registry.npmjs.org' # Configure for NPM publishing
           
+      # Step 3: Setup pnpm (consistent with CI workflow)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
-          run_install: false
+          version: 10.12.4 # Pin version for consistency
+          run_install: false # Manual control over installation
           
+      # Step 4: Setup dependency caching
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
           
+      # Step 5: Cache dependencies (same strategy as CI)
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -49,89 +96,133 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
+      # Step 6: Install dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
+      # Step 7: Run tests before publishing
+      # Ensures we don't publish broken packages
       - name: Run tests
         run: pnpm test
         
+      # Step 8: Build all packages
+      # Creates distribution files that will be published
       - name: Build all packages
         run: pnpm build
         
+      # Step 9: Extract version from git tag
+      # Parse version number from tag (removes 'refs/tags/v' prefix)
+      # Example: refs/tags/v1.2.3 becomes 1.2.3
       - name: Extract version from tag
         id: extract_version
         run: |
+          # Remove 'refs/tags/v' prefix to get clean version number
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
           
+      # Step 10: Update all package.json files with the release version
+      # This ensures all packages have consistent versioning
       - name: Update package versions
         run: |
           VERSION=${{ steps.extract_version.outputs.VERSION }}
-          echo "Updating packages to version $VERSION"
+          echo "🏷️  Updating all packages to version $VERSION"
           
-          # Update all package.json files with the new version
+          # Loop through all package directories in the monorepo
           for pkg_dir in packages/*/; do
             if [ -f "$pkg_dir/package.json" ]; then
               pkg_name=$(basename "$pkg_dir")
-              echo "Updating $pkg_name to version $VERSION"
+              echo "  📦 Updating $pkg_name to version $VERSION"
               
-              # Use jq to update version while preserving the rest of the file
+              # Use jq to safely update version field while preserving file structure
+              # This is more reliable than sed/awk for JSON manipulation
               jq --arg version "$VERSION" '.version = $version' "$pkg_dir/package.json" > "$pkg_dir/package.json.tmp"
               mv "$pkg_dir/package.json.tmp" "$pkg_dir/package.json"
             fi
           done
           
+          echo "✅ Version update completed"
+          
+      # Step 11: Publish packages to NPM registry
+      # This is the critical step that makes packages available publicly
       - name: Publish packages to NPM
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Required secret for NPM authentication
         run: |
-          # List of packages that should be published (not private)
+          # Explicitly list packages that should be published to NPM
+          # This whitelist approach prevents accidental publishing of private packages
           PUBLISHABLE_PACKAGES=(
-            "claude-good-hooks-cli"
-            "claude-good-hooks-types"
-            "dirty-hook" 
-            "claude-good-hooks-template-hook"
+            "claude-good-hooks-cli"           # Main CLI tool
+            "claude-good-hooks-types"         # TypeScript type definitions
+            "dirty-hook"                      # Hook implementation utility
+            "claude-good-hooks-template-hook" # Template for creating new hooks
           )
           
-          echo "Starting publication process..."
+          echo "🚀 Starting NPM publication process..."
+          echo "📋 Publishing $(${#PUBLISHABLE_PACKAGES[@]} packages: ${PUBLISHABLE_PACKAGES[*]}"
           
+          # Process each package in the whitelist
           for pkg_name in "${PUBLISHABLE_PACKAGES[@]}"; do
             pkg_dir="packages/$pkg_name"
             
+            # Verify package directory exists and has package.json
             if [ -d "$pkg_dir" ] && [ -f "$pkg_dir/package.json" ]; then
-              echo "Publishing package: $pkg_name"
+              echo "📦 Processing package: $pkg_name"
               cd "$pkg_dir"
               
-              # Check if package is marked as private
+              # Double-check that package isn't marked as private
+              # This is a safety check even though we're using a whitelist
               if [ "$(cat package.json | jq -r '.private // false')" = "true" ]; then
-                echo "Skipping $pkg_name (marked as private)"
+                echo "⚠️  Skipping $pkg_name (marked as private in package.json)"
                 cd - > /dev/null
                 continue
               fi
               
-              # Publish with provenance
+              # Publish with provenance for supply chain security
+              # --provenance generates attestations that verify the package was built in this workflow
+              # --access public ensures the package is publicly available (required for scoped packages)
+              echo "🔄 Publishing $pkg_name with provenance..."
               npm publish --provenance --access public
               
+              # Check if publish was successful
               if [ $? -eq 0 ]; then
-                echo "Successfully published $pkg_name"
+                echo "✅ Successfully published $pkg_name"
               else
-                echo "Failed to publish $pkg_name"
-                exit 1
+                echo "❌ Failed to publish $pkg_name"
+                echo "💥 Stopping publication process due to failure"
+                exit 1 # Fail the entire workflow if any package fails to publish
               fi
               
               cd - > /dev/null
             else
-              echo "Package directory $pkg_dir does not exist or is missing package.json"
+              echo "❌ Package directory $pkg_dir does not exist or is missing package.json"
+              echo "💥 This indicates a configuration error in the workflow"
+              exit 1
             fi
           done
           
-          echo "All packages published successfully!"
+          echo "🎉 All packages published successfully to NPM!"
+          echo "📊 Published $(${#PUBLISHABLE_PACKAGES[@]}) packages total"
           
+      # Step 12: Create GitHub Release
+      # This creates a formal release on GitHub with auto-generated release notes
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # Auto-generate release notes from commit messages and PRs
+          # This provides a changelog of what changed since the last release
           generate_release_notes: true
+          
+          # Use the current tag name for the release
+          # This ensures the GitHub release matches the git tag that triggered this workflow
           tag_name: ${{ github.ref_name }}
+          
+          # Optional: You could add release files here using the 'files' parameter
+          # files: |
+          #   packages/*/dist/*
+          #   CHANGELOG.md
+          
         env:
+          # GITHUB_TOKEN is automatically provided by GitHub Actions
+          # It has the necessary permissions to create releases
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

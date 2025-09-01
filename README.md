@@ -144,7 +144,11 @@ This project uses automated releases via GitHub Actions. To create a new release
 
 **Option 1: Using the helper script (recommended)**
 ```bash
-./scripts/release.sh 1.2.3
+# Using npm script
+pnpm run release 1.2.3
+
+# Or directly with tsx
+tsx .github/scripts/release.ts 1.2.3
 ```
 
 **Option 2: Manual release**

@@ -17,6 +17,7 @@ const mockReadFileSync = vi.mocked(readFileSync);
 
 // Mock console methods
 const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 // Mock process.argv
@@ -189,7 +190,7 @@ describe('updateCommand - Global Installation', () => {
 
       await updateCommand({ parent: {} });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Permission denied for global installation')
       );
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -210,7 +211,7 @@ describe('updateCommand - Global Installation', () => {
 
       await updateCommand({ parent: {} });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Network error. Check your internet connection')
       );
     });
@@ -230,7 +231,7 @@ describe('updateCommand - Global Installation', () => {
 
       await updateCommand({ parent: {} });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('The package may not be published to npm yet')
       );
     });
@@ -353,7 +354,7 @@ describe('updateCommand - Global Installation', () => {
 
       await updateCommand({ parent: {} });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('If you prefer local installation, run: npm install @sammons/claude-good-hooks')
       );
     });

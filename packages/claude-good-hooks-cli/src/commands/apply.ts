@@ -2,17 +2,31 @@ import chalk from 'chalk';
 import { loadHookPlugin } from '../utils/modules.js';
 import { addHookToSettings } from '../utils/settings.js';
 import { typedEntries } from '../utils/keys.js';
-import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+import type { HookPlugin, ClaudeSettings } from '@sammons/claude-good-hooks-types';
 
-export async function applyCommand(hookName: string, args: string[], options: any): Promise<void> {
+// Type for command-line options
+interface ApplyCommandOptions {
+  global?: boolean;
+  local?: boolean;
+  help?: boolean;
+  parent?: {
+    json?: boolean;
+  };
+}
+
+// Type for parsed hook arguments based on plugin customArgs definition
+type HookArgValue = string | number | boolean;
+type ParsedHookArgs = Record<string, HookArgValue>;
+
+export async function applyCommand(hookName: string, args: string[], options: ApplyCommandOptions): Promise<void> {
   const { global, local, help } = options;
   const isJson = options.parent?.json;
 
   let scope: 'global' | 'project' | 'local' = 'project';
-  if (global) scope = 'global';
   if (local) scope = 'local';
+  if (global) scope = 'global'; // Global takes precedence over local
 
-  const plugin = await loadHookPlugin(hookName, global);
+  const plugin = await loadHookPlugin(hookName, !!global);
 
   if (!plugin) {
     const message = `Hook '${hookName}' not found. Make sure it's installed.`;
@@ -25,18 +39,24 @@ export async function applyCommand(hookName: string, args: string[], options: an
   }
 
   if (help) {
-    showHookHelp(plugin, hookName, isJson);
+    showHookHelp(plugin, hookName, isJson || false);
     return;
   }
 
   const parsedArgs = parseHookArgs(args, plugin);
+
+  if (!plugin) {
+    return; // Defensive check - should not reach here in normal operation
+  }
 
   const hookConfiguration = plugin.makeHook(parsedArgs);
 
   for (const [eventName, configs] of typedEntries(hookConfiguration)) {
     if (configs && configs.length > 0) {
       for (const config of configs) {
-        addHookToSettings(scope, eventName, config);
+        // eventName is guaranteed to be a key of the hook configuration object
+        // which matches the structure of ClaudeSettings['hooks']
+        addHookToSettings(scope, eventName as keyof ClaudeSettings['hooks'], config);
       }
     }
   }
@@ -59,6 +79,16 @@ export async function applyCommand(hookName: string, args: string[], options: an
 }
 
 function showHookHelp(plugin: HookPlugin, hookName: string, isJson: boolean): void {
+  if (!plugin) {
+    const message = `Hook '${hookName}' not found.`;
+    if (isJson) {
+      console.log(JSON.stringify({ success: false, error: message }));
+    } else {
+      console.error(message);
+    }
+    return;
+  }
+
   if (isJson) {
     console.log(
       JSON.stringify({
@@ -100,10 +130,10 @@ function showHookHelp(plugin: HookPlugin, hookName: string, isJson: boolean): vo
   }
 }
 
-function parseHookArgs(args: string[], plugin: HookPlugin): Record<string, any> {
-  const parsed: Record<string, any> = {};
+function parseHookArgs(args: string[], plugin: HookPlugin): ParsedHookArgs {
+  const parsed: ParsedHookArgs = {};
 
-  if (!plugin.customArgs) {
+  if (!plugin || !plugin.customArgs) {
     return parsed;
   }
 
@@ -121,7 +151,10 @@ function parseHookArgs(args: string[], plugin: HookPlugin): Record<string, any> 
           const nextArg = args[i + 1];
           if (nextArg && !nextArg.startsWith('--')) {
             if (argDef.type === 'number') {
-              parsed[argName] = parseFloat(nextArg);
+              const numValue = parseFloat(nextArg);
+              if (!isNaN(numValue)) {
+                parsed[argName] = numValue;
+              }
             } else {
               parsed[argName] = nextArg;
             }
@@ -134,7 +167,9 @@ function parseHookArgs(args: string[], plugin: HookPlugin): Record<string, any> 
 
   for (const [argName, argDef] of Object.entries(plugin.customArgs)) {
     if (!(argName in parsed) && argDef.default !== undefined) {
-      parsed[argName] = argDef.default;
+      // The default value from the plugin definition should match our expected types
+      const defaultValue = argDef.default as HookArgValue;
+      parsed[argName] = defaultValue;
     }
   }
 

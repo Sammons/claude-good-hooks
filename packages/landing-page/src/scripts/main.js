@@ -107,4 +107,19 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Initialize Prism.js for syntax highlighting
+document.addEventListener('DOMContentLoaded', () => {
+  // Ensure Prism.js is loaded and initialize syntax highlighting
+  if (typeof Prism !== 'undefined') {
+    Prism.highlightAll();
+  }
+});
+
+// Re-highlight any dynamically added code blocks
+function highlightCodeBlocks() {
+  if (typeof Prism !== 'undefined') {
+    Prism.highlightAll();
+  }
+}
+
 console.log('Claude Good Hooks landing page loaded');

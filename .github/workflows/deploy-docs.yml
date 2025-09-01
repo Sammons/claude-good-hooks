@@ -1,65 +1,150 @@
+# ===================================================================
+# Documentation Deployment Workflow
+# ===================================================================
+#
+# This workflow appears to be a duplicate/alternative to pages.yml
+# It builds and deploys documentation to GitHub Pages with slightly
+# different configuration and triggers.
+#
+# Key Differences from pages.yml:
+# - Triggers on both push AND pull_request (for preview/testing)
+# - Uses older pnpm version (9 vs 10.12.4)
+# - Uses different Node.js caching strategy (npm vs pnpm store)
+# - Conditionally deploys only on main/master branches
+# - cancel-in-progress: false (vs true in pages.yml)
+#
+# Triggers:
+# - Push to main or master branches
+# - Pull requests to main or master branches (build only, no deploy)
+# - Manual trigger via workflow_dispatch
+#
+# Note: This workflow may conflict with pages.yml since both target
+# the same GitHub Pages deployment. Consider consolidating them.
+# ===================================================================
+
 name: Deploy Documentation to GitHub Pages
 
 on:
+  # Trigger on pushes to main/master branches
+  # Supports both 'main' and 'master' for repository flexibility
   push:
     branches: [ main, master ]
+  
+  # Also trigger on pull requests to these branches
+  # This allows testing the build process without deploying
   pull_request:
     branches: [ main, master ]
+  
+  # Allow manual triggering for testing or emergency deployments
   workflow_dispatch:
 
+# Required permissions for GitHub Pages deployment
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read    # Read repository contents
+  pages: write      # Deploy to GitHub Pages
+  id-token: write   # Generate OIDC token for deployment authentication
 
+# Concurrency control - different from pages.yml
+# cancel-in-progress: false means multiple deployments can run simultaneously
+# This could lead to race conditions but allows PR builds to proceed
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
+  # ===================================================================
+  # Build Job - Generate Documentation
+  # ===================================================================
+  # This job builds the documentation/landing page and prepares it
+  # for deployment. Unlike pages.yml, this runs on both push and PR.
+  # ===================================================================
   build:
     runs-on: ubuntu-latest
     
     steps:
+    # Step 1: Get the source code
     - name: Checkout
       uses: actions/checkout@v4
       
+    # Step 2: Setup Node.js with npm cache
+    # Different from pages.yml - uses npm caching instead of manual pnpm store caching
+    # This is simpler but potentially less efficient than the pnpm store approach
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '20' # Same major version as other workflows
+        cache: 'npm'       # Automatically cache npm dependencies
         
+    # Step 3: Setup pnpm with older version
+    # Uses pnpm v9 instead of v10.12.4 from other workflows
+    # This version inconsistency could lead to different behavior
     - name: Setup pnpm
-      uses: pnpm/action-setup@v2
+      uses: pnpm/action-setup@v2  # Older action version
       with:
-        version: '9'
+        version: '9'               # Older pnpm version
         
+    # Step 4: Install dependencies
+    # Same approach as other workflows
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       
+    # Step 5: Build the documentation
+    # Same build command as pages.yml - generates static site in ./docs
     - name: Build landing page
       run: |
+        echo "🏗️  Building documentation/landing page..."
         cd packages/landing-page
         pnpm run build:docs
+        echo "✅ Documentation build completed"
         
+    # Step 6: Setup Pages configuration
+    # Same as pages.yml
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
+    # Step 7: Upload build artifacts
+    # Creates artifact for potential deployment
+    # This runs on both push and PR, but deployment is conditional
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./docs
+        path: ./docs # Same output directory as pages.yml
 
+  # ===================================================================
+  # Deploy Job - Conditional Deployment to GitHub Pages
+  # ===================================================================
+  # This job only runs when pushing to main/master branches.
+  # For pull requests, only the build job runs (for testing).
+  # 
+  # This conditional deployment prevents deploying from PRs while
+  # still validating that the build works.
+  # ===================================================================
   deploy:
+    # Only deploy when pushing to main or master branches
+    # This prevents deploying documentation from pull requests or feature branches
+    # The condition uses the full ref path to be explicit and secure
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    # Same GitHub Pages environment as pages.yml
+    # This could cause conflicts if both workflows try to deploy simultaneously
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }} # URL of deployed site
+    
     runs-on: ubuntu-latest
-    needs: build
+    needs: build # Wait for build job to complete successfully
     
     steps:
+    # Single step deployment using GitHub's official action
+    # This handles the entire deployment process:
+    # - Downloads the artifact from the build job
+    # - Deploys it to GitHub Pages
+    # - Returns the deployment URL
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+      # Note: This action automatically handles:
+      # - Artifact download and extraction
+      # - Upload to GitHub Pages
+      # - DNS and CDN cache invalidation
+      # - Deployment status reporting

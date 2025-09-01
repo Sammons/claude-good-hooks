@@ -25,6 +25,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Prism.js for syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
 </head>
 <body>
   <!-- Header -->
@@ -154,7 +158,7 @@
           <div class="step-content">
             <h3 class="step-title">Install the CLI</h3>
             <div class="code-block">
-              <code>npm install -g @sammons/claude-good-hooks</code>
+              <pre><code class="language-bash">npm install -g @sammons/claude-good-hooks</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/claude-good-hooks')">
                 📋
               </button>
@@ -167,7 +171,7 @@
           <div class="step-content">
             <h3 class="step-title">Install a Hook Package</h3>
             <div class="code-block">
-              <code>npm install -g @sammons/dirty-good-claude-hook</code>
+              <pre><code class="language-bash">npm install -g @sammons/dirty-good-claude-hook</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/dirty-good-claude-hook')">
                 📋
               </button>
@@ -180,7 +184,7 @@
           <div class="step-content">
             <h3 class="step-title">Apply the Hook</h3>
             <div class="code-block">
-              <code>claude-good-hooks apply dirty --global</code>
+              <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply dirty --global')">
                 📋
               </button>
@@ -206,7 +210,7 @@
             Automatically show git status to Claude before each response.
           </p>
           <div class="example-code">
-            <pre><code>claude-good-hooks apply dirty --global</code></pre>
+            <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
           </div>
         </div>
         
@@ -216,7 +220,7 @@
             Run linting automatically before file modifications.
           </p>
           <div class="example-code">
-            <pre><code>const lintHook = {
+            <pre><code class="language-javascript">const lintHook = {
   hooks: {
     PreToolUse: [{
       matcher: 'Write|Edit',
@@ -233,7 +237,7 @@
             Add git branch and recent commits to session context.
           </p>
           <div class="example-code">
-            <pre><code>const contextHook = {
+            <pre><code class="language-javascript">const contextHook = {
   hooks: {
     SessionStart: [{
       hooks: [{
@@ -287,6 +291,9 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
   <script type="module" src="./scripts/main.js"></script>
 </body>
 </html>

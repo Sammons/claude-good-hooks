@@ -1,49 +1,112 @@
+# ===================================================================
+# Badge Update Workflow
+# ===================================================================
+#
+# This workflow automatically generates and updates repository badges
+# that show build status, test coverage, and other metrics. These badges
+# are typically displayed in README files to provide quick visual
+# indicators of project health.
+#
+# Triggers:
+# - Push to main branch (update badges after code changes)
+# - CI workflow completion (update build status badges)
+# - Daily schedule at 00:00 UTC (refresh stale badges)
+# - Manual trigger (for testing or immediate updates)
+#
+# Process:
+# 1. Run tests to generate fresh coverage data
+# 2. Extract coverage percentage from test results
+# 3. Determine build status from CI workflow or current push
+# 4. Generate badge files using Node.js scripts
+# 5. Clean up old/unused badge files
+# 6. Commit and push changes back to repository
+#
+# Badge Types Generated:
+# - Build status (passing/failing)
+# - Test coverage percentage
+# - Package versions
+# - Other project metrics as defined in scripts
+#
+# Security: Only runs on the expected repository to prevent
+# unauthorized badge updates in forks.
+# ===================================================================
+
 name: Update Badges
 
 on:
+  # Update badges when code is pushed to main
+  # This ensures badges reflect the latest state of the codebase
   push:
     branches: [main]
+  
+  # Update badges when CI workflow completes
+  # This captures the actual build/test results for badge status
   workflow_run:
-    workflows: ["CI"]
-    types: [completed]
+    workflows: ["CI"]  # References the CI workflow by name
+    types: [completed] # Trigger regardless of success/failure
+  
+  # Update badges daily to refresh any stale data
+  # Scheduled at midnight UTC to avoid interfering with development
   schedule:
-    # Update badges daily at 00:00 UTC
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allow manual trigger
+  
+  # Allow manual triggering for immediate updates or testing
+  workflow_dispatch:
 
+# Concurrency control to prevent overlapping badge updates
+# Uses github.ref to allow different branches to update independently
 concurrency:
   group: update-badges-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: true # Cancel older runs when new ones start
 
 jobs:
+  # ===================================================================
+  # Badge Update Job
+  # ===================================================================
+  # This job generates and updates all repository badges with current
+  # metrics like build status, coverage, versions, etc.
+  # ===================================================================
   update-badges:
     name: Update Badges
     runs-on: ubuntu-latest
+    
+    # Security: Only run on the main repository to prevent badge pollution from forks
+    # This prevents contributors from accidentally updating badges in their forks
     if: github.repository == 'sammons/claude-good-hooks'
 
     steps:
+      # Step 1: Checkout with full history and write permissions
+      # fetch-depth: 0 gets complete git history (may be needed by badge scripts)
+      # token: GITHUB_TOKEN provides write access to commit badge changes back
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }} # Required for pushing changes back
+          fetch-depth: 0                     # Full history in case scripts need it
 
+      # Step 2: Setup Node.js environment
+      # Consistent with other workflows
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
 
+      # Step 3: Setup pnpm package manager
+      # Same configuration as CI/release workflows for consistency
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.12.4
           run_install: false
 
+      # Step 4: Setup dependency caching
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
+      # Step 5: Cache dependencies for faster builds
+      # Reuses cache from other workflows
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -52,72 +115,140 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # Step 6: Install project dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Step 6.5: Install badge script dependencies
+      # The badge generation scripts may have their own package.json with dependencies
+      # These are separate from the main project dependencies
+      - name: Install badge script dependencies
+        run: |
+          echo "📦 Installing badge generation script dependencies..."
+          cd .github/scripts
+          npm install  # Install any dependencies needed by badge generation scripts
+
+      # Step 7: Determine build status for badges
+      # This step analyzes the trigger context to determine if builds are passing/failing
       - name: Determine build status
         id: build_status
         run: |
+          echo "🔍 Determining build status from trigger context..."
+          
+          # Check if this was triggered by a workflow_run event (CI completion)
           if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
             echo "BUILD_STATUS=success" >> $GITHUB_ENV
+            echo "✅ CI workflow completed successfully"
           elif [ "${{ github.event.workflow_run.conclusion }}" = "failure" ]; then
             echo "BUILD_STATUS=failure" >> $GITHUB_ENV
+            echo "❌ CI workflow failed"
           elif [ "${{ github.event_name }}" = "push" ]; then
-            # For push events, assume success if we got this far
+            # For push events, assume success if we got this far in the workflow
+            # The push wouldn't have happened if CI was blocking
             echo "BUILD_STATUS=success" >> $GITHUB_ENV
+            echo "✅ Push event - assuming success"
           else
+            # For scheduled runs or manual triggers, status is unknown
             echo "BUILD_STATUS=unknown" >> $GITHUB_ENV
+            echo "❓ Build status unknown (scheduled or manual trigger)"
           fi
 
+      # Step 8: Run tests to generate fresh coverage data
+      # This ensures badges reflect current code coverage
+      # continue-on-error: true prevents badge workflow from failing if tests fail
       - name: Run tests for coverage
-        run: pnpm test:coverage
-        continue-on-error: true
+        run: |
+          echo "🧪 Running tests to generate coverage data for badges..."
+          pnpm test:coverage
+        continue-on-error: true # Don't fail badge update if tests fail
 
+      # Step 9: Extract coverage percentage from test results
+      # This parses coverage reports to get the percentage for badge display
       - name: Extract coverage percentage
         id: coverage
         run: |
-          # Try to extract coverage from various possible locations
+          echo "📊 Extracting coverage percentage from test results..."
+          
+          # Default fallback coverage percentage
           COVERAGE_PERCENTAGE="85"
           
-          # Look for coverage summary files
+          # Try to extract coverage from Jest/coverage tools output
           if [ -f "coverage/coverage-summary.json" ]; then
+            echo "📄 Found coverage summary file, parsing..."
+            
+            # Use Node.js to safely parse JSON and extract line coverage percentage
             COVERAGE_PERCENTAGE=$(node -e "
               const fs = require('fs');
               try {
                 const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
                 if (coverage.total && coverage.total.lines) {
-                  console.log(coverage.total.lines.pct);
+                  console.log(Math.round(coverage.total.lines.pct));
                 } else {
-                  console.log('85');
+                  console.log('85'); // Fallback if structure is unexpected
                 }
               } catch (e) {
-                console.log('85');
+                console.error('Error parsing coverage:', e.message);
+                console.log('85'); // Fallback on parse error
               }
             ")
+            
+            echo "📈 Parsed coverage: $COVERAGE_PERCENTAGE%"
+          else
+            echo "⚠️  No coverage summary found, using default: $COVERAGE_PERCENTAGE%"
           fi
           
+          # Make coverage available to subsequent steps
           echo "COVERAGE_PERCENTAGE=$COVERAGE_PERCENTAGE" >> $GITHUB_ENV
-          echo "Coverage percentage: $COVERAGE_PERCENTAGE%"
+          echo "✅ Coverage percentage set to: $COVERAGE_PERCENTAGE%"
 
+      # Step 10: Generate all badge files
+      # This runs custom TypeScript scripts that create SVG badge files
+      # The scripts use the build status and coverage data to generate appropriate badges
       - name: Generate badges
         run: |
-          node .github/scripts/generate-all-badges.js
-          node .github/scripts/cleanup-badges.js
+          echo "🎨 Generating badges with current metrics..."
+          echo "  Build Status: ${{ env.BUILD_STATUS }}"
+          echo "  Coverage: ${{ env.COVERAGE_PERCENTAGE }}%"
+          
+          cd .github/scripts
+          
+          # Generate all badges using TypeScript scripts with tsx runner
+          npx tsx generate-all-badges.ts
+          
+          # Clean up any obsolete or unused badge files
+          npx tsx cleanup-badges.ts
+          
+          echo "✅ Badge generation completed"
         env:
-          BUILD_STATUS: ${{ env.BUILD_STATUS }}
-          COVERAGE_PERCENTAGE: ${{ env.COVERAGE_PERCENTAGE }}
+          # Pass environment variables to badge generation scripts
+          BUILD_STATUS: ${{ env.BUILD_STATUS }}           # success/failure/unknown
+          COVERAGE_PERCENTAGE: ${{ env.COVERAGE_PERCENTAGE }} # Coverage percentage
 
+      # Step 11: Commit and push badge updates back to repository
+      # This automates the process of updating badges without manual intervention
       - name: Commit and push badge changes
         run: |
+          echo "💾 Committing badge updates..."
+          
+          # Configure git identity for automated commits
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
+          # Stage all badge files for commit
           git add .github/badges/
           
+          # Check if there are actually changes to commit
           if ! git diff --staged --quiet; then
+            echo "📝 Badge changes detected, committing..."
+            
+            # Commit with [skip ci] to prevent triggering other workflows
+            # This prevents infinite loops where badge updates trigger more workflows
             git commit -m "Update badges [skip ci]"
+            
+            # Push changes back to the repository
             git push
+            
             echo "✅ Badges updated successfully"
           else
-            echo "ℹ️ No badge changes to commit"
+            echo "ℹ️  No badge changes to commit - badges are already up to date"
           fi

@@ -1,18 +1,54 @@
+# Dependencies
 node_modules/
+*.tgz
+
+# Build outputs
 dist/
+*.tsbuildinfo
+
+# Log files
 *.log
-*.tmp
-.DS_Store
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
 .env
 .env.local
 .env.*.local
+
+# Test coverage
 coverage/
 .nyc_output/
-*.tgz
-# docs/ - GitHub Pages deployment folder (should be committed)
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lock files (commit pnpm-lock.yaml for reproducible builds)
+package-lock.json
+yarn.lock
+
+# Turbo
+.turbo/
+
+# Claude specific
 .claude-good-hooks.json
 .claude/
 !packages/*/.claude/
-pnpm-lock.yaml
-package-lock.json
-yarn.lock
+
+# Build cache
+.cache/
+
+# docs/ - GitHub Pages deployment folder (should be committed)
