@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "composite": true
+  },
+  "references": [
+    { "path": "./packages/claude-good-hooks-types" },
+    { "path": "./packages/claude-good-hooks-cli" },
+    { "path": "./packages/claude-good-hooks-template-hook" },
+    { "path": "./packages/dirty-hook" }
+  ]
+}

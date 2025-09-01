@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.log
+*.tmp
+.DS_Store
+.env
+.env.local
+.env.*.local
+coverage/
+.nyc_output/
+*.tgz
+.claude-good-hooks.json
+.claude/
+!packages/*/.claude/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
