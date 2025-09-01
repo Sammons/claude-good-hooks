@@ -24,11 +24,11 @@ export async function doctorCommand(options: any): Promise<void> {
   // Check Node.js version
   const nodeVersion = process.version;
   const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-  const nodeOk = majorVersion >= 22;
+  const nodeOk = majorVersion >= 20;
   checks.push({
     name: 'Node.js version',
     status: nodeOk,
-    message: nodeOk ? `v${nodeVersion}` : `v${nodeVersion} (requires Node.js 22+)`,
+    message: nodeOk ? `v${nodeVersion}` : `v${nodeVersion} (requires Node.js 20+)`,
   });
 
   // Check for Claude settings directory

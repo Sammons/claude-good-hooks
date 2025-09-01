@@ -1,0 +1,27 @@
+{
+  "name": "@sammons/claude-good-hooks-landing",
+  "version": "1.0.0",
+  "description": "Landing page documentation for Claude Good Hooks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:docs": "vite build --outDir ../../docs --emptyOutDir --base /claude-good-hooks/"
+  },
+  "keywords": [
+    "claude",
+    "hooks",
+    "documentation",
+    "landing-page"
+  ],
+  "author": "Sammons Software LLC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

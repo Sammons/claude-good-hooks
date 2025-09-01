@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { loadHookPlugin } from '../utils/modules.js';
 import { addHookToSettings } from '../utils/settings.js';
+import { typedEntries } from '../utils/keys.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
 export async function applyCommand(hookName: string, args: string[], options: any): Promise<void> {
@@ -32,10 +33,10 @@ export async function applyCommand(hookName: string, args: string[], options: an
 
   const hookConfiguration = plugin.makeHook(parsedArgs);
 
-  for (const [eventName, configs] of Object.entries(hookConfiguration)) {
+  for (const [eventName, configs] of typedEntries(hookConfiguration)) {
     if (configs && configs.length > 0) {
       for (const config of configs) {
-        addHookToSettings(scope, eventName as any, config);
+        addHookToSettings(scope, eventName, config);
       }
     }
   }

@@ -1,10 +1,12 @@
 import chalk from 'chalk';
 import { readSettings } from '../utils/settings.js';
 import { getInstalledHookModules, getRemoteHooks, loadHookPlugin } from '../utils/modules.js';
+import { typedEntries } from '../utils/keys.js';
 import type { HookMetadata } from '@sammons/claude-good-hooks-types';
 
 export async function listHooks(options: any): Promise<void> {
-  const { installed, global, json } = options;
+  const { installed, global } = options;
+  const json = options.json || options.parent?.json;
   const scope = global ? 'global' : 'project';
 
   const hooks: HookMetadata[] = [];
@@ -28,7 +30,7 @@ export async function listHooks(options: any): Promise<void> {
 
     const settings = readSettings(scope);
     if (settings.hooks) {
-      for (const [eventName, configs] of Object.entries(settings.hooks)) {
+      for (const [eventName, configs] of typedEntries(settings.hooks)) {
         for (const config of configs || []) {
           hooks.push({
             name: `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,

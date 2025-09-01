@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Good Hooks - Streamline Your Claude Code Workflow</title>
+  <meta name="description" content="Professional hooks management system for Claude Code. Create, share, and apply powerful automation hooks to enhance your development workflow.">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.ico">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Claude Good Hooks - Streamline Your Claude Code Workflow">
+  <meta property="og:description" content="Professional hooks management system for Claude Code. Create, share, and apply powerful automation hooks to enhance your development workflow.">
+  <meta property="og:url" content="https://sammons.github.io/claude-good-hooks/">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Claude Good Hooks - Streamline Your Claude Code Workflow">
+  <meta property="twitter:description" content="Professional hooks management system for Claude Code. Create, share, and apply powerful automation hooks to enhance your development workflow.">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header" id="header">
+    <nav class="nav container">
+      <div class="nav-brand">
+        <span class="nav-logo">🪝</span>
+        <span class="nav-title">Claude Good Hooks</span>
+      </div>
+      <div class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#getting-started" class="nav-link">Get Started</a>
+          </li>
+          <li class="nav-item">
+            <a href="#features" class="nav-link">Features</a>
+          </li>
+          <li class="nav-item">
+            <a href="#examples" class="nav-link">Examples</a>
+          </li>
+        </ul>
+        <div class="nav-cta">
+          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline" target="_blank">
+            GitHub
+          </a>
+        </div>
+      </div>
+      <div class="nav-toggle" id="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div class="hero-container container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Automate Your
+          <span class="gradient-text">Claude Code</span>
+          Workflow
+        </h1>
+        <p class="hero-description">
+          Create, share, and apply powerful automation hooks to enhance your Claude Code development experience.
+        </p>
+        <div class="hero-actions">
+          <a href="#getting-started" class="btn btn-primary">Get Started</a>
+          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-secondary" target="_blank">
+            GitHub
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="code-preview">
+          <div class="code-header">
+            <div class="code-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <div class="code-content">
+            <div class="code-line">
+              <span class="code-prompt">$</span>
+              <span class="code-command">npm install -g @sammons/claude-good-hooks</span>
+            </div>
+            <div class="code-line">
+              <span class="code-prompt">$</span>
+              <span class="code-command">claude-good-hooks apply dirty --global</span>
+            </div>
+            <div class="code-line code-output">
+              <span class="code-success">✓ Hook applied successfully!</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Key Features</h2>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3 class="feature-title">Simple Setup</h3>
+          <p class="feature-description">
+            Install with npm and apply hooks instantly. No complex configuration needed.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🔧</div>
+          <h3 class="feature-title">Flexible Scoping</h3>
+          <p class="feature-description">
+            Apply hooks globally, per-project, or locally with full control.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h3 class="feature-title">NPM Ecosystem</h3>
+          <p class="feature-description">
+            Share hooks as packages and install community hooks easily.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Getting Started Section -->
+  <section class="getting-started" id="getting-started">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Quick Start</h2>
+      </div>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3 class="step-title">Install the CLI</h3>
+            <div class="code-block">
+              <code>npm install -g @sammons/claude-good-hooks</code>
+              <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/claude-good-hooks')">
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3 class="step-title">Install a Hook Package</h3>
+            <div class="code-block">
+              <code>npm install -g @sammons/dirty-good-claude-hook</code>
+              <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/dirty-good-claude-hook')">
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3 class="step-title">Apply the Hook</h3>
+            <div class="code-block">
+              <code>claude-good-hooks apply dirty --global</code>
+              <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply dirty --global')">
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Examples Section -->
+  <section class="examples" id="examples">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Popular Examples</h2>
+      </div>
+      
+      <div class="examples-grid">
+        <div class="example-card">
+          <h3 class="example-title">Git Status Hook</h3>
+          <p class="example-description">
+            Automatically show git status to Claude before each response.
+          </p>
+          <div class="example-code">
+            <pre><code>claude-good-hooks apply dirty --global</code></pre>
+          </div>
+        </div>
+        
+        <div class="example-card">
+          <h3 class="example-title">Lint Before Edit</h3>
+          <p class="example-description">
+            Run linting automatically before file modifications.
+          </p>
+          <div class="example-code">
+            <pre><code>const lintHook = {
+  hooks: {
+    PreToolUse: [{
+      matcher: 'Write|Edit',
+      hooks: [{ command: 'npm run lint' }]
+    }]
+  }
+};</code></pre>
+          </div>
+        </div>
+        
+        <div class="example-card">
+          <h3 class="example-title">Session Context</h3>
+          <p class="example-description">
+            Add git branch and recent commits to session context.
+          </p>
+          <div class="example-code">
+            <pre><code>const contextHook = {
+  hooks: {
+    SessionStart: [{
+      hooks: [{
+        command: 'git branch --show-current'
+      }]
+    }]
+  }
+};</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-title">Ready to Get Started?</h2>
+        <div class="cta-actions">
+          <a href="#getting-started" class="btn btn-primary btn-large">Install Now</a>
+          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline btn-large" target="_blank">
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="footer-logo">🪝</span>
+          <span class="footer-title">Claude Good Hooks</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/your-username/claude-good-hooks" target="_blank">GitHub</a>
+          <a href="https://www.npmjs.com/package/@sammons/claude-good-hooks" target="_blank">NPM</a>
+          <a href="#getting-started">Get Started</a>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="footer-copyright">
+          © 2025 Sammons Software LLC • MIT License
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="./scripts/main.js"></script>
+</body>
+</html>

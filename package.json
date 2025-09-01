@@ -4,10 +4,14 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
+    "build:docs": "cd packages/landing-page && pnpm run build:docs",
     "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test --coverage",
+    "test:smoke": "pnpm --filter claude-good-hooks-smoke-tests run smoke",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check-format": "prettier --check ."
+    "check-format": "prettier --check .",
+    "dev:docs": "cd packages/landing-page && pnpm run dev"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

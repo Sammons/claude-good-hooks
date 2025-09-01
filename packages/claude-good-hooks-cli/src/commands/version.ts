@@ -9,7 +9,7 @@ export async function versionCommand(options: any): Promise<void> {
   const isJson = options.parent?.json;
 
   try {
-    const packagePath = join(__dirname, '../../package.json');
+    const packagePath = join(__dirname, '../package.json');
     const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
 
     if (isJson) {

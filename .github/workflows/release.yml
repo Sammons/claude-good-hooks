@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & Publish to NPM
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write # For npm provenance
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+          run_install: false
+          
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run tests
+        run: pnpm test
+        
+      - name: Build all packages
+        run: pnpm build
+        
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+          
+      - name: Update package versions
+        run: |
+          VERSION=${{ steps.extract_version.outputs.VERSION }}
+          echo "Updating packages to version $VERSION"
+          
+          # Update all package.json files with the new version
+          for pkg_dir in packages/*/; do
+            if [ -f "$pkg_dir/package.json" ]; then
+              pkg_name=$(basename "$pkg_dir")
+              echo "Updating $pkg_name to version $VERSION"
+              
+              # Use jq to update version while preserving the rest of the file
+              jq --arg version "$VERSION" '.version = $version' "$pkg_dir/package.json" > "$pkg_dir/package.json.tmp"
+              mv "$pkg_dir/package.json.tmp" "$pkg_dir/package.json"
+            fi
+          done
+          
+      - name: Publish packages to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # List of packages that should be published (not private)
+          PUBLISHABLE_PACKAGES=(
+            "claude-good-hooks-cli"
+            "claude-good-hooks-types"
+            "dirty-hook" 
+            "claude-good-hooks-template-hook"
+          )
+          
+          echo "Starting publication process..."
+          
+          for pkg_name in "${PUBLISHABLE_PACKAGES[@]}"; do
+            pkg_dir="packages/$pkg_name"
+            
+            if [ -d "$pkg_dir" ] && [ -f "$pkg_dir/package.json" ]; then
+              echo "Publishing package: $pkg_name"
+              cd "$pkg_dir"
+              
+              # Check if package is marked as private
+              if [ "$(cat package.json | jq -r '.private // false')" = "true" ]; then
+                echo "Skipping $pkg_name (marked as private)"
+                cd - > /dev/null
+                continue
+              fi
+              
+              # Publish with provenance
+              npm publish --provenance --access public
+              
+              if [ $? -eq 0 ]; then
+                echo "Successfully published $pkg_name"
+              else
+                echo "Failed to publish $pkg_name"
+                exit 1
+              fi
+              
+              cd - > /dev/null
+            else
+              echo "Package directory $pkg_dir does not exist or is missing package.json"
+            fi
+          done
+          
+          echo "All packages published successfully!"
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

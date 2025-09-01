@@ -9,6 +9,7 @@ dist/
 coverage/
 .nyc_output/
 *.tgz
+# docs/ - GitHub Pages deployment folder (should be committed)
 .claude-good-hooks.json
 .claude/
 !packages/*/.claude/
