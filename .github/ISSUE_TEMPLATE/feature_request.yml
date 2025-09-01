@@ -1,0 +1,136 @@
+name: ✨ Feature Request
+description: Suggest an idea for Claude Good Hooks
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! Please fill out the form below to help us understand your request.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which package would this feature affect?
+      options:
+        - claude-good-hooks-cli
+        - claude-good-hooks-types
+        - claude-good-hooks-factories
+        - claude-good-hooks-template-hook
+        - claude-good-hooks-examples
+        - dirty-hook
+        - New package
+        - Multiple packages
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: "I would like to be able to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions you've considered
+      placeholder: "I also considered..."
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case and how this feature would help
+      placeholder: |
+        I need this feature because...
+        
+        Example workflow:
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Important
+        - Critical
+        - Blocking current work
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Code Examples
+      description: Provide examples of how the feature would be used
+      render: typescript
+      placeholder: |
+        // Example usage
+        import { createHook } from '@sammons/claude-good-hooks-cli';
+        
+        const myHook = createHook({
+          // your proposed API
+        });
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Breaking Changes
+      description: Would this feature require breaking changes?
+      options:
+        - label: This feature would require breaking changes
+        - label: This feature could be implemented without breaking changes
+        - label: I'm not sure about breaking changes
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: |
+        - Could add a new method to...
+        - Might need to modify the...
+        - Similar to how... works
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples
+      placeholder: |
+        - Links to related projects
+        - Screenshots or mockups
+        - External resources
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing feature requests
+          required: true
+        - label: I have provided a clear use case
+          required: true
+        - label: I understand this may take time to implement
+          required: true

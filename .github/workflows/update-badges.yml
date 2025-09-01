@@ -10,7 +10,6 @@
 # Triggers:
 # - Push to main branch (update badges after code changes)
 # - CI workflow completion (update build status badges)
-# - Daily schedule at 00:00 UTC (refresh stale badges)
 # - Manual trigger (for testing or immediate updates)
 #
 # Process:
@@ -44,11 +43,6 @@ on:
   workflow_run:
     workflows: ["CI"]  # References the CI workflow by name
     types: [completed] # Trigger regardless of success/failure
-  
-  # Update badges daily to refresh any stale data
-  # Scheduled at midnight UTC to avoid interfering with development
-  schedule:
-    - cron: '0 0 * * *'
   
   # Allow manual triggering for immediate updates or testing
   workflow_dispatch:
@@ -148,9 +142,9 @@ jobs:
             echo "BUILD_STATUS=success" >> $GITHUB_ENV
             echo "✅ Push event - assuming success"
           else
-            # For scheduled runs or manual triggers, status is unknown
+            # For manual triggers, status is unknown
             echo "BUILD_STATUS=unknown" >> $GITHUB_ENV
-            echo "❓ Build status unknown (scheduled or manual trigger)"
+            echo "❓ Build status unknown (manual trigger)"
           fi
 
       # Step 8: Run tests to generate fresh coverage data

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Good Hooks Builder</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/monaco-editor@0.47.0/min/vs/loader.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .monaco-editor-container {
+            height: 400px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .step-indicator {
+            position: relative;
+        }
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background-color: #d1d5db;
+        }
+        .step-indicator.completed::after {
+            background-color: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app">
+        <div class="min-h-screen flex">
+            <!-- Sidebar -->
+            <div class="sidebar w-80 text-white shadow-xl">
+                <div class="p-6">
+                    <div class="flex items-center mb-8">
+                        <i class="fas fa-code-branch text-2xl mr-3"></i>
+                        <div>
+                            <h1 class="text-xl font-bold">Hook Builder</h1>
+                            <p class="text-sm opacity-90">Claude Good Hooks</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Steps -->
+                    <div class="space-y-4">
+                        <div 
+                            v-for="(step, index) in steps" 
+                            :key="index"
+                            :class="['step-indicator flex items-center p-3 rounded-lg cursor-pointer transition-colors', 
+                                    currentStep === index ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-10',
+                                    currentStep > index ? 'completed' : '']"
+                            @click="goToStep(index)"
+                        >
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                                 :class="currentStep > index ? 'bg-green-500' : currentStep === index ? 'bg-white text-purple-600' : 'bg-white bg-opacity-20'">
+                                <i v-if="currentStep > index" class="fas fa-check text-sm"></i>
+                                <span v-else class="text-sm font-semibold">{{ index + 1 }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">{{ step.title }}</h3>
+                                <p class="text-sm opacity-75">{{ step.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col">
+                <!-- Header -->
+                <header class="bg-white shadow-sm border-b px-8 py-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ steps[currentStep].title }}</h2>
+                            <p class="text-gray-600">{{ steps[currentStep].description }}</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-500">Step {{ currentStep + 1 }} of {{ steps.length }}</span>
+                            <div class="flex space-x-2">
+                                <button @click="previousStep" :disabled="currentStep === 0" 
+                                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-arrow-left mr-2"></i>Previous
+                                </button>
+                                <button @click="nextStep" :disabled="currentStep === steps.length - 1 || !canProceed"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Next<i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Content Area -->
+                <main class="flex-1 p-8">
+                    <!-- Step 0: Hook Type Selection -->
+                    <div v-if="currentStep === 0" class="max-w-4xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div v-for="template in templates" :key="template.name"
+                                 :class="['p-6 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow border-2',
+                                         selectedTemplate?.name === template.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200']"
+                                 @click="selectTemplate(template)">
+                                <div class="flex items-center mb-4">
+                                    <i :class="['text-2xl mr-3', template.icon || 'fas fa-code']" :style="{ color: template.color || '#6366f1' }"></i>
+                                    <h3 class="font-bold text-lg">{{ template.name }}</h3>
+                                </div>
+                                <p class="text-gray-600 mb-4">{{ template.description }}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span v-for="tag in template.tags" :key="tag"
+                                          class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1: Configuration -->
+                    <div v-if="currentStep === 1" class="max-w-4xl">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Hook Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Hook Name</label>
+                                    <input v-model="hookConfig.name" type="text" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           placeholder="my-custom-hook">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <input v-model="hookConfig.description" type="text"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           placeholder="What does this hook do?">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Version</label>
+                                    <input v-model="hookConfig.version" type="text"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           placeholder="1.0.0">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Author</label>
+                                    <input v-model="hookConfig.author" type="text"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           placeholder="Your Name">
+                                </div>
+                            </div>
+                            
+                            <!-- Hook Events Configuration -->
+                            <div class="mt-8">
+                                <h4 class="text-md font-semibold mb-4">Hook Events</h4>
+                                <div class="space-y-4">
+                                    <div v-for="event in availableEvents" :key="event.name" class="flex items-center justify-between p-4 border rounded-lg">
+                                        <div class="flex items-center">
+                                            <input :id="event.name" type="checkbox" v-model="hookConfig.events[event.name]"
+                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                            <label :for="event.name" class="ml-3">
+                                                <span class="font-medium">{{ event.name }}</span>
+                                                <p class="text-sm text-gray-500">{{ event.description }}</p>
+                                            </label>
+                                        </div>
+                                        <div v-if="hookConfig.events[event.name]" class="flex items-center space-x-2">
+                                            <input v-model="hookConfig.matchers[event.name]" type="text"
+                                                   class="px-2 py-1 text-sm border border-gray-300 rounded"
+                                                   :placeholder="event.defaultMatcher || '*'">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Code Editor -->
+                    <div v-if="currentStep === 2" class="max-w-full">
+                        <div class="bg-white rounded-lg shadow p-6 h-full">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Hook Implementation</h3>
+                                <div class="flex space-x-2">
+                                    <button @click="formatCode" class="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200">
+                                        <i class="fas fa-magic mr-1"></i>Format
+                                    </button>
+                                    <button @click="validateCode" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">
+                                        <i class="fas fa-check mr-1"></i>Validate
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="monaco-editor" class="monaco-editor-container"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Preview & Export -->
+                    <div v-if="currentStep === 3" class="max-w-4xl">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Configuration Preview -->
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-semibold mb-4">Configuration Preview</h3>
+                                <pre class="bg-gray-50 p-4 rounded text-sm overflow-auto max-h-96">{{ configPreview }}</pre>
+                            </div>
+                            
+                            <!-- Export Options -->
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h3 class="text-lg font-semibold mb-4">Export Options</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
+                                        <select v-model="exportFormat" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                            <option value="npm">NPM Package</option>
+                                            <option value="standalone">Standalone Script</option>
+                                            <option value="config">Configuration Only</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Package Name</label>
+                                        <input v-model="packageName" type="text"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                               :placeholder="generatePackageName()">
+                                    </div>
+                                    
+                                    <div class="flex space-x-4 mt-6">
+                                        <button @click="exportHook" 
+                                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                            <i class="fas fa-download mr-2"></i>Export Hook
+                                        </button>
+                                        <button @click="saveToCloud" 
+                                                class="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                            <i class="fas fa-cloud-upload-alt mr-2"></i>Save to Cloud
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const currentStep = ref(0);
+                const selectedTemplate = ref(null);
+                const hookConfig = ref({
+                    name: '',
+                    description: '',
+                    version: '1.0.0',
+                    author: '',
+                    events: {},
+                    matchers: {}
+                });
+                const exportFormat = ref('npm');
+                const packageName = ref('');
+                const codeEditor = ref(null);
+                
+                const steps = ref([
+                    { title: 'Choose Template', description: 'Select a hook template to get started' },
+                    { title: 'Configure Hook', description: 'Set up your hook configuration' },
+                    { title: 'Write Code', description: 'Implement your hook logic' },
+                    { title: 'Preview & Export', description: 'Review and export your hook' }
+                ]);
+                
+                const templates = ref([
+                    {
+                        name: 'git-workflow',
+                        description: 'Git integration with status and branch validation',
+                        icon: 'fab fa-git-alt',
+                        color: '#f05032',
+                        tags: ['git', 'workflow', 'development']
+                    },
+                    {
+                        name: 'code-formatter',
+                        description: 'Automatic code formatting on file changes',
+                        icon: 'fas fa-code',
+                        color: '#61dafb',
+                        tags: ['formatting', 'prettier', 'development']
+                    },
+                    {
+                        name: 'test-runner',
+                        description: 'Intelligent test runner for code changes',
+                        icon: 'fas fa-vial',
+                        color: '#97c93d',
+                        tags: ['testing', 'jest', 'vitest']
+                    },
+                    {
+                        name: 'security-scanner',
+                        description: 'Security scanning for code and dependencies',
+                        icon: 'fas fa-shield-alt',
+                        color: '#dc3545',
+                        tags: ['security', 'scanning', 'vulnerability']
+                    },
+                    {
+                        name: 'performance-monitor',
+                        description: 'Performance tracking and monitoring',
+                        icon: 'fas fa-tachometer-alt',
+                        color: '#6f42c1',
+                        tags: ['performance', 'monitoring', 'metrics']
+                    },
+                    {
+                        name: 'custom',
+                        description: 'Start from scratch with a blank template',
+                        icon: 'fas fa-plus-circle',
+                        color: '#6c757d',
+                        tags: ['custom', 'blank', 'advanced']
+                    }
+                ]);
+                
+                const availableEvents = ref([
+                    { name: 'PreToolUse', description: 'Before Claude uses a tool', defaultMatcher: 'Write|Edit' },
+                    { name: 'PostToolUse', description: 'After Claude uses a tool', defaultMatcher: 'Write|Edit' },
+                    { name: 'UserPromptSubmit', description: 'When user submits a prompt', defaultMatcher: '' },
+                    { name: 'Stop', description: 'When Claude finishes responding', defaultMatcher: '' },
+                    { name: 'SessionStart', description: 'When Claude session starts', defaultMatcher: '' },
+                    { name: 'SessionEnd', description: 'When Claude session ends', defaultMatcher: '' }
+                ]);
+                
+                const canProceed = computed(() => {
+                    switch (currentStep.value) {
+                        case 0: return selectedTemplate.value !== null;
+                        case 1: return hookConfig.value.name && hookConfig.value.description;
+                        case 2: return true; // Code step - always allow proceeding
+                        case 3: return true; // Export step
+                        default: return false;
+                    }
+                });
+                
+                const configPreview = computed(() => {
+                    return JSON.stringify({
+                        name: hookConfig.value.name,
+                        description: hookConfig.value.description,
+                        version: hookConfig.value.version,
+                        template: selectedTemplate.value?.name,
+                        events: Object.entries(hookConfig.value.events)
+                            .filter(([_, enabled]) => enabled)
+                            .reduce((acc, [event, _]) => {
+                                acc[event] = hookConfig.value.matchers[event] || '*';
+                                return acc;
+                            }, {})
+                    }, null, 2);
+                });
+                
+                function selectTemplate(template) {
+                    selectedTemplate.value = template;
+                    // Auto-populate hook name based on template
+                    if (!hookConfig.value.name) {
+                        hookConfig.value.name = template.name === 'custom' ? 'my-custom-hook' : template.name;
+                    }
+                }
+                
+                function goToStep(step) {
+                    if (step <= currentStep.value || canProceed.value) {
+                        currentStep.value = step;
+                    }
+                }
+                
+                function nextStep() {
+                    if (canProceed.value && currentStep.value < steps.value.length - 1) {
+                        currentStep.value++;
+                        if (currentStep.value === 2) {
+                            initializeEditor();
+                        }
+                    }
+                }
+                
+                function previousStep() {
+                    if (currentStep.value > 0) {
+                        currentStep.value--;
+                    }
+                }
+                
+                function initializeEditor() {
+                    // Initialize Monaco Editor
+                    require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.47.0/min/vs' } });
+                    require(['vs/editor/editor.main'], function () {
+                        codeEditor.value = monaco.editor.create(document.getElementById('monaco-editor'), {
+                            value: generateInitialCode(),
+                            language: 'typescript',
+                            theme: 'vs-dark',
+                            automaticLayout: true,
+                            minimap: { enabled: false }
+                        });
+                    });
+                }
+                
+                function generateInitialCode() {
+                    const template = selectedTemplate.value;
+                    if (!template) return '// Select a template first';
+                    
+                    return \`#!/usr/bin/env node
+
+import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+
+const \${hookConfig.value.name.replace(/-/g, '')}Hook: HookPlugin = {
+  name: '\${hookConfig.value.name}',
+  description: '\${hookConfig.value.description}',
+  version: '\${hookConfig.value.version}',
+  customArgs: {
+    enabled: {
+      description: 'Enable this hook',
+      type: 'boolean',
+      default: true
+    }
+  },
+  makeHook: (args) => {
+    return {
+      // TODO: Implement your hook logic here
+      \${Object.keys(hookConfig.value.events)
+        .filter(event => hookConfig.value.events[event])
+        .map(event => \`\${event}: [{
+        \${hookConfig.value.matchers[event] ? \`matcher: '\${hookConfig.value.matchers[event]}',\` : ''}
+        hooks: [{
+          type: 'command',
+          command: 'echo "Hook triggered: \${event}"',
+          timeout: 5000
+        }]
+      }]\`)
+        .join(',\\n      ')}
+    };
+  }
+};
+
+export default \${hookConfig.value.name.replace(/-/g, '')}Hook;\`;
+                }
+                
+                function formatCode() {
+                    if (codeEditor.value) {
+                        codeEditor.value.getAction('editor.action.formatDocument').run();
+                    }
+                }
+                
+                function validateCode() {
+                    // Simple validation - in real app, would use TypeScript compiler
+                    alert('Code validation would run here');
+                }
+                
+                function generatePackageName() {
+                    return \`@your-org/claude-hook-\${hookConfig.value.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}\`;
+                }
+                
+                function exportHook() {
+                    const hookData = {
+                        config: hookConfig.value,
+                        template: selectedTemplate.value,
+                        code: codeEditor.value ? codeEditor.value.getValue() : '',
+                        format: exportFormat.value,
+                        packageName: packageName.value || generatePackageName()
+                    };
+                    
+                    // Create download link
+                    const blob = new Blob([JSON.stringify(hookData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = \`\${hookConfig.value.name}-hook.json\`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+                
+                function saveToCloud() {
+                    // Implement cloud save functionality
+                    alert('Cloud save functionality would be implemented here');
+                }
+                
+                return {
+                    currentStep,
+                    selectedTemplate,
+                    hookConfig,
+                    exportFormat,
+                    packageName,
+                    steps,
+                    templates,
+                    availableEvents,
+                    canProceed,
+                    configPreview,
+                    selectTemplate,
+                    goToStep,
+                    nextStep,
+                    previousStep,
+                    formatCode,
+                    validateCode,
+                    generatePackageName,
+                    exportHook,
+                    saveToCloud
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

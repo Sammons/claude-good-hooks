@@ -4,7 +4,13 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-export async function doctorCommand(options: any): Promise<void> {
+interface DoctorOptions {
+  parent?: {
+    json?: boolean;
+  };
+}
+
+export async function doctorCommand(options: DoctorOptions): Promise<void> {
   const isJson = options.parent?.json;
   const checks: Array<{ name: string; status: boolean; message?: string }> = [];
 
@@ -28,7 +34,7 @@ export async function doctorCommand(options: any): Promise<void> {
   checks.push({
     name: 'Node.js version',
     status: nodeOk,
-    message: nodeOk ? `v${nodeVersion}` : `v${nodeVersion} (requires Node.js 20+)`,
+    message: nodeOk ? nodeVersion : `${nodeVersion} (requires Node.js 20+)`,
   });
 
   // Check for Claude settings directory

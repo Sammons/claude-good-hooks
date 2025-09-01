@@ -1,35 +1,48 @@
 # ===================================================================
-# GitHub Pages Deployment Workflow
+# GitHub Pages Deployment Workflow - Consolidated
 # ===================================================================
 #
-# This workflow builds and deploys the project's landing page to 
-# GitHub Pages. It's optimized to only run when relevant files change
-# to save CI resources and deployment time.
+# This workflow builds and deploys the project's documentation/landing page to 
+# GitHub Pages. It consolidates the functionality of both deploy-docs.yml and
+# the original pages.yml for optimal performance and maintainability.
+#
+# Key Features:
+# - Supports both main and master branches for flexibility
+# - Path filtering for efficiency (only runs when landing page changes)
+# - PR validation (builds but doesn't deploy)
+# - Proper caching and modern tooling
+# - Secure deployment with proper permissions
 #
 # Triggers:
-# - Push to main branch (only when landing page files change)
+# - Push to main/master branch (only when landing page files change)
+# - Pull requests to main/master (build validation only)
 # - Manual trigger via workflow_dispatch
 #
 # Process:
 # 1. Build the landing page from packages/landing-page
 # 2. Generate static files in ./docs directory
-# 3. Deploy to GitHub Pages using official GitHub actions
+# 3. Deploy to GitHub Pages (only on main/master push)
 #
 # Path filtering ensures this only runs when:
 # - Files in packages/landing-page/** change
 # - This workflow file itself changes
-#
-# The workflow uses concurrency control to cancel previous deployments
-# when new commits are pushed, ensuring only the latest version is deployed.
 # ===================================================================
 
-name: GitHub Pages
+name: Deploy Documentation to GitHub Pages
 
 on:
-  # Trigger on pushes to main, but only when landing page files change
-  # This path filtering prevents unnecessary deployments when other parts of the repo change
+  # Trigger on pushes to main/master, but only when landing page files change
+  # Supports both branch names for repository flexibility
   push:
-    branches: [main]
+    branches: [main, master]
+    paths:
+      - 'packages/landing-page/**'    # Landing page source files
+      - '.github/workflows/pages.yml' # This workflow file itself
+  
+  # Also trigger on pull requests for build validation
+  # This allows testing the build process without deploying
+  pull_request:
+    branches: [main, master]
     paths:
       - 'packages/landing-page/**'    # Landing page source files
       - '.github/workflows/pages.yml' # This workflow file itself
@@ -38,7 +51,7 @@ on:
   workflow_dispatch:
 
 # Concurrency control for deployments
-# Only one deployment should run at a time, cancel previous ones if new commits arrive
+# Cancel previous deployments when new commits arrive to ensure only the latest version is deployed
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -51,13 +64,13 @@ permissions:
 
 jobs:
   # ===================================================================
-  # Build Job - Generate Static Site Files
+  # Build Job - Generate Documentation Files
   # ===================================================================
-  # This job builds the landing page and prepares it for deployment.
-  # It outputs static files that will be served by GitHub Pages.
+  # This job builds the documentation/landing page for both validation (PRs)
+  # and deployment (pushes). It outputs static files for GitHub Pages.
   # ===================================================================
   build:
-    name: Build Landing Page
+    name: Build Documentation
     runs-on: ubuntu-latest
     
     steps:
@@ -73,7 +86,7 @@ jobs:
           node-version: '20.x'
           
       # Step 3: Setup pnpm package manager
-      # Same version as CI/release workflows for consistency
+      # Using latest stable version for best performance and features
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -81,13 +94,14 @@ jobs:
           run_install: false
           
       # Step 4: Setup caching for dependencies
+      # More efficient than npm cache, reuses cache from other workflows
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
           
       # Step 5: Cache pnpm store for faster builds
-      # Reuses cache from other workflows to save time and bandwidth
+      # Shares cache with CI and release workflows for efficiency
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -100,40 +114,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      # Step 7: Build the landing page
-      # This generates static HTML/CSS/JS files in the ./docs directory
-      # The build:docs script is specific to the landing page package
-      - name: Build landing page
+      # Step 7: Build the documentation/landing page
+      # This generates static HTML/CSS/JS files in a temporary build directory
+      - name: Build documentation
         run: |
-          echo "🏗️  Building landing page for GitHub Pages..."
+          echo "🏗️  Building documentation/landing page..."
           cd packages/landing-page
-          pnpm build:docs
-          echo "✅ Landing page build completed"
+          # Build to a temporary directory instead of ./docs (which is git-ignored)
+          pnpm run build --outDir ./dist-pages --emptyOutDir --base /claude-good-hooks/
+          echo "✅ Documentation build completed"
           
-      # Step 8: Configure GitHub Pages
-      # This sets up the environment for GitHub Pages deployment
+      # Step 8: Configure GitHub Pages (only for push events, not PRs)
       - name: Setup Pages
+        if: github.event_name == 'push'
         uses: actions/configure-pages@v4
         
-      # Step 9: Upload build artifacts for deployment
-      # The ./docs directory contains the built static site
-      # This artifact will be used by the deploy job
+      # Step 9: Upload build artifacts for deployment (only for push events)
+      # For PRs, we just validate the build works without uploading artifacts
       - name: Upload artifact
+        if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs # Directory containing the built static site
+          path: ./packages/landing-page/dist-pages # Directory containing the built static site
 
   # ===================================================================
   # Deploy Job - Publish to GitHub Pages
   # ===================================================================
-  # This job takes the artifacts from the build job and deploys them
-  # to GitHub Pages. It runs only after the build job completes successfully.
+  # This job only runs when pushing to main/master branches (not PRs).
+  # It takes the artifacts from the build job and deploys them to GitHub Pages.
   # 
-  # The deployment uses GitHub's protected environment 'github-pages'
-  # which provides additional security and audit logging.
+  # The conditional deployment prevents deploying from PRs while still
+  # validating that the build works on pull requests.
   # ===================================================================
   deploy:
     name: Deploy to GitHub Pages
+    # Only deploy when pushing to main or master branches
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     # GitHub Pages environment provides:
     # - Protection rules (if configured)

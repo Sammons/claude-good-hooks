@@ -1,17 +1,23 @@
 # Claude Good Hooks
 
-[![Build Status](.github/badges/build.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml)
-[![Coverage](.github/badges/coverage.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml)
-[![License: MIT](.github/badges/license.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/sammons/claude-good-hooks/actions/workflows/security.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/security.yml)
+[![Performance](https://github.com/sammons/claude-good-hooks/actions/workflows/performance.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/performance.yml)
+[![Coverage](https://codecov.io/gh/sammons/claude-good-hooks/branch/main/graph/badge.svg)](https://codecov.io/gh/sammons/claude-good-hooks)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![claude-good-hooks](.github/badges/sammons-claude-good-hooks-version.svg)](https://www.npmjs.com/package/@sammons/claude-good-hooks)
-[![claude-good-hooks-types](.github/badges/sammons-claude-good-hooks-types-version.svg)](https://www.npmjs.com/package/@sammons/claude-good-hooks-types)
-[![dirty-good-claude-hook](.github/badges/sammons-dirty-good-claude-hook-version.svg)](https://www.npmjs.com/package/@sammons/dirty-good-claude-hook)
-[![claude-good-hooks-template-hook](.github/badges/sammons-claude-good-hooks-template-hook-version.svg)](https://www.npmjs.com/package/@sammons/claude-good-hooks-template-hook)
+CLI for configuring Claude Code hooks and using hooks shared via npm.
 
-CLI for configuring hooks and using hooks shared via npm which adhere to the Claude Good Hooks interface.
+[View Documentation](https://sammons.github.io/claude-good-hooks/)
 
-🌐 **[View Documentation](https://your-username.github.io/claude-good-hooks/)** - Professional landing page with examples and guides
+## Documentation
+
+- [API Documentation](./docs/api/README.md) - API reference and examples
+- [Troubleshooting Guide](./docs/troubleshooting.md) - Common issues and solutions
+- [Architecture Deep Dive](./docs/architecture-deep-dive.md) - System design details
+- [Getting Started Guide](./docs/tutorials/getting-started-script.md) - Quick start instructions
+- [Creating Custom Hooks](./docs/tutorials/creating-custom-hooks-script.md) - Hook development guide
+- [Advanced Features](./docs/tutorials/advanced-features-script.md) - Advanced usage patterns
 
 ## Getting Started
 
@@ -165,28 +171,17 @@ The GitHub Actions workflow will automatically:
 - Publish packages to npm with provenance
 - Create a GitHub release
 
-### CI/CD
+### Development
 
-- **CI**: Runs on every push to main and pull requests
-  - Tests with coverage reporting
-  - Linting and formatting checks
-  - Package validation
-- **Release**: Triggered by git tags matching `v*`
-  - Publishes to npm with provenance
-  - Creates GitHub releases
-- **GitHub Pages**: Deploys landing page documentation
+This project uses automated CI/CD with testing, security scanning, performance monitoring, and automated releases.
 
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
-## Sponsorship
-
-[Buy me a coffee](https://buymeacoffee.com) (placeholder)
-
 ## Project Status
 
-Experimental. I created this in September 2025 to streamline the hooks I am experimenting with around `claude` (Claude Code).
+Experimental project created in September 2025 for streamlining Claude Code hooks.
 
 ## License
 

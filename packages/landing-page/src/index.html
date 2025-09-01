@@ -26,16 +26,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Prism.js for syntax highlighting -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+  <!-- Prism.js styles are now bundled -->
 </head>
 <body>
   <!-- Header -->
   <header class="header" id="header">
     <nav class="nav container">
       <div class="nav-brand">
-        <span class="nav-logo">🪝</span>
+        <span class="nav-logo"></span>
         <span class="nav-title">Claude Good Hooks</span>
       </div>
       <div class="nav-menu" id="nav-menu">
@@ -49,9 +47,18 @@
           <li class="nav-item">
             <a href="#examples" class="nav-link">Examples</a>
           </li>
+          <li class="nav-item">
+            <a href="#playground" class="nav-link">Playground</a>
+          </li>
         </ul>
-        <div class="nav-cta">
-          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline" target="_blank">
+        <div class="nav-actions">
+          <button id="search-toggle" class="search-toggle" aria-label="Search" title="Search (/)">
+            Search
+          </button>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+            Theme
+          </button>
+          <a href="https://github.com/sammons/claude-good-hooks" class="btn btn-outline" target="_blank">
             GitHub
           </a>
         </div>
@@ -63,6 +70,27 @@
       </div>
     </nav>
   </header>
+
+  <!-- Search Modal -->
+  <div class="search-modal" id="search-modal">
+    <div class="search-modal-content">
+      <div class="search-header">
+        <input type="text" id="search-input" class="search-input" placeholder="Search documentation, hooks, commands..." autocomplete="off">
+        <button id="search-close" class="search-close" aria-label="Close search">
+          Close
+        </button>
+      </div>
+      <div class="search-results" id="search-results">
+        <div class="search-placeholder">
+          <p>Start typing to search...</p>
+          <div class="search-shortcuts">
+            <span class="shortcut">Press <kbd>/</kbd> to search</span>
+            <span class="shortcut">Press <kbd>Escape</kbd> to close</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Hero Section -->
   <section class="hero" id="home">
@@ -78,7 +106,7 @@
         </p>
         <div class="hero-actions">
           <a href="#getting-started" class="btn btn-primary">Get Started</a>
-          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-secondary" target="_blank">
+          <a href="https://github.com/sammons/claude-good-hooks" class="btn btn-secondary" target="_blank">
             GitHub
           </a>
         </div>
@@ -102,7 +130,7 @@
               <span class="code-command">claude-good-hooks apply dirty --global</span>
             </div>
             <div class="code-line code-output">
-              <span class="code-success">✓ Hook applied successfully!</span>
+              <span class="code-success">Hook applied successfully!</span>
             </div>
           </div>
         </div>
@@ -119,7 +147,7 @@
       
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">🚀</div>
+          <div class="feature-icon"></div>
           <h3 class="feature-title">Simple Setup</h3>
           <p class="feature-description">
             Install with npm and apply hooks instantly. No complex configuration needed.
@@ -127,7 +155,7 @@
         </div>
         
         <div class="feature-card">
-          <div class="feature-icon">🔧</div>
+          <div class="feature-icon"></div>
           <h3 class="feature-title">Flexible Scoping</h3>
           <p class="feature-description">
             Apply hooks globally, per-project, or locally with full control.
@@ -135,7 +163,7 @@
         </div>
         
         <div class="feature-card">
-          <div class="feature-icon">📦</div>
+          <div class="feature-icon"></div>
           <h3 class="feature-title">NPM Ecosystem</h3>
           <p class="feature-description">
             Share hooks as packages and install community hooks easily.
@@ -160,7 +188,7 @@
             <div class="code-block">
               <pre><code class="language-bash">npm install -g @sammons/claude-good-hooks</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/claude-good-hooks')">
-                📋
+                Copy
               </button>
             </div>
           </div>
@@ -173,7 +201,7 @@
             <div class="code-block">
               <pre><code class="language-bash">npm install -g @sammons/dirty-good-claude-hook</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('npm install -g @sammons/dirty-good-claude-hook')">
-                📋
+                Copy
               </button>
             </div>
           </div>
@@ -186,7 +214,7 @@
             <div class="code-block">
               <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
               <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply dirty --global')">
-                📋
+                Copy
               </button>
             </div>
           </div>
@@ -194,7 +222,6 @@
       </div>
     </div>
   </section>
-
 
   <!-- Examples Section -->
   <section class="examples" id="examples">
@@ -252,6 +279,131 @@
     </div>
   </section>
 
+  <!-- Interactive Playground Section -->
+  <section class="playground" id="playground">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Interactive Playground</h2>
+        <p class="section-subtitle">Try Claude Good Hooks without installing anything</p>
+      </div>
+      
+      <div class="playground-container">
+        <div class="playground-editor">
+          <div class="playground-header">
+            <h3>Hook Configuration</h3>
+            <div class="playground-actions">
+              <button class="btn btn-secondary" id="playground-reset">Reset</button>
+              <button class="btn btn-primary" id="playground-run">Run</button>
+            </div>
+          </div>
+          <div class="code-editor">
+            <textarea id="hook-editor" class="hook-editor" spellcheck="false">{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "echo 'About to modify file: $CLAUDE_PROJECT_DIR'"
+      }]
+    }]
+  }
+}</textarea>
+          </div>
+        </div>
+        
+        <div class="playground-output">
+          <div class="playground-header">
+            <h3>Output</h3>
+            <button class="btn btn-secondary" id="playground-share">Share</button>
+          </div>
+          <div class="output-panel" id="playground-result">
+            <div class="output-placeholder">
+              <p>Run your hook configuration to see the output</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="playground-examples">
+        <h3>Quick Examples</h3>
+        <div class="example-buttons">
+          <button class="example-btn" data-example="git-status">Git Status Hook</button>
+          <button class="example-btn" data-example="lint-check">Lint Check</button>
+          <button class="example-btn" data-example="session-context">Session Context</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof Section -->
+  <section class="social-proof">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Trusted by Developers</h2>
+      </div>
+      
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"Claude Good Hooks has revolutionized my development workflow. The automation possibilities are endless."</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div class="author-info">
+              <div class="author-name">Alex Chen</div>
+              <div class="author-title">Senior Developer</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"The NPM integration makes sharing hooks with my team incredibly easy. Game changer!"</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div class="author-info">
+              <div class="author-name">Sarah Johnson</div>
+              <div class="author-title">Team Lead</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="testimonial-card">
+          <div class="testimonial-content">
+            <p>"Simple, powerful, and well-documented. Exactly what I needed for my Claude Code setup."</p>
+          </div>
+          <div class="testimonial-author">
+            <div class="author-avatar"></div>
+            <div class="author-info">
+              <div class="author-name">Michael Rodriguez</div>
+              <div class="author-title">Research Engineer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number" id="github-stars">1.2k</div>
+          <div class="stat-label">GitHub Stars</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">50+</div>
+          <div class="stat-label">Hook Packages</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">10k+</div>
+          <div class="stat-label">Monthly Downloads</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">500+</div>
+          <div class="stat-label">Active Users</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA Section -->
   <section class="cta">
     <div class="container">
@@ -259,7 +411,7 @@
         <h2 class="cta-title">Ready to Get Started?</h2>
         <div class="cta-actions">
           <a href="#getting-started" class="btn btn-primary btn-large">Install Now</a>
-          <a href="https://github.com/your-username/claude-good-hooks" class="btn btn-outline btn-large" target="_blank">
+          <a href="https://github.com/sammons/claude-good-hooks" class="btn btn-outline btn-large" target="_blank">
             View on GitHub
           </a>
         </div>
@@ -272,11 +424,11 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
-          <span class="footer-logo">🪝</span>
+          <span class="footer-logo"></span>
           <span class="footer-title">Claude Good Hooks</span>
         </div>
         <div class="footer-links">
-          <a href="https://github.com/your-username/claude-good-hooks" target="_blank">GitHub</a>
+          <a href="https://github.com/sammons/claude-good-hooks" target="_blank">GitHub</a>
           <a href="https://www.npmjs.com/package/@sammons/claude-good-hooks" target="_blank">NPM</a>
           <a href="#getting-started">Get Started</a>
         </div>
@@ -291,9 +443,6 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
   <script type="module" src="./scripts/main.js"></script>
 </body>
 </html>

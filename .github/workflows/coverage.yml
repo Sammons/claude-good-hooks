@@ -1,0 +1,433 @@
+# ===================================================================
+# Enhanced Coverage Analysis Workflow
+# ===================================================================
+# 
+# Advanced coverage analysis workflow that provides detailed coverage
+# reporting, trend analysis, and coverage quality gates.
+#
+# Features:
+# - Comprehensive coverage collection from all packages
+# - Coverage trend analysis and regression detection
+# - Detailed coverage reports with line-by-line analysis
+# - Coverage quality gates for PRs
+# - Historical coverage data storage
+# - Multi-format coverage reports (lcov, json, html)
+#
+# Triggers:
+# - Push to main branch (for baseline coverage)
+# - Pull requests (for coverage diff analysis)
+# - Manual dispatch for coverage analysis
+# ===================================================================
+
+name: Coverage Analysis
+
+on:
+  # Run on pushes to main for baseline coverage
+  push:
+    branches: [main]
+  
+  # Run on PRs for coverage diff
+  pull_request:
+    branches: [main]
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      coverage_threshold:
+        description: 'Minimum coverage threshold (%)'
+        required: false
+        default: '80'
+      include_integration_tests:
+        description: 'Include integration test coverage'
+        required: false
+        type: boolean
+        default: true
+
+# Permissions for coverage reporting
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  # ===================================================================
+  # Comprehensive Coverage Collection
+  # ===================================================================
+  # Collects coverage data from all packages and test types
+  # ===================================================================
+  coverage-collection:
+    name: Coverage Collection
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for better coverage analysis
+          fetch-depth: 0
+        
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      # Step 3: Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+          run_install: false
+          
+      # Step 4: Get pnpm store directory
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
+      # Step 5: Setup pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      # Step 6: Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      # Step 7: Install coverage tools
+      - name: Install coverage tools
+        run: |
+          npm install -g c8 nyc lcov-result-merger
+        
+      # Step 8: Run comprehensive test coverage
+      - name: Run test coverage
+        run: |
+          echo "📊 Running comprehensive coverage analysis..."
+          
+          # Create coverage directory
+          mkdir -p coverage-reports
+          
+          # Run coverage for root workspace
+          echo "🔍 Collecting coverage from root workspace..."
+          pnpm test:coverage || echo "Root workspace coverage collection failed"
+          
+          # Find and copy coverage reports
+          find . -name "coverage" -type d -not -path "*/node_modules/*" | while read -r coverage_dir; do
+            # Determine package name from path
+            pkg_path=$(dirname "$coverage_dir")
+            if [ "$pkg_path" = "." ]; then
+              pkg_name="root"
+            else
+              pkg_name=$(basename "$pkg_path")
+            fi
+            
+            echo "📋 Processing coverage for: $pkg_name"
+            
+            # Copy coverage files
+            if [ -d "$coverage_dir" ]; then
+              cp -r "$coverage_dir" "coverage-reports/${pkg_name}-coverage"
+              
+              # Convert coverage formats if needed
+              if [ -f "$coverage_dir/lcov.info" ]; then
+                cp "$coverage_dir/lcov.info" "coverage-reports/${pkg_name}-lcov.info"
+              fi
+              
+              if [ -f "$coverage_dir/coverage-final.json" ]; then
+                cp "$coverage_dir/coverage-final.json" "coverage-reports/${pkg_name}-coverage.json"
+              fi
+            fi
+          done
+          
+          echo "✅ Coverage collection completed"
+        
+      # Step 9: Merge coverage reports
+      - name: Merge coverage reports
+        run: |
+          echo "🔗 Merging coverage reports..."
+          
+          # Merge LCOV files if available
+          lcov_files=$(find coverage-reports -name "*-lcov.info" | tr '\n' ' ')
+          if [ -n "$lcov_files" ]; then
+            echo "Merging LCOV files: $lcov_files"
+            lcov-result-merger "$lcov_files" coverage-reports/merged-lcov.info || echo "LCOV merge failed"
+          fi
+          
+          # Create consolidated coverage summary
+          echo "# Coverage Summary Report" > coverage-reports/coverage-summary.md
+          echo "" >> coverage-reports/coverage-summary.md
+          echo "**Generated:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> coverage-reports/coverage-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> coverage-reports/coverage-summary.md
+          echo "**Branch:** ${{ github.ref_name }}" >> coverage-reports/coverage-summary.md
+          echo "" >> coverage-reports/coverage-summary.md
+          
+          # Process each package's coverage
+          for pkg_coverage in coverage-reports/*-coverage; do
+            if [ -d "$pkg_coverage" ]; then
+              pkg_name=$(basename "$pkg_coverage" -coverage)
+              echo "## $pkg_name Package" >> coverage-reports/coverage-summary.md
+              
+              # Extract coverage summary if available
+              if [ -f "$pkg_coverage/coverage-summary.json" ]; then
+                # Parse coverage summary (simplified)
+                echo "Coverage data found for $pkg_name" >> coverage-reports/coverage-summary.md
+              else
+                echo "No coverage summary found for $pkg_name" >> coverage-reports/coverage-summary.md
+              fi
+              echo "" >> coverage-reports/coverage-summary.md
+            fi
+          done
+        
+      # Step 10: Generate HTML coverage report
+      - name: Generate HTML coverage report
+        run: |
+          echo "🎨 Generating HTML coverage report..."
+          
+          if [ -f "coverage-reports/merged-lcov.info" ]; then
+            # Generate HTML report using genhtml (part of lcov)
+            sudo apt-get update
+            sudo apt-get install -y lcov
+            
+            genhtml coverage-reports/merged-lcov.info \
+              --output-directory coverage-reports/html \
+              --title "claude-good-hooks Coverage Report" \
+              --show-details --legend || echo "HTML generation failed"
+          else
+            echo "No merged LCOV file found for HTML generation"
+            mkdir -p coverage-reports/html
+            echo "<h1>Coverage Report Generation Failed</h1>" > coverage-reports/html/index.html
+            echo "<p>No coverage data was available for HTML report generation.</p>" >> coverage-reports/html/index.html
+          fi
+        
+      # Step 11: Upload coverage to Codecov (enhanced)
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-reports/merged-lcov.info,coverage-reports/*-lcov.info
+          directory: coverage-reports
+          flags: comprehensive
+          name: comprehensive-coverage
+          fail_ci_if_error: false
+          verbose: true
+          # Additional options for enhanced reporting
+          functionalities: search,gcov,fix
+        
+      # Step 12: Upload coverage artifacts
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+          retention-days: 30
+
+  # ===================================================================
+  # Coverage Quality Gate
+  # ===================================================================
+  # Enforces coverage thresholds and quality requirements
+  # ===================================================================
+  coverage-gate:
+    name: Coverage Quality Gate
+    runs-on: ubuntu-latest
+    needs: coverage-collection
+    if: always()
+    
+    steps:
+      # Step 1: Download coverage reports
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+        
+      # Step 2: Install coverage analysis tools
+      - name: Install analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov jq
+        
+      # Step 3: Analyze coverage thresholds
+      - name: Analyze coverage thresholds
+        id: coverage-check
+        run: |
+          echo "🎯 Analyzing coverage against thresholds..."
+          
+          THRESHOLD=${{ github.event.inputs.coverage_threshold || '80' }}
+          echo "Coverage threshold: ${THRESHOLD}%"
+          
+          # Initialize results
+          OVERALL_PASS=true
+          RESULTS_MSG=""
+          
+          # Check merged coverage if available
+          if [ -f "coverage-reports/merged-lcov.info" ]; then
+            # Extract coverage percentage from LCOV
+            LINES_FOUND=$(grep -c '^LF:' coverage-reports/merged-lcov.info || echo "0")
+            LINES_HIT=$(grep '^LH:' coverage-reports/merged-lcov.info | cut -d':' -f2 | paste -sd+ | bc || echo "0")
+            
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              COVERAGE_PCT=$(echo "scale=2; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+              echo "Overall coverage: ${COVERAGE_PCT}%"
+              
+              # Check threshold
+              if (( $(echo "$COVERAGE_PCT < $THRESHOLD" | bc -l) )); then
+                OVERALL_PASS=false
+                RESULTS_MSG="${RESULTS_MSG}❌ Overall coverage (${COVERAGE_PCT}%) below threshold (${THRESHOLD}%)\n"
+              else
+                RESULTS_MSG="${RESULTS_MSG}✅ Overall coverage (${COVERAGE_PCT}%) meets threshold (${THRESHOLD}%)\n"
+              fi
+            else
+              OVERALL_PASS=false
+              RESULTS_MSG="${RESULTS_MSG}❌ No coverage data found\n"
+            fi
+          else
+            OVERALL_PASS=false
+            RESULTS_MSG="${RESULTS_MSG}❌ No merged coverage report available\n"
+          fi
+          
+          # Output results
+          echo "pass=$OVERALL_PASS" >> $GITHUB_OUTPUT
+          echo "results<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$RESULTS_MSG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        
+      # Step 4: Comment on PR with coverage results
+      - name: Comment coverage results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let coverageComment = `## 📊 Coverage Analysis Results\n\n`;
+            coverageComment += `${{ steps.coverage-check.outputs.results }}\n`;
+            
+            // Add detailed coverage summary if available
+            try {
+              const summaryPath = 'coverage-reports/coverage-summary.md';
+              if (fs.existsSync(summaryPath)) {
+                const summary = fs.readFileSync(summaryPath, 'utf8');
+                coverageComment += `\n### Detailed Coverage Report\n\n${summary}`;
+              }
+            } catch (error) {
+              console.log('Could not read coverage summary:', error);
+            }
+            
+            coverageComment += `\n---\n*Coverage analysis powered by Codecov and enhanced CI workflows.*`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverageComment
+            });
+        
+      # Step 5: Set check status
+      - name: Set coverage check status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passed = ${{ steps.coverage-check.outputs.pass }};
+            
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: passed ? 'success' : 'failure',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: passed ? 'Coverage meets requirements' : 'Coverage below threshold',
+              context: 'coverage/quality-gate'
+            });
+        
+      # Step 6: Fail job if coverage requirements not met
+      - name: Fail on coverage requirements
+        if: steps.coverage-check.outputs.pass != 'true'
+        run: |
+          echo "❌ Coverage quality gate failed!"
+          echo "${{ steps.coverage-check.outputs.results }}"
+          exit 1
+
+  # ===================================================================
+  # Coverage Badge Generation
+  # ===================================================================
+  # Generates coverage badges for README
+  # ===================================================================
+  coverage-badge:
+    name: Generate Coverage Badge
+    runs-on: ubuntu-latest
+    needs: coverage-collection
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # Step 2: Download coverage reports
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+        
+      # Step 3: Generate coverage badge
+      - name: Generate coverage badge
+        run: |
+          echo "🏷️ Generating coverage badge..."
+          
+          # Extract coverage percentage
+          if [ -f "coverage-reports/merged-lcov.info" ]; then
+            LINES_FOUND=$(grep -c '^LF:' coverage-reports/merged-lcov.info || echo "0")
+            LINES_HIT=$(grep '^LH:' coverage-reports/merged-lcov.info | cut -d':' -f2 | paste -sd+ | bc || echo "0")
+            
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              COVERAGE_PCT=$(echo "scale=0; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+            else
+              COVERAGE_PCT="0"
+            fi
+          else
+            COVERAGE_PCT="unknown"
+          fi
+          
+          echo "Coverage: ${COVERAGE_PCT}%"
+          
+          # Create badge data
+          mkdir -p .github/badges
+          echo "${COVERAGE_PCT}" > .github/badges/coverage.txt
+          
+          # Determine badge color
+          if [ "$COVERAGE_PCT" -ge 90 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE_PCT" -ge 80 ]; then
+            COLOR="green"
+          elif [ "$COVERAGE_PCT" -ge 70 ]; then
+            COLOR="yellow"
+          elif [ "$COVERAGE_PCT" -ge 60 ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+          
+          # Generate badge URL
+          BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE_PCT}%25-${COLOR}.svg"
+          echo "$BADGE_URL" > .github/badges/coverage-url.txt
+          
+          echo "✅ Coverage badge generated: $BADGE_URL"
+        
+      # Step 4: Commit badge data
+      - name: Commit badge data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/badges/
+          git diff --staged --quiet || git commit -m "Update coverage badge data [skip ci]"
+          git push || echo "No changes to push"

@@ -22,7 +22,7 @@
     "testing",
     "smoke-tests"
   ],
-  "author": "",
+  "author": "Sammons Software LLC",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"

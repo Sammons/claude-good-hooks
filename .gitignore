@@ -51,4 +51,5 @@ yarn.lock
 # Build cache
 .cache/
 
-# docs/ - GitHub Pages deployment folder (should be committed)
+# GitHub Pages build output (deployed via GitHub Actions)
+docs/

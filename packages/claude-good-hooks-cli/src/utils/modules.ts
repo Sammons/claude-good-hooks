@@ -67,9 +67,13 @@ export function getRemoteHooks(): string[] {
   }
 }
 
+interface RemoteConfig {
+  remotes?: string[];
+}
+
 export function addRemoteHook(moduleName: string): void {
   const configPath = join(process.cwd(), '.claude-good-hooks.json');
-  let config: Record<string, any> = {};
+  let config: RemoteConfig = {};
 
   if (existsSync(configPath)) {
     config = JSON.parse(readFileSync(configPath, 'utf-8'));

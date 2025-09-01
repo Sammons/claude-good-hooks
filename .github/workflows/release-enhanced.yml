@@ -1,0 +1,577 @@
+# ===================================================================
+# Enhanced Release Workflow - Comprehensive Automated Release Process
+# ===================================================================
+#
+# This enhanced workflow provides comprehensive release automation with:
+# - Breaking change detection and validation
+# - Automated changelog generation from conventional commits
+# - Version management and cross-package synchronization
+# - Release notes generation with custom templates
+# - Post-release validation and notifications
+#
+# Triggers:
+# - Git tags matching pattern 'v*' (e.g., v1.0.0, v2.1.3)
+#
+# Enhanced Process:
+# 1. Pre-release validation and breaking change detection
+# 2. Automated changelog generation
+# 3. Version synchronization across packages
+# 4. Comprehensive testing and build validation
+# 5. NPM publishing with provenance
+# 6. Enhanced GitHub release creation
+# 7. Post-release validation and notifications
+#
+# ===================================================================
+
+name: Enhanced Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '10.12.4'
+
+jobs:
+  # ===================================================================
+  # Pre-release Validation
+  # ===================================================================
+  validate:
+    name: Pre-release Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+      has-breaking-changes: ${{ steps.breaking_changes.outputs.has-breaking-changes }}
+      changelog: ${{ steps.changelog.outputs.changelog-path }}
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+          
+      - name: Validate version consistency
+        run: |
+          echo "🔍 Validating version consistency across packages..."
+          tsx .github/scripts/version-manager.ts validate --strategy unified
+          
+      - name: Detect breaking changes
+        id: breaking_changes
+        run: |
+          echo "🔍 Detecting breaking changes..."
+          
+          # Get previous version for comparison
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Comparing with previous version: $PREVIOUS_TAG"
+            
+            # Run breaking change detection
+            tsx .github/scripts/breaking-change-detector.ts detect \
+              --from "$PREVIOUS_TAG" \
+              --to "HEAD" \
+              --format json \
+              --output breaking-changes.json
+            
+            # Check if breaking changes were found
+            if [ -f breaking-changes.json ] && [ "$(jq '[.[].breakingChanges, .[].configChanges] | flatten | length' breaking-changes.json)" -gt 0 ]; then
+              echo "has-breaking-changes=true" >> $GITHUB_OUTPUT
+              echo "⚠️ Breaking changes detected"
+            else
+              echo "has-breaking-changes=false" >> $GITHUB_OUTPUT
+              echo "✅ No breaking changes detected"
+            fi
+          else
+            echo "No previous tag found, skipping breaking change detection"
+            echo "has-breaking-changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+          
+          # Generate changelog since last version
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          VERSION=${{ steps.extract_version.outputs.version }}
+          
+          tsx .github/scripts/changelog-generator.ts \
+            ${PREVIOUS_TAG:+--since "$PREVIOUS_TAG"} \
+            --format markdown \
+            --release-notes \
+            --output "RELEASE_CHANGELOG.md"
+          
+          echo "changelog-path=RELEASE_CHANGELOG.md" >> $GITHUB_OUTPUT
+          echo "✅ Changelog generated"
+          
+      - name: Upload validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-artifacts
+          path: |
+            breaking-changes.json
+            RELEASE_CHANGELOG.md
+          retention-days: 30
+
+  # ===================================================================
+  # Build and Test
+  # ===================================================================
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+          
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Lint code
+        run: pnpm run lint
+        
+      - name: Check formatting
+        run: pnpm run check-format
+        
+      - name: Run tests with coverage
+        run: pnpm run test:coverage
+        
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          flags: release
+          name: release-coverage
+          
+      - name: Build all packages
+        run: pnpm run build
+        
+      - name: Run smoke tests
+        run: pnpm run test:smoke
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            packages/*/dist
+            packages/*/package.json
+          retention-days: 30
+
+  # ===================================================================
+  # Publish to NPM
+  # ===================================================================
+  publish:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [validate, build-test]
+    
+    permissions:
+      contents: read
+      id-token: write
+      
+    outputs:
+      published-packages: ${{ steps.publish.outputs.published-packages }}
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+          
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: .
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Rebuild (ensure fresh build)
+        run: pnpm run build
+        
+      - name: Update package versions using version manager
+        run: |
+          VERSION=${{ needs.validate.outputs.version }}
+          echo "🏷️ Updating packages to version $VERSION"
+          
+          tsx .github/scripts/version-manager.ts bump "$VERSION" \
+            --strategy unified \
+            --workspace-deps \
+            --skip-git
+            
+      - name: Publish packages
+        id: publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PUBLISHABLE_PACKAGES=(
+            "claude-good-hooks-cli"
+            "claude-good-hooks-types"
+            "dirty-hook"
+            "claude-good-hooks-template-hook"
+          )
+          
+          echo "🚀 Publishing packages to NPM..."
+          
+          PUBLISHED=()
+          FAILED=()
+          
+          for pkg_name in "${PUBLISHABLE_PACKAGES[@]}"; do
+            pkg_dir="packages/$pkg_name"
+            
+            if [ -d "$pkg_dir" ] && [ -f "$pkg_dir/package.json" ]; then
+              echo "📦 Publishing $pkg_name..."
+              cd "$pkg_dir"
+              
+              if [ "$(cat package.json | jq -r '.private // false')" = "true" ]; then
+                echo "⚠️ Skipping $pkg_name (private package)"
+                cd - > /dev/null
+                continue
+              fi
+              
+              if npm publish --provenance --access public; then
+                echo "✅ Successfully published $pkg_name"
+                PUBLISHED+=("$pkg_name")
+              else
+                echo "❌ Failed to publish $pkg_name"
+                FAILED+=("$pkg_name")
+              fi
+              
+              cd - > /dev/null
+            else
+              echo "❌ Package directory $pkg_dir not found"
+              FAILED+=("$pkg_name")
+            fi
+          done
+          
+          # Output results
+          PUBLISHED_JSON=$(printf '%s\n' "${PUBLISHED[@]}" | jq -R . | jq -s .)
+          echo "published-packages=$PUBLISHED_JSON" >> $GITHUB_OUTPUT
+          
+          echo "📊 Publication summary:"
+          echo "✅ Published: ${PUBLISHED[*]}"
+          echo "❌ Failed: ${FAILED[*]}"
+          
+          # Fail if any packages failed to publish
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "💥 Some packages failed to publish"
+            exit 1
+          fi
+          
+          echo "🎉 All packages published successfully!"
+
+  # ===================================================================
+  # Create Enhanced GitHub Release
+  # ===================================================================
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, publish]
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Download validation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-artifacts
+          path: .
+          
+      - name: Generate enhanced release notes
+        run: |
+          VERSION=${{ needs.validate.outputs.version }}
+          
+          echo "📝 Generating enhanced release notes..."
+          
+          # Start with the changelog
+          cp RELEASE_CHANGELOG.md enhanced-release-notes.md
+          
+          # Add breaking changes information if present
+          if [ "${{ needs.validate.outputs.has-breaking-changes }}" = "true" ] && [ -f breaking-changes.json ]; then
+            echo "" >> enhanced-release-notes.md
+            echo "## 🚨 Breaking Changes" >> enhanced-release-notes.md
+            echo "" >> enhanced-release-notes.md
+            
+            tsx .github/scripts/breaking-change-detector.ts detect \
+              --format markdown \
+              --output breaking-changes.md
+            
+            cat breaking-changes.md >> enhanced-release-notes.md
+          fi
+          
+          # Add package information
+          echo "" >> enhanced-release-notes.md
+          echo "## 📦 Published Packages" >> enhanced-release-notes.md
+          echo "" >> enhanced-release-notes.md
+          
+          PUBLISHED_PACKAGES='${{ needs.publish.outputs.published-packages }}'
+          echo "$PUBLISHED_PACKAGES" | jq -r '.[]' | while read pkg; do
+            echo "- **@sammons/$pkg** v$VERSION" >> enhanced-release-notes.md
+          done
+          
+          # Add installation instructions
+          echo "" >> enhanced-release-notes.md
+          echo "## 🔧 Installation" >> enhanced-release-notes.md
+          echo "" >> enhanced-release-notes.md
+          echo "\`\`\`bash" >> enhanced-release-notes.md
+          echo "# Install CLI globally" >> enhanced-release-notes.md
+          echo "pnpm install -g @sammons/claude-good-hooks" >> enhanced-release-notes.md
+          echo "" >> enhanced-release-notes.md
+          echo "# Or use with npx" >> enhanced-release-notes.md
+          echo "npx @sammons/claude-good-hooks@$VERSION init" >> enhanced-release-notes.md
+          echo "\`\`\`" >> enhanced-release-notes.md
+          
+          # Add migration guide if breaking changes
+          if [ "${{ needs.validate.outputs.has-breaking-changes }}" = "true" ]; then
+            echo "" >> enhanced-release-notes.md
+            echo "## 📋 Migration Guide" >> enhanced-release-notes.md
+            echo "" >> enhanced-release-notes.md
+            
+            tsx .github/scripts/breaking-change-detector.ts migration \
+              --output migration-guide.md
+            
+            cat migration-guide.md >> enhanced-release-notes.md
+          fi
+          
+          # Add footer
+          echo "" >> enhanced-release-notes.md
+          echo "---" >> enhanced-release-notes.md
+          echo "" >> enhanced-release-notes.md
+          echo "**Full Changelog**: https://github.com/sammons/claude-good-hooks/compare/$(git describe --tags --abbrev=0 HEAD~1)...${{ github.ref_name }}" >> enhanced-release-notes.md
+          echo "" >> enhanced-release-notes.md
+          echo "*This release was automatically generated and published by GitHub Actions with npm provenance.*" >> enhanced-release-notes.md
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Claude Good Hooks v${{ needs.validate.outputs.version }}"
+          body_path: enhanced-release-notes.md
+          draft: false
+          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ===================================================================
+  # Post-release Validation
+  # ===================================================================
+  post-release:
+    name: Post-release Validation
+    runs-on: ubuntu-latest
+    needs: [validate, publish, github-release]
+    if: always()
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Wait for NPM propagation
+        run: |
+          echo "⏳ Waiting for NPM package propagation..."
+          sleep 60
+          
+      - name: Validate published packages
+        run: |
+          VERSION=${{ needs.validate.outputs.version }}
+          PUBLISHED_PACKAGES='${{ needs.publish.outputs.published-packages }}'
+          
+          echo "🔍 Validating published packages..."
+          
+          echo "$PUBLISHED_PACKAGES" | jq -r '.[]' | while read pkg; do
+            echo "Checking @sammons/$pkg@$VERSION..."
+            
+            # Check if package is available on npm
+            if npm view "@sammons/$pkg@$VERSION" version > /dev/null 2>&1; then
+              echo "✅ @sammons/$pkg@$VERSION is available on npm"
+            else
+              echo "❌ @sammons/$pkg@$VERSION is not available on npm"
+              exit 1
+            fi
+            
+            # Test installation
+            mkdir -p "test-install-$pkg"
+            cd "test-install-$pkg"
+            npm init -y > /dev/null
+            
+            if npm install "@sammons/$pkg@$VERSION" > /dev/null 2>&1; then
+              echo "✅ @sammons/$pkg@$VERSION installs successfully"
+            else
+              echo "❌ @sammons/$pkg@$VERSION failed to install"
+              exit 1
+            fi
+            
+            cd ..
+            rm -rf "test-install-$pkg"
+          done
+          
+          echo "🎉 All packages validated successfully!"
+          
+      - name: Create post-release summary
+        if: always()
+        run: |
+          VERSION=${{ needs.validate.outputs.version }}
+          
+          echo "# Release Summary: v$VERSION" > release-summary.md
+          echo "" >> release-summary.md
+          echo "**Status**: ${{ job.status }}" >> release-summary.md
+          echo "**Timestamp**: $(date -u)" >> release-summary.md
+          echo "" >> release-summary.md
+          echo "## Jobs Status" >> release-summary.md
+          echo "- Validation: ${{ needs.validate.result }}" >> release-summary.md
+          echo "- Build & Test: ${{ needs.build-test.result }}" >> release-summary.md
+          echo "- NPM Publish: ${{ needs.publish.result }}" >> release-summary.md
+          echo "- GitHub Release: ${{ needs.github-release.result }}" >> release-summary.md
+          echo "- Post-release: ${{ job.status }}" >> release-summary.md
+          echo "" >> release-summary.md
+          echo "## Published Packages" >> release-summary.md
+          
+          PUBLISHED_PACKAGES='${{ needs.publish.outputs.published-packages }}'
+          echo "$PUBLISHED_PACKAGES" | jq -r '.[]' | while read pkg; do
+            echo "- @sammons/$pkg@$VERSION" >> release-summary.md
+          done
+          
+          echo "" >> release-summary.md
+          echo "## Breaking Changes" >> release-summary.md
+          
+          if [ "${{ needs.validate.outputs.has-breaking-changes }}" = "true" ]; then
+            echo "⚠️ This release contains breaking changes. See release notes for migration guide." >> release-summary.md
+          else
+            echo "✅ No breaking changes detected." >> release-summary.md
+          fi
+          
+          cat release-summary.md
+          
+      - name: Upload release summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-summary
+          path: release-summary.md
+          retention-days: 90
+
+  # ===================================================================
+  # Cleanup Canary Releases
+  # ===================================================================
+  cleanup-canary:
+    name: Cleanup Canary Releases
+    runs-on: ubuntu-latest
+    needs: [post-release]
+    if: success()
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Cleanup old canary releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🧹 Cleaning up old canary releases..."
+          
+          # Get canary releases
+          gh release list --limit 100 | grep -E "canary-v[0-9]" | head -20 | while read -r line; do
+            tag=$(echo "$line" | awk '{print $1}')
+            echo "Deleting canary release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || true
+          done
+          
+          echo "✅ Canary cleanup completed"

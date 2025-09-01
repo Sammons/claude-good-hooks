@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { parseCliArgs, createOptionsWithParent } from './utils/cli-parser.js';
+import { Container } from './container/index.js';
 import { listHooks } from './commands/list-hooks.js';
 import { remoteCommand } from './commands/remote.js';
 import { applyCommand } from './commands/apply.js';
@@ -8,8 +9,15 @@ import { updateCommand } from './commands/update.js';
 import { doctorCommand } from './commands/doctor.js';
 import { versionCommand } from './commands/version.js';
 import { helpCommand } from './commands/help.js';
+import { initCommand } from './commands/init.js';
+import { validateCommand } from './commands/validate.js';
+import { exportCommand } from './commands/export.js';
+import { importCommand } from './commands/import.js';
 
 async function main(): Promise<void> {
+  // Create dependency injection container
+  const container = new Container();
+  
   const parsed = parseCliArgs(process.argv);
   const { command, args, options, globalOptions } = parsed;
   
@@ -19,15 +27,20 @@ async function main(): Promise<void> {
   try {
     switch (command) {
       case 'help':
-        await helpCommand(commandOptions);
+        await helpCommand(container, commandOptions);
+        break;
+        
+      case 'init':
+        // New init command - doesn't use container yet
+        await initCommand(commandOptions);
         break;
         
       case 'list-hooks':
-        await listHooks(commandOptions);
+        await listHooks(container, commandOptions);
         break;
         
       case 'remote':
-        await remoteCommand(commandOptions);
+        await remoteCommand(container, commandOptions);
         break;
         
       case 'apply':
@@ -41,11 +54,36 @@ async function main(): Promise<void> {
           console.error('Error: Hook name is required');
           process.exit(1);
         }
-        await applyCommand(hookName, hookArgs, commandOptions);
+        await applyCommand(container, hookName, hookArgs, commandOptions);
+        break;
+        
+      case 'validate':
+        // New validate command - doesn't use container yet
+        await validateCommand(commandOptions);
+        break;
+        
+      case 'export':
+        // New export command - doesn't use container yet
+        await exportCommand(commandOptions);
+        break;
+        
+      case 'import':
+        if (args.length === 0) {
+          console.error('Error: Missing required argument: source');
+          console.error('Run "claude-good-hooks help import" for usage information.');
+          process.exit(1);
+        }
+        const [source, ...importArgs] = args;
+        if (!source) {
+          console.error('Error: Source is required');
+          process.exit(1);
+        }
+        // New import command - doesn't use container yet
+        await importCommand(source, { ...commandOptions, source });
         break;
         
       case 'update':
-        await updateCommand(commandOptions);
+        await updateCommand(container, commandOptions);
         break;
         
       case 'doctor':
@@ -53,7 +91,7 @@ async function main(): Promise<void> {
         break;
         
       case 'version':
-        await versionCommand(commandOptions);
+        await versionCommand(container, commandOptions);
         break;
         
       default:

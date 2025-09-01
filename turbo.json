@@ -1,0 +1,76 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json"],
+      "outputs": ["dist/**"],
+      "persistent": false
+    },
+    "build:docs": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json", "typedoc.config.js"],
+      "outputs": ["docs/**"],
+      "persistent": false
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "test/**", "spec/**", "__tests__/**", "package.json", "tsconfig*.json", "vitest.config.*"],
+      "outputs": ["coverage/**"],
+      "persistent": false
+    },
+    "test:coverage": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "test/**", "spec/**", "__tests__/**", "package.json", "tsconfig*.json", "vitest.config.*"],
+      "outputs": ["coverage/**"],
+      "persistent": false
+    },
+    "test:smoke": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "package.json"],
+      "outputs": [],
+      "persistent": false
+    },
+    "test:smoke:docker": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "docker/**", "Dockerfile*", "package.json"],
+      "outputs": [],
+      "persistent": false
+    },
+    "lint": {
+      "inputs": ["src/**", "package.json", "eslint.config.*", ".eslintrc*"],
+      "outputs": [],
+      "persistent": false
+    },
+    "format": {
+      "inputs": ["src/**", "package.json", "prettier.config.*", ".prettierrc*"],
+      "outputs": [],
+      "persistent": false
+    },
+    "check-format": {
+      "inputs": ["src/**", "package.json", "prettier.config.*", ".prettierrc*"],
+      "outputs": [],
+      "persistent": false
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json"],
+      "outputs": [],
+      "persistent": true
+    },
+    "dev:docs": {
+      "dependsOn": ["build"],
+      "inputs": ["src/**", "package.json", "tsconfig*.json"],
+      "outputs": [],
+      "persistent": true
+    },
+    "clean": {
+      "inputs": [],
+      "outputs": ["dist/**", ".turbo/**", "coverage/**"],
+      "persistent": false
+    }
+  },
+  "globalEnv": ["NODE_ENV", "CI", "npm_config_user_config"],
+  "globalPassThroughEnv": ["NODE_ENV", "CI", "npm_config_user_config"]
+}

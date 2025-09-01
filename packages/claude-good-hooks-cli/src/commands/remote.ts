@@ -1,17 +1,24 @@
 import chalk from 'chalk';
-import {
-  isModuleInstalled,
-  addRemoteHook,
-  removeRemoteHook,
-  getRemoteHooks,
-} from '../utils/modules.js';
+import type { Container } from '../container/index.js';
 
-export async function remoteCommand(options: any): Promise<void> {
+interface RemoteOptions {
+  add?: string;
+  remove?: string;
+  json?: boolean;
+  parent?: {
+    json?: boolean;
+  };
+}
+
+export async function remoteCommand(container: Container, options: RemoteOptions): Promise<void> {
   const { add, remove, json } = options;
   const isJson = options.parent?.json || json;
+  const console = container.consoleService;
+  const moduleService = container.moduleService;
+  const processService = container.processService;
 
   if (add) {
-    const installed = isModuleInstalled(add, false) || isModuleInstalled(add, true);
+    const installed = moduleService.isModuleInstalled(add, false) || moduleService.isModuleInstalled(add, true);
 
     if (!installed) {
       const message = `Module ${add} is not installed. Please install it first using:\n  npm install ${add}\n  or\n  npm install -g ${add}`;
@@ -21,10 +28,11 @@ export async function remoteCommand(options: any): Promise<void> {
       } else {
         console.error(chalk.red(message));
       }
-      process.exit(1);
+      processService.exit(1);
+      return;
     }
 
-    addRemoteHook(add);
+    moduleService.addRemoteHook(add);
 
     if (isJson) {
       console.log(JSON.stringify({ success: true, action: 'added', module: add }));
@@ -32,7 +40,7 @@ export async function remoteCommand(options: any): Promise<void> {
       console.log(chalk.green(`✓ Added remote hook: ${add}`));
     }
   } else if (remove) {
-    removeRemoteHook(remove);
+    moduleService.removeRemoteHook(remove);
 
     if (isJson) {
       console.log(JSON.stringify({ success: true, action: 'removed', module: remove }));
@@ -40,7 +48,7 @@ export async function remoteCommand(options: any): Promise<void> {
       console.log(chalk.green(`✓ Removed remote hook: ${remove}`));
     }
   } else {
-    const remotes = getRemoteHooks();
+    const remotes = moduleService.getRemoteHooks();
 
     if (isJson) {
       console.log(JSON.stringify({ remotes }));
@@ -50,7 +58,7 @@ export async function remoteCommand(options: any): Promise<void> {
       } else {
         console.log(chalk.bold('\nConfigured Remote Hooks:\n'));
         remotes.forEach(remote => {
-          const installed = isModuleInstalled(remote, false) || isModuleInstalled(remote, true);
+          const installed = moduleService.isModuleInstalled(remote, false) || moduleService.isModuleInstalled(remote, true);
           const status = installed ? chalk.green('✓') : chalk.red('✗');
           console.log(`${status} ${remote}`);
         });

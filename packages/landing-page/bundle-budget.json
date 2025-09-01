@@ -1,0 +1,31 @@
+{
+  "budgets": {
+    "javascript": {
+      "budget": 50000,
+      "description": "Total JavaScript bundle size (gzipped)"
+    },
+    "css": {
+      "budget": 10000,
+      "description": "Total CSS bundle size (gzipped)"
+    },
+    "total": {
+      "budget": 100000,
+      "description": "Total bundle size including all assets (gzipped)"
+    },
+    "individual": {
+      "javascript": 20000,
+      "css": 15000,
+      "description": "Maximum size for individual files (gzipped)"
+    }
+  },
+  "warnings": {
+    "javascript": 40000,
+    "css": 8000,
+    "total": 80000
+  },
+  "externals": {
+    "allowedCount": 3,
+    "maxSize": 100000,
+    "description": "Maximum allowed external dependencies"
+  }
+}

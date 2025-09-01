@@ -1,0 +1,46 @@
+{
+  "name": "Claude Good Hooks API Documentation",
+  "theme": "default",
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": "docs/api",
+  "readme": "README.md",
+  "entryPoints": [
+    "packages/claude-good-hooks-types",
+    "packages/claude-good-hooks-factories",
+    "packages/claude-good-hooks-cli"
+  ],
+  "entryPointStrategy": "packages",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Types",
+    "Factories",
+    "CLI",
+    "Utilities",
+    "*"
+  ],
+  "sort": [
+    "source-order"
+  ],
+  "skipErrorChecking": true,
+  "searchInComments": true,
+  "treatWarningsAsErrors": false,
+  "hideGenerator": false,
+  "includeVersion": true,
+  "sidebarLinks": {
+    "Documentation Home": "https://your-username.github.io/claude-good-hooks/",
+    "GitHub Repository": "https://github.com/sammons/claude-good-hooks",
+    "NPM Package": "https://www.npmjs.com/package/@sammons/claude-good-hooks"
+  },
+  "navigationLinks": {
+    "Home": "https://your-username.github.io/claude-good-hooks/",
+    "Getting Started": "https://your-username.github.io/claude-good-hooks/getting-started",
+    "API Reference": "https://your-username.github.io/claude-good-hooks/api"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "label": "bundle size",
+  "message": "23.8 KB",
+  "color": "brightgreen",
+  "namedLogo": "webpack",
+  "logoColor": "white"
+}

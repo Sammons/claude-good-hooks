@@ -18,10 +18,14 @@
     "builders",
     "utilities"
   ],
-  "author": "",
+  "author": "Sammons Software LLC",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "peerDependencies": {
+    "@sammons/claude-good-hooks-types": "^1.0.0",
+    "typescript": ">=5.0.0"
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*"
@@ -30,5 +34,10 @@
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }

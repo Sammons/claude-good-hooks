@@ -1,125 +1,210 @@
-// Mobile Navigation Toggle
-const navToggle = document.getElementById('nav-toggle');
-const navMenu = document.getElementById('nav-menu');
+// Optimized main entry point with lazy loading and code splitting
+import { NavigationManager } from './navigation.js';
 
-if (navToggle && navMenu) {
-  navToggle.addEventListener('click', () => {
-    navMenu.classList.toggle('active');
-    
-    // Animate hamburger menu
-    const spans = navToggle.querySelectorAll('span');
-    spans.forEach((span, index) => {
-      if (navMenu.classList.contains('active')) {
-        if (index === 0) span.style.transform = 'rotate(45deg) translate(5px, 5px)';
-        if (index === 1) span.style.opacity = '0';
-        if (index === 2) span.style.transform = 'rotate(-45deg) translate(7px, -6px)';
-      } else {
-        span.style.transform = 'none';
-        span.style.opacity = '1';
+// Core initialization - load immediately
+let themeManager = null;
+let searchManager = null;
+let playgroundManager = null;
+let githubStatsManager = null;
+
+// Lazy load modules on demand
+async function initializeFeature(feature) {
+  try {
+    switch (feature) {
+      case 'theme':
+        if (!themeManager) {
+          const { ThemeManager } = await import('./theme.js');
+          themeManager = new ThemeManager();
+        }
+        return themeManager;
+        
+      case 'search':
+        if (!searchManager) {
+          const { SearchManager } = await import('./search.js');
+          searchManager = new SearchManager();
+        }
+        return searchManager;
+        
+      case 'playground':
+        if (!playgroundManager) {
+          const { PlaygroundManager } = await import('./playground.js');
+          playgroundManager = new PlaygroundManager();
+        }
+        return playgroundManager;
+        
+      case 'github-stats':
+        if (!githubStatsManager) {
+          const { GitHubStatsManager } = await import('./utils.js');
+          githubStatsManager = new GitHubStatsManager();
+        }
+        return githubStatsManager;
+        
+      case 'prism':
+        return import('./prism-setup.js');
+    }
+  } catch (error) {
+    console.error(`Failed to load ${feature}:`, error);
+  }
+}
+
+// Initialize critical features immediately
+document.addEventListener('DOMContentLoaded', async () => {
+  // Always load navigation (critical for UX)
+  const navigationManager = new NavigationManager();
+  
+  // Load theme immediately (prevents flash)
+  themeManager = await initializeFeature('theme');
+  
+  // Setup lazy loading for interactive features
+  setupLazyLoading();
+  
+  console.log('Claude Good Hooks landing page core loaded');
+});
+
+function setupLazyLoading() {
+  // Theme toggle - preload for instant UX
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      if (themeManager) {
+        themeManager.toggleTheme();
       }
     });
-  });
-}
-
-// Close mobile menu when clicking on a link
-if (navMenu && navToggle) {
-  const navLinks = document.querySelectorAll('.nav-link');
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      navMenu.classList.remove('active');
-      const spans = navToggle.querySelectorAll('span');
-      spans.forEach(span => {
-        span.style.transform = 'none';
-        span.style.opacity = '1';
-      });
-    });
-  });
-}
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
-      const targetPosition = target.offsetTop - headerHeight;
-      
-      window.scrollTo({
-        top: targetPosition,
-        behavior: 'smooth'
+  }
+  
+  // Search - load on first interaction
+  let searchLoaded = false;
+  const searchTriggers = ['search-toggle'];
+  searchTriggers.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.addEventListener('click', async () => {
+        if (!searchLoaded) {
+          searchManager = await initializeFeature('search');
+          searchLoaded = true;
+        }
+        searchManager?.openSearch();
       });
     }
   });
-});
-
-// Copy to clipboard functionality
-function copyToClipboard(text) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      showCopyFeedback();
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
+  
+  // Search keyboard shortcut
+  document.addEventListener('keydown', async (e) => {
+    if (e.key === '/' && !isInputFocused()) {
+      e.preventDefault();
+      if (!searchLoaded) {
+        searchManager = await initializeFeature('search');
+        searchLoaded = true;
+      }
+      searchManager?.openSearch();
+    }
+  });
+  
+  // Playground - load when section comes into view or user interacts
+  let playgroundLoaded = false;
+  const playgroundSection = document.getElementById('playground');
+  
+  if (playgroundSection) {
+    // Intersection Observer for lazy loading
+    const playgroundObserver = new IntersectionObserver(async (entries) => {
+      entries.forEach(async (entry) => {
+        if (entry.isIntersecting && !playgroundLoaded) {
+          playgroundManager = await initializeFeature('playground');
+          playgroundLoaded = true;
+          playgroundObserver.disconnect();
+        }
+      });
+    }, { rootMargin: '100px' });
+    
+    playgroundObserver.observe(playgroundSection);
+    
+    // Also load on direct playground interaction
+    const playgroundButtons = ['playground-run', 'playground-reset', 'playground-share'];
+    playgroundButtons.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener('click', async () => {
+          if (!playgroundLoaded) {
+            playgroundManager = await initializeFeature('playground');
+            playgroundLoaded = true;
+          }
+        });
+      }
     });
   }
-}
-
-function showCopyFeedback() {
-  const feedback = document.createElement('div');
-  feedback.textContent = 'Copied!';
-  feedback.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #10b981;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    z-index: 10000;
-  `;
   
-  document.body.appendChild(feedback);
+  // Code highlighting - load when code blocks are visible
+  let prismLoaded = false;
+  const codeBlocks = document.querySelectorAll('pre code');
+  if (codeBlocks.length > 0) {
+    const codeObserver = new IntersectionObserver(async (entries) => {
+      entries.forEach(async (entry) => {
+        if (entry.isIntersecting && !prismLoaded) {
+          await initializeFeature('prism');
+          prismLoaded = true;
+          codeObserver.disconnect();
+        }
+      });
+    }, { rootMargin: '50px' });
+    
+    codeBlocks.forEach(block => codeObserver.observe(block));
+  }
   
-  setTimeout(() => {
-    document.body.removeChild(feedback);
-  }, 2000);
-}
-
-// Handle external links
-document.querySelectorAll('a[href^="http"]').forEach(link => {
-  if (!link.getAttribute('target')) {
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-  }
-});
-
-// Keyboard navigation enhancements
-document.addEventListener('keydown', (e) => {
-  // ESC key closes mobile menu
-  if (e.key === 'Escape' && navMenu && navMenu.classList.contains('active')) {
-    navMenu.classList.remove('active');
-    const spans = navToggle?.querySelectorAll('span');
-    spans?.forEach(span => {
-      span.style.transform = 'none';
-      span.style.opacity = '1';
-    });
-  }
-});
-
-// Initialize Prism.js for syntax highlighting
-document.addEventListener('DOMContentLoaded', () => {
-  // Ensure Prism.js is loaded and initialize syntax highlighting
-  if (typeof Prism !== 'undefined') {
-    Prism.highlightAll();
-  }
-});
-
-// Re-highlight any dynamically added code blocks
-function highlightCodeBlocks() {
-  if (typeof Prism !== 'undefined') {
-    Prism.highlightAll();
+  // GitHub stats - load when stats section is visible
+  let githubStatsLoaded = false;
+  const statsSection = document.querySelector('.social-proof');
+  if (statsSection) {
+    const statsObserver = new IntersectionObserver(async (entries) => {
+      entries.forEach(async (entry) => {
+        if (entry.isIntersecting && !githubStatsLoaded) {
+          githubStatsManager = await initializeFeature('github-stats');
+          githubStatsLoaded = true;
+          statsObserver.disconnect();
+        }
+      });
+    }, { rootMargin: '100px' });
+    
+    statsObserver.observe(statsSection);
   }
 }
 
-console.log('Claude Good Hooks landing page loaded');
+function isInputFocused() {
+  const activeElement = document.activeElement;
+  return activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable
+  );
+}
+
+// Handle browser back/forward with shared playground
+window.addEventListener('hashchange', async () => {
+  if (window.location.hash.startsWith('#playground=')) {
+    if (!playgroundManager) {
+      playgroundManager = await initializeFeature('playground');
+    }
+    playgroundManager?.loadSharedPlayground();
+  }
+});
+
+// Export for global access
+window.ClaudeGoodHooks = {
+  search: async () => {
+    if (!searchManager) {
+      searchManager = await initializeFeature('search');
+    }
+    return searchManager?.openSearch();
+  },
+  toggleTheme: async () => {
+    if (!themeManager) {
+      themeManager = await initializeFeature('theme');
+    }
+    return themeManager?.toggleTheme();
+  },
+  loadExample: async (key) => {
+    if (!playgroundManager) {
+      playgroundManager = await initializeFeature('playground');
+    }
+    return playgroundManager?.loadExample(key);
+  }
+};

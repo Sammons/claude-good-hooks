@@ -20,10 +20,13 @@
     "hooks",
     "cli"
   ],
-  "author": "",
+  "author": "Sammons Software LLC",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "peerDependencies": {
+    "@sammons/claude-good-hooks-types": "^1.0.0"
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*",

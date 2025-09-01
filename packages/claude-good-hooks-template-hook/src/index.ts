@@ -1,37 +1,24 @@
 import type { HookPlugin, ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import { 
-  createSimpleHook,
-  createLintingHook,
-  createTestingHook,
-  createNotificationHook,
-  createGitAutoCommitHook,
-  createConditionalHook,
-  createMultiStepHook,
-  quickStartHooks
-} from '@sammons/claude-good-hooks-factories';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 /**
  * Template Hook for Claude Code
  * 
- * This template demonstrates how to create a custom hook plugin for Claude Code
- * using the claude-good-hooks-factories package for simplified hook creation.
+ * This template demonstrates how to create a custom hook plugin for Claude Code.
  * 
  * It includes examples of:
- * - Using factory functions for easy hook creation
  * - Custom arguments with validation
  * - Dynamic hook generation based on arguments
- * - Multiple hook events (PreToolUse, PostToolUse, etc.)
+ * - Multiple hook events (PreToolUse, PostToolUse)
  * - Proper TypeScript typing
  * - Error handling and fallbacks
- * - Various common development workflows (linting, testing, notifications)
  * 
  * To create your own hook:
  * 1. Change the 'name' property to your hook's unique identifier
  * 2. Update the description to match your hook's purpose
  * 3. Modify customArgs to define the arguments your hook accepts
- * 4. Use factory functions from @sammons/claude-good-hooks-factories
+ * 4. Implement your hook logic in the makeHook function
  * 5. Export your hook as the default export
  */
 const templateHook: HookPlugin = {
@@ -53,11 +40,6 @@ const templateHook: HookPlugin = {
    * These arguments allow users to customize the hook's behavior.
    */
   customArgs: {
-    mode: {
-      description: 'Hook mode: basic, development, or full',
-      type: 'string',
-      default: 'basic',
-    },
     verbose: {
       description: 'Enable verbose output',
       type: 'boolean',
@@ -71,172 +53,82 @@ const templateHook: HookPlugin = {
     timeout: {
       description: 'Command timeout in seconds',
       type: 'number',
-      default: 30,
-    },
-    enableNotifications: {
-      description: 'Enable desktop notifications',
-      type: 'boolean',
-      default: true,
-    },
-    autoCommit: {
-      description: 'Enable automatic git commits',
-      type: 'boolean',
-      default: false,
-    },
-    projectType: {
-      description: 'Project type for quick start (react, node, typescript, generic)',
-      type: 'string',
-      default: 'generic',
+      default: 5,
     },
   },
 
   /**
    * Generate hook configuration based on user-provided arguments.
-   * This function demonstrates how to use factory functions from 
-   * @sammons/claude-good-hooks-factories to create hooks easily.
+   * Creates a simple, predictable hook structure for testing and usage.
    */
-  makeHook: (args: Record<string, any>): NonNullable<ClaudeSettings['hooks']> => {
+  makeHook: (args: Record<string, unknown>): NonNullable<ClaudeSettings['hooks']> => {
     // Validate and sanitize arguments with proper defaults
     const safeArgs = {
-      mode: String(args.mode || 'basic'),
       verbose: Boolean(args.verbose ?? false),
       logFile: String(args.logFile || '/tmp/hook.log'),
-      timeout: Math.max(1, Number(args.timeout || 30)),
-      enableNotifications: Boolean(args.enableNotifications ?? true),
-      autoCommit: Boolean(args.autoCommit ?? false),
-      projectType: String(args.projectType || 'generic') as 'react' | 'node' | 'typescript' | 'generic',
+      timeout: Math.max(1, Number(args.timeout || 5)),
     };
 
-    // Start with a base configuration based on mode
-    let baseHooks: ClaudeSettings;
-    
-    switch (safeArgs.mode) {
-      case 'development':
-        // Use factory function for development workflow
-        baseHooks = {
-          hooks: {
-            ...quickStartHooks(safeArgs.projectType).hooks,
-            // Add linting hook with factory
-            ...createLintingHook('npm run lint', 'npm run lint --fix').hooks,
-            // Add testing hook with factory
-            ...createTestingHook('npm test').hooks,
-          }
-        };
-        break;
-        
-      case 'full':
-        // Combine multiple factory-created hooks for comprehensive workflow
-        const lintHook = createLintingHook('npm run lint', 'npm run lint --fix');
-        const testHook = createTestingHook('npm test');
-        const buildHook = createMultiStepHook([
-          'npm run type-check',
-          'npm run build'
-        ]);
-        
-        baseHooks = {
-          hooks: {
-            // Session hooks
-            ...quickStartHooks(safeArgs.projectType).hooks,
-            
-            // Merge PostToolUse hooks from multiple factories
-            PostToolUse: [
-              ...(lintHook.hooks.PostToolUse || []),
-              ...(testHook.hooks.PostToolUse || []),
-              ...(buildHook.hooks.PostToolUse || []),
-            ],
-          }
-        };
-        break;
-        
-      default: // 'basic' mode
-        // Use simple factory functions for basic functionality
-        baseHooks = createSimpleHook(
-          'PostToolUse',
-          safeArgs.verbose 
-            ? `echo "[$(date)] File operation completed" >> ${safeArgs.logFile}`
-            : 'echo "File operation completed"',
-          'Write|Edit',
-          safeArgs.timeout
-        );
-        break;
-    }
+    const timeoutMs = safeArgs.timeout * 1000;
 
-    // Add optional features using factory functions
-    const additionalHooks: ClaudeSettings[] = [];
+    const hooks: NonNullable<ClaudeSettings['hooks']> = {};
 
-    // Add notifications if enabled
-    if (safeArgs.enableNotifications) {
-      additionalHooks.push(
-        createNotificationHook('Claude operation completed', 'PostToolUse', 'Write|Edit')
-      );
-    }
+    // Always create PreToolUse hooks
+    hooks.PreToolUse = [];
 
-    // Add auto-commit if enabled
-    if (safeArgs.autoCommit) {
-      additionalHooks.push(
-        createGitAutoCommitHook('Auto-commit via template hook', 'Write|Edit')
-      );
-    }
-
-    // Add verbose logging using conditional hook factory
+    // Add verbose hook first if enabled
     if (safeArgs.verbose) {
-      additionalHooks.push(
-        createConditionalHook(
-          'test -f package.json',
-          `echo "[$(date)] Operation in Node.js project" >> ${safeArgs.logFile}`,
-          `echo "[$(date)] Operation in non-Node.js project" >> ${safeArgs.logFile}`,
-          'PreToolUse',
-          '*',
-          safeArgs.timeout
-        )
-      );
+      hooks.PreToolUse.push({
+        matcher: '*',
+        hooks: [{
+          type: 'command',
+          command: `echo "Verbose mode enabled, logging to ${safeArgs.logFile}"`,
+          timeout: timeoutMs
+        }]
+      });
     }
 
-    // Merge all hook configurations
-    const mergedHooks: NonNullable<ClaudeSettings['hooks']> = {};
-    const allHooks = [baseHooks, ...additionalHooks];
+    // Add Write|Edit hook
+    hooks.PreToolUse.push({
+      matcher: 'Write|Edit',
+      hooks: [{
+        type: 'command',
+        command: safeArgs.verbose 
+          ? `echo "[$(date)] File modification" >> ${safeArgs.logFile}`
+          : 'echo "About to modify a file"',
+        timeout: timeoutMs
+      }]
+    });
 
-    // Combine hooks from all configurations
-    for (const hookConfig of allHooks) {
-      if (hookConfig.hooks) {
-        for (const [eventType, configurations] of Object.entries(hookConfig.hooks)) {
-          const eventTypeKey = eventType as keyof ClaudeSettings['hooks'];
-          if (!mergedHooks[eventTypeKey]) {
-            (mergedHooks as any)[eventTypeKey] = [];
-          }
-          if (configurations && Array.isArray(configurations)) {
-            (mergedHooks as any)[eventTypeKey].push(...configurations);
-          }
-        }
-      }
-    }
+    // Always create PostToolUse hooks
+    hooks.PostToolUse = [{
+      matcher: 'Bash',
+      hooks: [{
+        type: 'command',
+        command: safeArgs.verbose
+          ? `echo "[$(date)] Command executed" >> ${safeArgs.logFile}`
+          : 'echo "Command executed"',
+        timeout: timeoutMs
+      }]
+    }];
 
-    return mergedHooks;
+    return hooks;
   },
 };
 
 /**
  * Export the hook as default.
  * 
- * This template demonstrates how to use factory functions from 
- * @sammons/claude-good-hooks-factories to create sophisticated hooks
- * with minimal code.
- * 
- * Example usage with different modes:
+ * Example usage:
  * 
  * Basic mode (default):
  * ```bash
- * claude-good-hooks apply template --mode=basic --verbose=true
+ * claude-good-hooks apply template
  * ```
  * 
- * Development mode with linting and testing:
+ * Verbose mode:
  * ```bash
- * claude-good-hooks apply template --mode=development --projectType=react --enableNotifications=true
- * ```
- * 
- * Full mode with comprehensive workflow:
- * ```bash
- * claude-good-hooks apply template --mode=full --autoCommit=true --verbose=true --timeout=60
+ * claude-good-hooks apply template --verbose=true --logFile=/custom/path.log --timeout=10
  * ```
  * 
  * Programmatic usage:
@@ -244,32 +136,14 @@ const templateHook: HookPlugin = {
  * import templateHook from '@sammons/claude-good-hooks-template-hook';
  * 
  * // Basic configuration
- * const basicHook = templateHook.makeHook({ mode: 'basic' });
+ * const basicHook = templateHook.makeHook({});
  * 
- * // Full development workflow
- * const devHook = templateHook.makeHook({
- *   mode: 'full',
- *   projectType: 'typescript',
- *   enableNotifications: true,
- *   autoCommit: true,
- *   verbose: true
+ * // Verbose configuration
+ * const verboseHook = templateHook.makeHook({
+ *   verbose: true,
+ *   logFile: '/custom/path.log',
+ *   timeout: 10
  * });
- * ```
- * 
- * You can also use individual factory functions directly:
- * ```typescript
- * import { 
- *   createLintingHook,
- *   createTestingHook,
- *   createNotificationHook,
- *   quickStartHooks
- * } from '@sammons/claude-good-hooks-factories';
- * 
- * // Create individual hooks
- * const lintHook = createLintingHook('eslint .', 'eslint . --fix');
- * const testHook = createTestingHook('npm test');
- * const notifyHook = createNotificationHook('Build complete!');
- * const projectHooks = quickStartHooks('react');
  * ```
  */
 export default templateHook;

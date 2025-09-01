@@ -7,8 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "npm run build && node analyze-bundle.js",
+    "build:check": "npm run build && node check-bundle-budget.js",
+    "analyze": "node analyze-bundle.js",
+    "budget:check": "node check-bundle-budget.js",
+    "badge": "node generate-badge.js",
     "preview": "vite preview",
-    "build:docs": "vite build --outDir ../../../docs --emptyOutDir --base /claude-good-hooks/"
+    "build:docs": "vite build --outDir ./dist --emptyOutDir --base /claude-good-hooks/"
   },
   "keywords": [
     "claude",
@@ -22,6 +27,9 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "prismjs": "^1.30.0",
+    "rollup-plugin-analyzer": "^4.0.0",
+    "vite": "^5.0.0",
+    "vite-bundle-analyzer": "^1.2.3"
   }
 }

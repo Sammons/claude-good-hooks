@@ -1,0 +1,423 @@
+import { createReadStream, createWriteStream, type ReadStream, type WriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
+import { Transform } from 'stream';
+import type { IFileSystemService } from '../interfaces/index.js';
+
+export interface BatchOperation {
+  type: 'read' | 'write' | 'delete' | 'copy' | 'move';
+  source: string;
+  destination?: string;
+  content?: string;
+  encoding?: BufferEncoding;
+}
+
+export interface BatchResult {
+  success: boolean;
+  operation: BatchOperation;
+  error?: Error;
+  result?: any;
+}
+
+export interface StreamOptions {
+  encoding?: BufferEncoding;
+  highWaterMark?: number;
+  objectMode?: boolean;
+}
+
+export interface IFileOperationsService {
+  batchOperations(operations: BatchOperation[]): Promise<BatchResult[]>;
+  createReadStreamOptimized(filePath: string, options?: StreamOptions): ReadStream;
+  createWriteStreamOptimized(filePath: string, options?: StreamOptions): WriteStream;
+  streamCopy(source: string, destination: string): Promise<void>;
+  streamProcessFile<T>(
+    filePath: string,
+    processor: Transform,
+    outputPath?: string
+  ): Promise<T>;
+  debouncedWrite(filePath: string, content: string, delay?: number): Promise<void>;
+  watchDirectory(
+    dirPath: string,
+    callback: (event: string, filename: string) => void,
+    options?: { recursive?: boolean; debounce?: number }
+  ): () => void;
+}
+
+/**
+ * High-performance file operations service with batching, streaming, and debouncing
+ */
+export class FileOperationsService implements IFileOperationsService {
+  private writeTimeouts = new Map<string, NodeJS.Timeout>();
+  private pendingWrites = new Map<string, { content: string; resolve: () => void; reject: (error: Error) => void }[]>();
+  private watchers = new Map<string, NodeJS.FSWatcher>();
+
+  constructor(private fileSystem: IFileSystemService) {}
+
+  async batchOperations(operations: BatchOperation[]): Promise<BatchResult[]> {
+    // Group operations by type for optimal execution order
+    const readOps = operations.filter(op => op.type === 'read');
+    const writeOps = operations.filter(op => op.type === 'write');
+    const deleteOps = operations.filter(op => op.type === 'delete');
+    const copyOps = operations.filter(op => op.type === 'copy');
+    const moveOps = operations.filter(op => op.type === 'move');
+
+    const results: BatchResult[] = [];
+
+    // Execute operations in parallel within each type
+    const executeOperations = async (ops: BatchOperation[], executor: (op: BatchOperation) => Promise<any>) => {
+      const promises = ops.map(async (operation) => {
+        try {
+          const result = await executor(operation);
+          return { success: true, operation, result };
+        } catch (error) {
+          return { success: false, operation, error: error as Error };
+        }
+      });
+      return Promise.all(promises);
+    };
+
+    // Execute reads first (they don't modify anything)
+    if (readOps.length > 0) {
+      const readResults = await executeOperations(readOps, async (op) => {
+        return this.fileSystem.readFile(op.source, op.encoding || 'utf-8');
+      });
+      results.push(...readResults);
+    }
+
+    // Execute writes
+    if (writeOps.length > 0) {
+      const writeResults = await executeOperations(writeOps, async (op) => {
+        if (!op.content) throw new Error('Write operation requires content');
+        const dir = this.fileSystem.dirname(op.source);
+        if (!this.fileSystem.exists(dir)) {
+          this.fileSystem.mkdir(dir, { recursive: true });
+        }
+        this.fileSystem.writeFile(op.source, op.content, op.encoding);
+        return true;
+      });
+      results.push(...writeResults);
+    }
+
+    // Execute copies
+    if (copyOps.length > 0) {
+      const copyResults = await executeOperations(copyOps, async (op) => {
+        if (!op.destination) throw new Error('Copy operation requires destination');
+        await this.streamCopy(op.source, op.destination);
+        return true;
+      });
+      results.push(...copyResults);
+    }
+
+    // Execute moves
+    if (moveOps.length > 0) {
+      const moveResults = await executeOperations(moveOps, async (op) => {
+        if (!op.destination) throw new Error('Move operation requires destination');
+        await this.streamCopy(op.source, op.destination);
+        this.fileSystem.unlink(op.source);
+        return true;
+      });
+      results.push(...moveResults);
+    }
+
+    // Execute deletes last
+    if (deleteOps.length > 0) {
+      const deleteResults = await executeOperations(deleteOps, async (op) => {
+        if (this.fileSystem.exists(op.source)) {
+          const stats = this.fileSystem.stat(op.source);
+          if (stats.isDirectory()) {
+            this.fileSystem.rmdir(op.source, { recursive: true });
+          } else {
+            this.fileSystem.unlink(op.source);
+          }
+        }
+        return true;
+      });
+      results.push(...deleteResults);
+    }
+
+    // Sort results back to original operation order
+    const originalOrder = new Map(operations.map((op, index) => [op, index]));
+    results.sort((a, b) => {
+      const aIndex = originalOrder.get(a.operation) ?? Infinity;
+      const bIndex = originalOrder.get(b.operation) ?? Infinity;
+      return aIndex - bIndex;
+    });
+
+    return results;
+  }
+
+  createReadStreamOptimized(filePath: string, options: StreamOptions = {}): ReadStream {
+    const defaultOptions = {
+      encoding: options.encoding as BufferEncoding,
+      highWaterMark: options.highWaterMark ?? 64 * 1024, // 64KB chunks
+      objectMode: options.objectMode ?? false,
+    };
+
+    return createReadStream(filePath, defaultOptions);
+  }
+
+  createWriteStreamOptimized(filePath: string, options: StreamOptions = {}): WriteStream {
+    // Ensure directory exists
+    const dir = this.fileSystem.dirname(filePath);
+    if (!this.fileSystem.exists(dir)) {
+      this.fileSystem.mkdir(dir, { recursive: true });
+    }
+
+    const defaultOptions = {
+      encoding: options.encoding as BufferEncoding,
+      highWaterMark: options.highWaterMark ?? 64 * 1024, // 64KB chunks
+      objectMode: options.objectMode ?? false,
+    };
+
+    return createWriteStream(filePath, defaultOptions);
+  }
+
+  async streamCopy(source: string, destination: string): Promise<void> {
+    const readStream = this.createReadStreamOptimized(source);
+    const writeStream = this.createWriteStreamOptimized(destination);
+    
+    try {
+      await pipeline(readStream, writeStream);
+    } catch (error) {
+      // Clean up partial file on error
+      if (this.fileSystem.exists(destination)) {
+        try {
+          this.fileSystem.unlink(destination);
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+      throw error;
+    }
+  }
+
+  async streamProcessFile<T>(
+    filePath: string,
+    processor: Transform,
+    outputPath?: string
+  ): Promise<T> {
+    const readStream = this.createReadStreamOptimized(filePath);
+    
+    if (outputPath) {
+      const writeStream = this.createWriteStreamOptimized(outputPath);
+      await pipeline(readStream, processor, writeStream);
+      return undefined as T;
+    } else {
+      // Collect processed data
+      const chunks: any[] = [];
+      const collector = new Transform({
+        objectMode: true,
+        transform(chunk, encoding, callback) {
+          chunks.push(chunk);
+          callback();
+        }
+      });
+
+      await pipeline(readStream, processor, collector);
+      return chunks as T;
+    }
+  }
+
+  async debouncedWrite(filePath: string, content: string, delay = 500): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Clear existing timeout for this file
+      const existingTimeout = this.writeTimeouts.get(filePath);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Add to pending writes
+      if (!this.pendingWrites.has(filePath)) {
+        this.pendingWrites.set(filePath, []);
+      }
+      this.pendingWrites.get(filePath)!.push({ content, resolve, reject });
+
+      // Set new timeout
+      const timeout = setTimeout(async () => {
+        const pending = this.pendingWrites.get(filePath) || [];
+        this.pendingWrites.delete(filePath);
+        this.writeTimeouts.delete(filePath);
+
+        if (pending.length === 0) return;
+
+        // Use the latest content
+        const latest = pending[pending.length - 1];
+        
+        try {
+          const dir = this.fileSystem.dirname(filePath);
+          if (!this.fileSystem.exists(dir)) {
+            this.fileSystem.mkdir(dir, { recursive: true });
+          }
+          
+          this.fileSystem.writeFile(filePath, latest.content);
+          
+          // Resolve all pending promises
+          for (const p of pending) {
+            p.resolve();
+          }
+        } catch (error) {
+          // Reject all pending promises
+          for (const p of pending) {
+            p.reject(error as Error);
+          }
+        }
+      }, delay);
+
+      this.writeTimeouts.set(filePath, timeout);
+    });
+  }
+
+  watchDirectory(
+    dirPath: string,
+    callback: (event: string, filename: string) => void,
+    options: { recursive?: boolean; debounce?: number } = {}
+  ): () => void {
+    const watchKey = `${dirPath}:${options.recursive}`;
+    const debounceDelay = options.debounce ?? 100;
+    const debouncedCallbacks = new Map<string, NodeJS.Timeout>();
+
+    // Ensure directory exists
+    if (!this.fileSystem.exists(dirPath)) {
+      this.fileSystem.mkdir(dirPath, { recursive: true });
+    }
+
+    const watcher = this.fileSystem.watch(
+      dirPath,
+      { recursive: options.recursive, persistent: false },
+      (eventType, filename) => {
+        if (!filename) return;
+
+        const callbackKey = `${eventType}:${filename}`;
+        
+        // Clear existing debounce timeout
+        const existingTimeout = debouncedCallbacks.get(callbackKey);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+        }
+
+        // Set new debounce timeout
+        const timeout = setTimeout(() => {
+          debouncedCallbacks.delete(callbackKey);
+          try {
+            callback(eventType, filename);
+          } catch (error) {
+            console.error('Error in directory watch callback:', error);
+          }
+        }, debounceDelay);
+
+        debouncedCallbacks.set(callbackKey, timeout);
+      }
+    );
+
+    this.watchers.set(watchKey, watcher);
+
+    // Return cleanup function
+    return () => {
+      // Clear all debounce timeouts
+      for (const timeout of debouncedCallbacks.values()) {
+        clearTimeout(timeout);
+      }
+      debouncedCallbacks.clear();
+
+      // Close watcher
+      if (this.watchers.has(watchKey)) {
+        watcher.close();
+        this.watchers.delete(watchKey);
+      }
+    };
+  }
+
+  /**
+   * Clean up all pending operations and watchers
+   */
+  destroy(): void {
+    // Clear all write timeouts
+    for (const timeout of this.writeTimeouts.values()) {
+      clearTimeout(timeout);
+    }
+    this.writeTimeouts.clear();
+
+    // Reject all pending writes
+    for (const pending of this.pendingWrites.values()) {
+      for (const p of pending) {
+        p.reject(new Error('FileOperationsService destroyed'));
+      }
+    }
+    this.pendingWrites.clear();
+
+    // Close all watchers
+    for (const watcher of this.watchers.values()) {
+      watcher.close();
+    }
+    this.watchers.clear();
+  }
+}
+
+/**
+ * Utility transform streams for common file processing tasks
+ */
+export class FileProcessingStreams {
+  /**
+   * Transform stream that processes JSON objects line by line
+   */
+  static jsonLineProcessor<T = any>(): Transform {
+    return new Transform({
+      objectMode: true,
+      transform(chunk: Buffer, encoding, callback) {
+        try {
+          const lines = chunk.toString().split('\n');
+          const results = lines
+            .filter(line => line.trim())
+            .map(line => JSON.parse(line));
+          
+          for (const result of results) {
+            this.push(result);
+          }
+          callback();
+        } catch (error) {
+          callback(error);
+        }
+      }
+    });
+  }
+
+  /**
+   * Transform stream that filters lines based on a predicate
+   */
+  static lineFilter(predicate: (line: string) => boolean): Transform {
+    return new Transform({
+      transform(chunk: Buffer, encoding, callback) {
+        const lines = chunk.toString().split('\n');
+        const filtered = lines.filter(predicate).join('\n');
+        callback(null, filtered);
+      }
+    });
+  }
+
+  /**
+   * Transform stream that batches data into chunks
+   */
+  static batcher<T>(batchSize: number): Transform {
+    let batch: T[] = [];
+    
+    return new Transform({
+      objectMode: true,
+      transform(chunk: T, encoding, callback) {
+        batch.push(chunk);
+        
+        if (batch.length >= batchSize) {
+          callback(null, batch);
+          batch = [];
+        } else {
+          callback();
+        }
+      },
+      flush(callback) {
+        if (batch.length > 0) {
+          callback(null, batch);
+        } else {
+          callback();
+        }
+      }
+    });
+  }
+}

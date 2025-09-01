@@ -106,20 +106,70 @@ jobs:
       - name: Run tests
         run: pnpm test
         
-      # Step 10: Build all packages
+      # Step 10: Validate package dependencies
+      # Check for circular dependencies and architectural violations
+      - name: Validate dependencies
+        run: |
+          echo "🔍 Validating package dependencies..."
+          
+          # Install madge for circular dependency detection
+          npm install -g madge
+          
+          # Check for circular dependencies
+          echo "Checking for circular dependencies..."
+          if madge --circular packages/*/src --extensions ts; then
+            echo "✅ No circular dependencies found"
+          else
+            echo "❌ Circular dependencies detected"
+            exit 1
+          fi
+          
+          # Validate peer dependencies are declared
+          echo "Validating peer dependency declarations..."
+          
+          # Check that packages using types declare it as peer dependency
+          for pkg in packages/*/; do
+            if [ -f "$pkg/package.json" ]; then
+              pkg_name=$(basename "$pkg")
+              echo "Checking $pkg_name..."
+              
+              # Check if package uses @sammons/claude-good-hooks-types
+              if grep -r "from ['\"]@sammons/claude-good-hooks-types" "$pkg/src" 2>/dev/null; then
+                # Verify it's declared as peer dependency (except for types package itself)
+                if [ "$pkg_name" != "claude-good-hooks-types" ]; then
+                  if ! grep -q '"@sammons/claude-good-hooks-types"' "$pkg/package.json" | grep -A5 -B5 '"peerDependencies"'; then
+                    echo "⚠️ Warning: $pkg_name uses types but doesn't declare it as peer dependency"
+                  fi
+                fi
+              fi
+              
+              # Check if package uses factories
+              if grep -r "from ['\"]@sammons/claude-good-hooks-factories" "$pkg/src" 2>/dev/null; then
+                if [ "$pkg_name" != "claude-good-hooks-factories" ]; then
+                  if ! grep -q '"@sammons/claude-good-hooks-factories"' "$pkg/package.json" | grep -A5 -B5 '"peerDependencies"'; then
+                    echo "⚠️ Warning: $pkg_name uses factories but doesn't declare it as peer dependency"
+                  fi
+                fi
+              fi
+            fi
+          done
+          
+          echo "✅ Dependency validation completed"
+
+      # Step 11: Build all packages
       # Verify that all packages can be built successfully
       # This catches TypeScript compilation errors and build issues
       - name: Build all packages
         run: pnpm build
         
-      # Step 11: Generate test coverage report
+      # Step 12: Generate test coverage report
       # continue-on-error: true means workflow continues even if coverage fails
       # This prevents flaky coverage tools from breaking the build
       - name: Generate coverage report
         run: pnpm test:coverage
         continue-on-error: true
         
-      # Step 12: Upload coverage to external service
+      # Step 13: Upload coverage to external service
       # Provides coverage tracking and reporting via Codecov
       # fail_ci_if_error: false prevents Codecov issues from failing the build
       - name: Upload coverage to Codecov

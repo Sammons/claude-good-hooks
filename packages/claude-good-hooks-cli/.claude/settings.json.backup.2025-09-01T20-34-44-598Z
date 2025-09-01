@@ -1,0 +1,58 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Protect sensitive files from modification\nif echo \"$1\" | grep -E '\\.(env|key|pem|p12|keystore)$' > /dev/null; then\n  echo \"Blocked modification of sensitive file: $1\" >&2\n  exit 2\nfi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Validate that modified files don't break git status\nif [ -d .git ] && ! git status --porcelain > /dev/null 2>&1; then\n  echo \"Git repository appears to be corrupted after file modification\" >&2\n  exit 2\nfi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Node.js syntax check\nfile_path=\"$1\"\nif [[ \"$file_path\" == *.js ]] || [[ \"$file_path\" == *.mjs ]]; then\n  if command -v node > /dev/null; then\n    node -c \"$file_path\" 2>/dev/null || {\n      echo \"JavaScript syntax errors in $file_path\" >&2\n      exit 2\n    }\n  fi\nfi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# TypeScript syntax check\nfile_path=\"$1\"\nif [[ \"$file_path\" == *.ts ]] && command -v tsc > /dev/null; then\n  tsc --noEmit --skipLibCheck \"$file_path\" 2>/dev/null || {\n    echo \"TypeScript syntax errors in $file_path\" >&2\n    exit 2\n  }\nfi",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Run tests for modified files\nfile_path=\"$1\"\nif [[ \"$file_path\" == *test* ]] || [[ \"$file_path\" == *spec* ]]; then\n  if command -v npm > /dev/null; then\n    npm run test -- --testPathPattern=\"$file_path\" --passWithNoTests 2>/dev/null || {\n      echo \"Tests failed for $file_path\" >&2\n      exit 2\n    }\n  fi\nfi",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

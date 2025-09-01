@@ -1,7 +1,7 @@
 {
-  "name": "@claude-good-hooks/badge-scripts",
+  "name": "@claude-good-hooks/automation-scripts",
   "version": "1.0.0",
-  "description": "TypeScript scripts for generating project badges",
+  "description": "TypeScript automation scripts for Claude Good Hooks project",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,14 +10,20 @@
     "generate-build": "tsx generate-build-badge.ts",
     "generate-version": "tsx generate-version-badge.ts",
     "generate-license": "tsx generate-license-badge.ts",
-    "generate-coverage": "tsx generate-coverage-badge.ts"
+    "generate-coverage": "tsx generate-coverage-badge.ts",
+    "release": "tsx release.ts",
+    "changelog": "tsx changelog-generator.ts",
+    "version": "tsx version-manager.ts",
+    "breaking-changes": "tsx breaking-change-detector.ts"
   },
   "dependencies": {
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "commander": "^14.0.0",
+    "typescript": "^5.0.0",
+    "glob": "^11.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^20.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

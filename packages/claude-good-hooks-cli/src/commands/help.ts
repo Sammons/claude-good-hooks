@@ -1,7 +1,15 @@
 import chalk from 'chalk';
+import type { Container } from '../container/index.js';
 
-export async function helpCommand(options: any): Promise<void> {
+interface HelpOptions {
+  parent?: {
+    json?: boolean;
+  };
+}
+
+export async function helpCommand(container: Container, options: HelpOptions): Promise<void> {
   const isJson = options.parent?.json;
+  const console = container.consoleService;
 
   const helpText = `
 ${chalk.bold('claude-good-hooks')} - CLI for managing Claude Code hooks

@@ -1,0 +1,213 @@
+# ===================================================================
+# Dependabot Auto-Merge Workflow
+# ===================================================================
+# 
+# This workflow automatically merges Dependabot pull requests for
+# patch and minor updates after ensuring all checks pass.
+# 
+# Security Features:
+# - Only runs on Dependabot PRs
+# - Requires all status checks to pass
+# - Only auto-merges patch updates by default
+# - Maintains approval requirements for major updates
+# 
+# Triggers:
+# - pull_request_target (for security with external contributors)
+# - Specifically targets Dependabot PRs
+# ===================================================================
+
+name: Dependabot Auto-Merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Restrict permissions for security
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+jobs:
+  # ===================================================================
+  # Auto-Merge Job
+  # ===================================================================
+  # Handles automatic merging of Dependabot PRs based on update type
+  # ===================================================================
+  auto-merge:
+    name: Auto-merge Dependabot PRs
+    runs-on: ubuntu-latest
+    
+    # Only run for Dependabot PRs
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    
+    steps:
+      # Step 1: Get PR information using GitHub CLI
+      - name: Get PR details
+        id: pr-details
+        run: |
+          # Get PR information using GitHub CLI
+          PR_INFO=$(gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json title,labels,mergeable,reviewDecision)
+          
+          # Extract information
+          TITLE=$(echo "$PR_INFO" | jq -r '.title')
+          MERGEABLE=$(echo "$PR_INFO" | jq -r '.mergeable')
+          REVIEW_DECISION=$(echo "$PR_INFO" | jq -r '.reviewDecision // "NONE"')
+          
+          # Check if it's a dependency update
+          if echo "$TITLE" | grep -qE "^(deps|deps-dev|ci)\(.*\)|^Bump "; then
+            echo "is-dependency-update=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-dependency-update=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Determine update type from title
+          if echo "$TITLE" | grep -qE "(patch|Bump.*from.*to.*\.[0-9]+\.[0-9]+$)"; then
+            echo "update-type=patch" >> $GITHUB_OUTPUT
+          elif echo "$TITLE" | grep -qE "(minor|Bump.*from.*[0-9]+\.[0-9]+.*to.*[0-9]+\.[0-9]+\.[0-9]+)"; then
+            echo "update-type=minor" >> $GITHUB_OUTPUT
+          else
+            echo "update-type=major" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "mergeable=$MERGEABLE" >> $GITHUB_OUTPUT
+          echo "review-decision=$REVIEW_DECISION" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Wait for status checks to complete
+      - name: Wait for status checks
+        if: steps.pr-details.outputs.is-dependency-update == 'true'
+        timeout-minutes: 10
+        run: |
+          echo "⏳ Waiting for status checks to complete..."
+          
+          # Function to check if all required checks are passing
+          check_status() {
+            # Get the latest status checks
+            CHECKS=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/status --jq '.statuses[]')
+            CHECK_RUNS=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-runs --jq '.check_runs[]')
+            
+            # Check status API results
+            if echo "$CHECKS" | jq -e 'select(.state != "success")' > /dev/null 2>&1; then
+              return 1
+            fi
+            
+            # Check check runs API results
+            if echo "$CHECK_RUNS" | jq -e 'select(.conclusion != "success" and .conclusion != null)' > /dev/null 2>&1; then
+              return 1
+            fi
+            
+            return 0
+          }
+          
+          # Wait for checks to complete
+          for i in {1..30}; do
+            if check_status; then
+              echo "✅ All status checks are passing"
+              break
+            fi
+            
+            echo "⏳ Checks still running, waiting 20 seconds... (attempt $i/30)"
+            sleep 20
+            
+            if [ $i -eq 30 ]; then
+              echo "❌ Timeout waiting for status checks"
+              exit 1
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Auto-approve patch updates for dev dependencies
+      - name: Auto-approve safe updates
+        if: |
+          steps.pr-details.outputs.is-dependency-update == 'true' && 
+          steps.pr-details.outputs.mergeable == 'MERGEABLE' &&
+          (steps.pr-details.outputs.update-type == 'patch' || 
+           (steps.pr-details.outputs.update-type == 'minor' && contains(steps.pr-details.outputs.title, 'deps-dev')))
+        run: |
+          echo "✅ Auto-approving safe dependency update: ${{ steps.pr-details.outputs.title }}"
+          gh pr review ${{ github.event.pull_request.number }} --approve --body "Auto-approved by Dependabot auto-merge workflow for safe dependency update."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 4: Enable auto-merge for approved PRs
+      - name: Enable auto-merge
+        if: |
+          steps.pr-details.outputs.is-dependency-update == 'true' && 
+          steps.pr-details.outputs.mergeable == 'MERGEABLE' &&
+          (steps.pr-details.outputs.update-type == 'patch' || 
+           (steps.pr-details.outputs.update-type == 'minor' && contains(steps.pr-details.outputs.title, 'deps-dev')))
+        run: |
+          echo "🔄 Enabling auto-merge for: ${{ steps.pr-details.outputs.title }}"
+          gh pr merge ${{ github.event.pull_request.number }} --squash --auto --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 5: Add comment for manual review requirements
+      - name: Comment on manual review PRs
+        if: |
+          steps.pr-details.outputs.is-dependency-update == 'true' && 
+          (steps.pr-details.outputs.update-type == 'major' || 
+           (steps.pr-details.outputs.update-type == 'minor' && !contains(steps.pr-details.outputs.title, 'deps-dev')))
+        run: |
+          echo "📝 Adding comment for manual review requirement"
+          gh pr comment ${{ github.event.pull_request.number }} --body "🔍 **Manual Review Required**
+
+          This PR contains a ${{ steps.pr-details.outputs.update-type }} update or production dependency change that requires manual review before merging.
+          
+          **Update Type**: ${{ steps.pr-details.outputs.update-type }}
+          **Title**: ${{ steps.pr-details.outputs.title }}
+          
+          Please review the changes carefully and approve manually if appropriate."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ===================================================================
+  # Security Check Job  
+  # ===================================================================
+  # Additional security validation for auto-merged PRs
+  # ===================================================================
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    
+    steps:
+      # Step 1: Checkout code for security scanning
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          
+      # Step 2: Setup Node.js for npm audit
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      # Step 3: Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+          run_install: false
+          
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      # Step 5: Run security audit
+      - name: Run security audit
+        run: |
+          echo "🔍 Running security audit on dependency changes..."
+          
+          # Run npm audit with pnpm
+          pnpm audit --audit-level high
+          
+          # Check for known vulnerabilities in updated packages
+          echo "✅ Security audit completed successfully"
+        continue-on-error: false

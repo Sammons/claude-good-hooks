@@ -11,7 +11,18 @@ export type {
   HookConfiguration,
   HookPlugin,
   ClaudeSettings,
-  HookMetadata
+  HookMetadata,
+  // Enhanced types for advanced features
+  HookVersion,
+  HookDependency,
+  HookComposition,
+  HookChain,
+  HookDebugConfig,
+  HookMarketplaceInfo,
+  EnhancedHookPlugin,
+  HookExecutionContext,
+  HookExecutionResult,
+  VersionCompatibility
 } from '@sammons/claude-good-hooks-types';
 
 // Export type guards for runtime validation
@@ -20,7 +31,14 @@ export {
   isHookConfiguration,
   isHookPlugin,
   isClaudeSettings,
-  isHookMetadata
+  isHookMetadata,
+  // Enhanced type guards
+  isHookVersion,
+  isHookDependency,
+  isHookComposition,
+  isEnhancedHookPlugin,
+  isHookExecutionContext,
+  isHookExecutionResult
 } from '@sammons/claude-good-hooks-types';
 
 // Core factory functions - the building blocks
@@ -53,6 +71,53 @@ export {
   createDevServerRestartHook,
   createDocumentationHook
 } from './utility-factories.js';
+
+// Advanced composition and chaining factories
+export {
+  createComposedHook,
+  createHookChain,
+  createConditionalHook as createAdvancedConditionalHook,
+  createParallelHook,
+  createRetryHook,
+  combineSettings
+} from './composition-factories.js';
+
+// Version management factories
+export {
+  parseVersion,
+  formatVersion,
+  compareVersions,
+  checkCompatibility,
+  enhanceHookWithVersion,
+  validateDependencies,
+  generateDeprecationWarning,
+  createMigrationGuide,
+  incrementVersion
+} from './version-factories.js';
+
+// Debug and profiling factories
+export {
+  createDebugHook,
+  createProfilingHook,
+  createTracingHook,
+  createBreakpointHook,
+  createErrorDiagnosisHook,
+  generateDebugReport,
+  createHookLogger
+} from './debug-factories.js';
+
+// Marketplace integration factories
+export {
+  createMarketplaceClient,
+  createHookVerifier,
+  createPopularityTracker,
+  createRecommendationEngine,
+  type MarketplaceSearchCriteria,
+  type MarketplaceSearchResult,
+  type MarketplaceHookInfo,
+  type HookRating,
+  type PublishingInfo
+} from './marketplace-factories.js';
 
 // Import types for internal use
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';

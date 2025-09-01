@@ -1,0 +1,25 @@
+{
+  "name": "@sammons/claude-hook-git-workflow",
+  "version": "1.0.0",
+  "description": "Comprehensive git integration hook for Claude Good Hooks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["claude", "hooks", "git", "workflow", "development"],
+  "author": "Sammons Software LLC",
+  "license": "MIT",
+  "dependencies": {
+    "@sammons/claude-good-hooks-types": "workspace:*",
+    "simple-git": "^3.25.0",
+    "minimatch": "^9.0.3"
+  },
+  "devDependencies": {
+    "@sammons/claude-good-hooks-testing": "workspace:*",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

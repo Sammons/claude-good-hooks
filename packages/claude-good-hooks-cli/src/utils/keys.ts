@@ -5,8 +5,8 @@
  * returning them as generic strings, enabling type-safe iteration over
  * object entries.
  */
-export function typedEntries<T extends Record<string, any>>(
+export function typedEntries<T extends Record<string, unknown>>(
   obj: T
 ): Array<{ [K in keyof T]: [K, T[K]] }[keyof T]> {
-  return Object.entries(obj) as any;
+  return Object.entries(obj) as Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
 }

@@ -26,7 +26,7 @@ const dirtyHook: HookPlugin = {
       default: false,
     },
   },
-  makeHook: (args: Record<string, any>) => {
+  makeHook: (args: Record<string, unknown>) => {
     let command = 'git status --short';
 
     if (args.staged && !args.unstaged) {

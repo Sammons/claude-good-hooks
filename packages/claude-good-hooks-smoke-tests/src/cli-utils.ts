@@ -32,19 +32,24 @@ export async function runCLI(args: string[], options: { timeout?: number; expect
       exitCode: 0,
       success: true
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Type guard to check if error has expected properties
+    const isExecError = (err: unknown): err is { code?: string | number; stdout?: string; stderr?: string } => {
+      return typeof err === 'object' && err !== null;
+    }
+    
     // For expected errors (like invalid commands), we still want to capture the output
-    if (expectError || error.code === 1) {
+    if (isExecError(error) && (expectError || error.code === 1)) {
       return {
         stdout: error.stdout?.trim() || '',
         stderr: error.stderr?.trim() || '',
-        exitCode: error.code || 1,
+        exitCode: typeof error.code === 'number' ? error.code : 1,
         success: false
       }
     }
     
     // For unexpected errors (like timeouts), re-throw
-    if (error.code === 'ETIMEDOUT') {
+    if (isExecError(error) && error.code === 'ETIMEDOUT') {
       throw new Error(`CLI command timed out after ${timeout}ms: node ${CLI_PATH} ${args.join(' ')}`)
     }
     
@@ -52,7 +57,7 @@ export async function runCLI(args: string[], options: { timeout?: number; expect
   }
 }
 
-export function expectValidJSON(jsonString: string): any {
+export function expectValidJSON(jsonString: string): unknown {
   try {
     return JSON.parse(jsonString)
   } catch (error) {

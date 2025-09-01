@@ -1,0 +1,178 @@
+name: 🚀 Release Planning
+description: Plan and track a new release
+title: "[Release]: v"
+labels: ["release", "planning"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to plan and track a new release of Claude Good Hooks.
+        
+        **Note:** This is for planning purposes. The actual release is automated via GitHub Actions.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are we releasing?
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Release Type
+      description: What type of release is this?
+      options:
+        - Major (breaking changes)
+        - Minor (new features)
+        - Patch (bug fixes)
+        - Pre-release (alpha/beta/rc)
+    validations:
+      required: true
+
+  - type: textarea
+    id: features
+    attributes:
+      label: New Features
+      description: List the major new features in this release
+      placeholder: |
+        - [ ] Feature 1: Description
+        - [ ] Feature 2: Description
+        - [ ] Feature 3: Description
+
+  - type: textarea
+    id: fixes
+    attributes:
+      label: Bug Fixes
+      description: List the major bug fixes in this release
+      placeholder: |
+        - [ ] Fix 1: Description
+        - [ ] Fix 2: Description
+        - [ ] Fix 3: Description
+
+  - type: textarea
+    id: breaking
+    attributes:
+      label: Breaking Changes
+      description: List any breaking changes and migration instructions
+      placeholder: |
+        - [ ] Breaking change 1: Description
+          - Migration: How to update code
+        - [ ] Breaking change 2: Description  
+          - Migration: How to update code
+
+  - type: textarea
+    id: packages
+    attributes:
+      label: Packages to Release
+      description: Which packages will be updated in this release?
+      value: |
+        - [ ] claude-good-hooks-cli
+        - [ ] claude-good-hooks-types
+        - [ ] claude-good-hooks-factories
+        - [ ] claude-good-hooks-template-hook
+        - [ ] claude-good-hooks-examples
+        - [ ] dirty-hook
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Pre-release Tasks
+      description: Tasks to complete before release
+      value: |
+        - [ ] All features implemented and tested
+        - [ ] Documentation updated
+        - [ ] CHANGELOG.md updated
+        - [ ] Version numbers updated
+        - [ ] CI/CD passing
+        - [ ] Security review completed (if needed)
+        - [ ] Performance testing completed (if needed)
+        - [ ] Breaking changes documented
+        - [ ] Migration guide written (if breaking changes)
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Release Timeline
+      description: Important dates for this release
+      placeholder: |
+        - Code freeze: YYYY-MM-DD
+        - Testing phase: YYYY-MM-DD to YYYY-MM-DD
+        - Release candidate: YYYY-MM-DD
+        - Final release: YYYY-MM-DD
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Plan
+      description: How will this release be tested?
+      placeholder: |
+        - [ ] Unit tests pass
+        - [ ] Integration tests pass
+        - [ ] Smoke tests pass
+        - [ ] Manual testing completed
+        - [ ] Performance regression testing
+        - [ ] Security testing (if applicable)
+        - [ ] Documentation examples verified
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Release Risks
+      description: What are the potential risks and mitigation strategies?
+      placeholder: |
+        - Risk 1: Description
+          - Mitigation: Strategy
+        - Risk 2: Description
+          - Mitigation: Strategy
+
+  - type: textarea
+    id: communication
+    attributes:
+      label: Communication Plan
+      description: How will this release be communicated?
+      value: |
+        - [ ] Release notes prepared
+        - [ ] Blog post written (if major release)
+        - [ ] Documentation updated
+        - [ ] Social media posts prepared
+        - [ ] User notifications sent (if breaking changes)
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Plan
+      description: How would we rollback if issues are found?
+      placeholder: |
+        - Emergency contact: @username
+        - Rollback procedure: Steps to revert
+        - Monitoring: What to watch for issues
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Notes
+      description: Any other important information about this release
+      placeholder: |
+        - Dependencies on other projects
+        - Special deployment requirements
+        - Post-release tasks
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Release Checklist
+      description: Final checks before release
+      options:
+        - label: All code changes are merged
+          required: false
+        - label: All tests are passing
+          required: false
+        - label: Documentation is up to date
+          required: false
+        - label: Release notes are ready
+          required: false
+        - label: Team is aware of the release
+          required: false

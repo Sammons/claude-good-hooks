@@ -1,0 +1,254 @@
+# ===================================================================
+# Dependabot Configuration
+# ===================================================================
+# 
+# This configuration sets up automated dependency updates for the
+# claude-good-hooks monorepo. Dependabot will automatically create
+# pull requests for dependency updates based on the schedules and
+# rules defined below.
+#
+# Features:
+# - Automated updates for npm packages, GitHub Actions, and Docker
+# - Different update schedules for different types of dependencies
+# - Auto-merge configuration for patch updates
+# - Custom PR labels and reviewers
+# - Vulnerability alerts and security updates
+# ===================================================================
+
+version: 2
+
+updates:
+  # ===================================================================
+  # NPM Dependencies - Root Package
+  # ===================================================================
+  # Updates for the main package.json and pnpm workspace dependencies
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+      - "root-workspace"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    # Auto-merge patch and minor updates for dev dependencies
+    allow:
+      - dependency-type: "development"
+        update-type: "version-update:semver-patch"
+      - dependency-type: "development"  
+        update-type: "version-update:semver-minor"
+    # Group related dependencies together
+    groups:
+      typescript:
+        patterns:
+          - "typescript*"
+          - "@types/*"
+        update-types:
+          - "patch"
+          - "minor"
+      testing:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
+          - "*jest*"
+        update-types:
+          - "patch"
+          - "minor"
+      linting:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "prettier*"
+        update-types:
+          - "patch"
+          - "minor"
+
+  # ===================================================================
+  # NPM Dependencies - CLI Package
+  # ===================================================================
+  # Updates for the CLI package specifically
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/packages/claude-good-hooks-cli"
+    schedule:
+      interval: "daily"
+      time: "09:15"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+      - "cli-package"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(cli)"
+      include: "scope"
+
+  # ===================================================================
+  # NPM Dependencies - Types Package
+  # ===================================================================
+  # Updates for the types package
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/packages/claude-good-hooks-types"
+    schedule:
+      interval: "daily"
+      time: "09:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+      - "types-package"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(types)"
+      include: "scope"
+
+  # ===================================================================
+  # NPM Dependencies - Factories Package
+  # ===================================================================
+  # Updates for the factories package
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/packages/claude-good-hooks-factories"
+    schedule:
+      interval: "daily"
+      time: "09:45"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+      - "factories-package"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(factories)"
+      include: "scope"
+
+  # ===================================================================
+  # NPM Dependencies - Smoke Tests
+  # ===================================================================
+  # Updates for the smoke testing package
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/packages/claude-good-hooks-smoke-tests"
+    schedule:
+      interval: "daily"
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+      - "smoke-tests"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(smoke)"
+      include: "scope"
+
+  # ===================================================================
+  # NPM Dependencies - Landing Page
+  # ===================================================================
+  # Updates for the documentation/landing page
+  # ===================================================================
+  - package-ecosystem: "npm"
+    directory: "/packages/landing-page"
+    schedule:
+      interval: "daily"
+      time: "10:15"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+      - "docs"
+      - "landing-page"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(docs)"
+      include: "scope"
+
+  # ===================================================================
+  # GitHub Actions Dependencies
+  # ===================================================================
+  # Updates for GitHub Actions used in workflows
+  # ===================================================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    # Group GitHub Actions updates
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+
+  # ===================================================================
+  # Docker Dependencies
+  # ===================================================================
+  # Updates for Docker images used in smoke tests
+  # ===================================================================
+  - package-ecosystem: "docker"
+    directory: "/packages/claude-good-hooks-smoke-tests"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "smoke-tests"
+    reviewers:
+      - "benjaminsammons"
+    assignees:
+      - "benjaminsammons"
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
