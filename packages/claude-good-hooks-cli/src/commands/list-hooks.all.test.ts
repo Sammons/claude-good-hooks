@@ -25,7 +25,7 @@ const mockLoadHookPlugin = vi.mocked(modulesModule.loadHookPlugin);
 
 // Sample data for testing
 const sampleHookPlugin: HookPlugin = {
-  name: 'dirty-hook',
+  name: 'dirty-good-claude-hook',
   description: 'Git dirty state hook for Claude',
   version: '1.2.0',
   customArgs: {
@@ -79,7 +79,7 @@ describe('List Hooks Command - All Available', () => {
       // Verify output includes both types
       expect(consoleLogSpy).toHaveBeenCalledWith('✗ **remote-git-hook** v2.0.0');
       expect(consoleLogSpy).toHaveBeenCalledWith('  Remote git hook');
-      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-hook** v1.2.0');
+      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-good-claude-hook** v1.2.0');
     });
 
     it('should indicate installation status correctly', async () => {
@@ -97,7 +97,7 @@ describe('List Hooks Command - All Available', () => {
       await listHooks({ parent: {} });
 
       // Verify - should show as installed (✓)
-      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-hook** v1.2.0');
+      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-good-claude-hook** v1.2.0');
     });
 
     it('should show hooks from global scope when global flag is set', async () => {
@@ -137,7 +137,7 @@ describe('List Hooks Command - All Available', () => {
       // Remote hook
       const remoteHook = jsonOutput.find((h: HookMetadata) => h.source === 'remote');
       expect(remoteHook).toEqual({
-        name: 'dirty-hook',
+        name: 'dirty-good-claude-hook',
         description: 'Git dirty state hook for Claude',
         version: '1.2.0',
         source: 'remote',
@@ -148,7 +148,7 @@ describe('List Hooks Command - All Available', () => {
       // Local hook
       const localHook = jsonOutput.find((h: HookMetadata) => h.source === 'local');
       expect(localHook).toEqual({
-        name: 'dirty-hook',
+        name: 'dirty-good-claude-hook',
         description: 'Git dirty state hook for Claude',
         version: '1.2.0',
         source: 'local',
@@ -195,7 +195,7 @@ describe('List Hooks Command - All Available', () => {
 
       // Verify - should show both entries
       const calls = consoleLogSpy.mock.calls.map(call => call[0]);
-      const hookLines = calls.filter(call => call.includes('dirty-hook'));
+      const hookLines = calls.filter(call => call.includes('dirty-good-claude-hook'));
       expect(hookLines).toHaveLength(2); // One remote, one local
     });
 
@@ -242,7 +242,7 @@ describe('List Hooks Command - All Available', () => {
       await listHooks({ parent: {} });
 
       // Verify - should show successful loads only
-      expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-hook** v1.2.0');
+      expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-good-claude-hook** v1.2.0');
       expect(consoleLogSpy).toHaveBeenCalledWith('✓ **local-hook** v1.2.0');
       // Bad hooks should not appear
     });
@@ -259,7 +259,7 @@ describe('List Hooks Command - All Available', () => {
       await listHooks({ parent: {} });
 
       // Verify - should still show local hooks
-      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-hook** v1.2.0');
+      expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-good-claude-hook** v1.2.0');
     });
   });
 
@@ -279,7 +279,7 @@ describe('List Hooks Command - All Available', () => {
       await listHooks({ parent: {} });
 
       // Verify source indicators
-      expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-hook** v1.2.0'); // Remote (not installed)
+      expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-good-claude-hook** v1.2.0'); // Remote (not installed)
       expect(consoleLogSpy).toHaveBeenCalledWith('✓ **local-hook** v1.2.0'); // Local (installed)
     });
 

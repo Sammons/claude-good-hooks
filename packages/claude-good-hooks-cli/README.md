@@ -188,7 +188,7 @@ DEBUG=claude-good-hooks* claude-good-hooks <command>
 ## Related Packages
 
 - [`@sammons/claude-good-hooks-types`](../claude-good-hooks-types) - TypeScript type definitions
-- [`@sammons/dirty-good-claude-hook`](../dirty-hook) - Git status hook implementation
+- [`@sammons/dirty-good-claude-hook`](../dirty-good-claude-hook) - Git status hook implementation
 - [`@sammons/claude-good-hooks-template-hook`](../claude-good-hooks-template-hook) - Template hook for creating new hooks
 
 ## Contributing

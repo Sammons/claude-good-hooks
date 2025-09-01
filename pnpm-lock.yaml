@@ -189,7 +189,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)
 
-  packages/dirty-hook:
+  packages/dirty-good-claude-hook:
     dependencies:
       '@sammons/claude-good-hooks-types':
         specifier: workspace:*

@@ -112,7 +112,7 @@ const PUBLISHABLE_PACKAGES = [
   'claude-good-hooks-types',
   'claude-good-hooks-factories',
   'claude-good-hooks-template-hook',
-  'dirty-hook'
+  'dirty-good-claude-hook'
 ];
 
 const INTERNAL_PACKAGES = [

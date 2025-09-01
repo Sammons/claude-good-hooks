@@ -34,7 +34,7 @@
 - [ ] `claude-good-hooks-factories`
 - [ ] `claude-good-hooks-template-hook`
 - [ ] `claude-good-hooks-examples`
-- [ ] `dirty-hook`
+- [ ] `dirty-good-claude-hook`
 - [ ] `landing-page`
 - [ ] Root workspace
 

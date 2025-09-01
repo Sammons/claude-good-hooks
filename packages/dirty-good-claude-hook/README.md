@@ -244,7 +244,7 @@ claude-good-hooks doctor
 
 ```bash
 git clone https://github.com/sammons/claude-good-hooks.git
-cd claude-good-hooks/packages/dirty-hook
+cd claude-good-hooks/packages/dirty-good-claude-hook
 npm install
 npm run build
 ```
