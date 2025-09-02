@@ -48,7 +48,6 @@
             <a href="#examples" class="nav-link">Examples</a>
           </li>
           <li class="nav-item">
-            <a href="#playground" class="nav-link">Playground</a>
           </li>
         </ul>
         <div class="nav-actions">
@@ -236,8 +235,11 @@
           <p class="example-description">
             Automatically show git status to Claude before each response.
           </p>
-          <div class="example-code">
+          <div class="code-block">
             <pre><code class="language-bash">claude-good-hooks apply dirty --global</code></pre>
+            <button class="copy-btn" onclick="copyToClipboard('claude-good-hooks apply dirty --global')">
+              Copy
+            </button>
           </div>
         </div>
         
@@ -246,7 +248,7 @@
           <p class="example-description">
             Run linting automatically before file modifications.
           </p>
-          <div class="example-code">
+          <div class="code-block">
             <pre><code class="language-javascript">const lintHook = {
   hooks: {
     PreToolUse: [{
@@ -255,6 +257,16 @@
     }]
   }
 };</code></pre>
+            <button class="copy-btn" onclick="copyToClipboard(`const lintHook = {
+  hooks: {
+    PreToolUse: [{
+      matcher: 'Write|Edit',
+      hooks: [{ command: 'npm run lint' }]
+    }]
+  }
+};`)">
+              Copy
+            </button>
           </div>
         </div>
         
@@ -263,7 +275,7 @@
           <p class="example-description">
             Add git branch and recent commits to session context.
           </p>
-          <div class="example-code">
+          <div class="code-block">
             <pre><code class="language-javascript">const contextHook = {
   hooks: {
     SessionStart: [{
@@ -273,67 +285,23 @@
     }]
   }
 };</code></pre>
+            <button class="copy-btn" onclick="copyToClipboard(`const contextHook = {
+  hooks: {
+    SessionStart: [{
+      hooks: [{
+        command: 'git branch --show-current'
+      }]
+    }]
+  }
+};`)">
+              Copy
+            </button>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Playground Section -->
-  <section class="playground" id="playground">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Interactive Playground</h2>
-        <p class="section-subtitle">Try Claude Good Hooks without installing anything</p>
-      </div>
-      
-      <div class="playground-container">
-        <div class="playground-editor">
-          <div class="playground-header">
-            <h3>Hook Configuration</h3>
-            <div class="playground-actions">
-              <button class="btn btn-secondary" id="playground-reset">Reset</button>
-              <button class="btn btn-primary" id="playground-run">Run</button>
-            </div>
-          </div>
-          <div class="code-editor">
-            <textarea id="hook-editor" class="hook-editor" spellcheck="false">{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{
-        "type": "command",
-        "command": "echo 'About to modify file: $CLAUDE_PROJECT_DIR'"
-      }]
-    }]
-  }
-}</textarea>
-          </div>
-        </div>
-        
-        <div class="playground-output">
-          <div class="playground-header">
-            <h3>Output</h3>
-            <button class="btn btn-secondary" id="playground-share">Share</button>
-          </div>
-          <div class="output-panel" id="playground-result">
-            <div class="output-placeholder">
-              <p>Run your hook configuration to see the output</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="playground-examples">
-        <h3>Quick Examples</h3>
-        <div class="example-buttons">
-          <button class="example-btn" data-example="git-status">Git Status Hook</button>
-          <button class="example-btn" data-example="lint-check">Lint Check</button>
-          <button class="example-btn" data-example="session-context">Session Context</button>
-        </div>
-      </div>
-    </div>
-  </section>
 
 
   <!-- CTA Section -->

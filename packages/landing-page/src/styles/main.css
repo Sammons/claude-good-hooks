@@ -425,15 +425,18 @@ body {
 }
 
 .examples-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .example-card {
   background: var(--color-gray-50);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-xl);
+  width: 100%;
 }
 
 .example-title {
@@ -454,6 +457,35 @@ body {
   border-radius: var(--radius);
   padding: var(--space-md);
   overflow-x: auto;
+}
+
+.example-card .code-block {
+  position: relative;
+}
+
+.example-card .code-block pre {
+  background: var(--color-gray-900);
+  margin: 0;
+  padding: var(--space-md);
+  overflow-x: auto;
+}
+
+.example-card .copy-btn {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  background: var(--color-gray-700);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+}
+
+.example-card .copy-btn:hover {
+  background: var(--color-gray-600);
 }
 
 .example-code pre {
