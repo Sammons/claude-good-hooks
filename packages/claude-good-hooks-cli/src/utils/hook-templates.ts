@@ -1,5 +1,5 @@
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import type { ProjectType, ProjectInfo } from './project-detector.js';
+import type { ProjectInfo } from './project-detector.js';
 
 /**
  * Generate starter hooks based on project type and features
@@ -96,7 +96,7 @@ fi`,
 /**
  * Add React-specific hooks
  */
-function addReactHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addReactHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -121,7 +121,7 @@ fi`,
   });
 
   // Add build validation for production builds
-  if (projectInfo.features.includes('vite')) {
+  if (_projectInfo.features.includes('vite')) {
     hooks.hooks.PostToolUse.push({
       matcher: "Write|Edit",
       hooks: [{
@@ -129,8 +129,8 @@ fi`,
         command: `#!/bin/bash
 # Run Vite type checking if available
 if [ -f "vite.config.ts" ] || [ -f "vite.config.js" ]; then
-  if command -v ${projectInfo.packageManager || 'npm'} > /dev/null; then
-    ${projectInfo.packageManager || 'npm'} run type-check 2>/dev/null || true
+  if command -v ${_projectInfo.packageManager || 'npm'} > /dev/null; then
+    ${_projectInfo.packageManager || 'npm'} run type-check 2>/dev/null || true
   fi
 fi`,
         timeout: 30
@@ -142,7 +142,7 @@ fi`,
 /**
  * Add Node.js-specific hooks
  */
-function addNodeHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addNodeHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -167,7 +167,7 @@ fi`,
   });
 
   // TypeScript validation if applicable
-  if (projectInfo.hasTypescript) {
+  if (_projectInfo.hasTypescript) {
     hooks.hooks.PostToolUse.push({
       matcher: "Write|Edit",
       hooks: [{
@@ -190,7 +190,7 @@ fi`,
 /**
  * Add Python-specific hooks
  */
-function addPythonHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addPythonHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -215,7 +215,7 @@ fi`,
 /**
  * Add Go-specific hooks
  */
-function addGoHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addGoHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -240,7 +240,7 @@ fi`,
 /**
  * Add Rust-specific hooks
  */
-function addRustHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addRustHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -265,7 +265,7 @@ fi`,
 /**
  * Add generic hooks for unknown project types
  */
-function addGenericHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addGenericHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
@@ -364,12 +364,12 @@ fi`,
 /**
  * Add testing hooks
  */
-function addTestingHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void {
+function addTestingHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
-  const testCommand = projectInfo.hasVitest ? 'vitest run --reporter=basic --no-coverage' : 
-                     projectInfo.hasJest ? 'jest --passWithNoTests --silent' : null;
+  const testCommand = _projectInfo.hasVitest ? 'vitest run --reporter=basic --no-coverage' : 
+                     _projectInfo.hasJest ? 'jest --passWithNoTests --silent' : null;
 
   if (testCommand) {
     hooks.hooks.PostToolUse.push({
@@ -380,8 +380,8 @@ function addTestingHooks(hooks: ClaudeSettings, projectInfo: ProjectInfo): void 
 # Run tests for modified files
 file_path="$1"
 if [[ "$file_path" == *test* ]] || [[ "$file_path" == *spec* ]]; then
-  if command -v ${projectInfo.packageManager || 'npm'} > /dev/null; then
-    ${projectInfo.packageManager || 'npm'} run test -- --testPathPattern="$file_path" --passWithNoTests 2>/dev/null || {
+  if command -v ${_projectInfo.packageManager || 'npm'} > /dev/null; then
+    ${_projectInfo.packageManager || 'npm'} run test -- --testPathPattern="$file_path" --passWithNoTests 2>/dev/null || {
       echo "Tests failed for $file_path" >&2
       exit 2
     }

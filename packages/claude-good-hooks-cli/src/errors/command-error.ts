@@ -1,7 +1,7 @@
 /**
  * Error for command execution failures
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class CommandError extends CLIError {
@@ -19,7 +19,7 @@ export class CommandError extends CLIError {
       exitCode?: number;
       suggestion?: string;
       cause?: Error;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -34,23 +34,12 @@ export class CommandError extends CLIError {
         stderr: options.stderr,
       },
     });
-    
+
     this.name = 'CommandError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('COMMAND_ERROR', message, {
-      exitCode: options.exitCode ?? 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-      context: {
-        ...options.context,
-        command: options.command,
-        stdout: options.stdout,
-        stderr: options.stderr,
-      },
-    });
-    
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('COMMAND_ERROR', message, this.common);
+
     this.command = options.command;
     this.stdout = options.stdout;
     this.stderr = options.stderr;

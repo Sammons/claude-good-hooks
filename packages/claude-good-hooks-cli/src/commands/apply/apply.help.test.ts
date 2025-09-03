@@ -41,12 +41,12 @@ describe('ApplyCommand - help functionality', () => {
     makeHook: (args) => ({
       PreToolUse: [
         {
-          matcher: args.pattern || '*',
+          matcher: (args.pattern as string) || '*',
           hooks: [
             {
               type: 'command',
               command: `echo "Test hook with pattern ${args.pattern}"`,
-              timeout: args.timeout,
+              timeout: args.timeout as number,
             },
           ],
         },

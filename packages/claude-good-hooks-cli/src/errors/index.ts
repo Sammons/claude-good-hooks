@@ -13,19 +13,22 @@ export { PermissionError } from './permission-error.js';
 export { CommandError } from './command-error.js';
 export { InternalError } from './internal-error.js';
 
-// Import for internal usage
-import { ConfigError } from './config-error.js';
-import { HookError } from './hook-error.js';
-import { NetworkError } from './network-error.js';
-import { FileSystemError } from './file-system-error.js';
-import { PermissionError } from './permission-error.js';
-import { CommandError } from './command-error.js';
+// Import for type definitions
+import type { CLIError } from './cli-error.js';
+import type { ValidationError } from './validation-error.js';
+import type { ConfigError } from './config-error.js';
+import type { HookError } from './hook-error.js';
+import type { NetworkError } from './network-error.js';
+import type { FileSystemError } from './file-system-error.js';
+import type { PermissionError } from './permission-error.js';
+import type { CommandError } from './command-error.js';
+import type { InternalError } from './internal-error.js';
 
 // Export common types and utilities
 export { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
 
 // Type that represents any CLI error with composition pattern
-export type AnyCLIError = 
+export type AnyCLIError =
   | CLIError
   | ValidationError
   | ConfigError
@@ -40,7 +43,8 @@ export type AnyCLIError =
  * Type guard to check if an error is a CLI error (using composition pattern)
  */
 export function isCLIError(error: unknown): error is AnyCLIError {
-  return error != null &&
+  return (
+    error != null &&
     typeof error === 'object' &&
     'common' in error &&
     error.common != null &&
@@ -48,7 +52,8 @@ export function isCLIError(error: unknown): error is AnyCLIError {
     'code' in error.common &&
     'message' in error.common &&
     'exitCode' in error.common &&
-    'isUserFacing' in error.common;
+    'isUserFacing' in error.common
+  );
 }
 
 /**
@@ -67,12 +72,36 @@ export interface ErrorOutputOptions {
   includeDetails?: boolean;
 }
 
+interface FormattedErrorOutput {
+  success: boolean;
+  error: string;
+  errorType: string;
+  errorCode?: string;
+  exitCode: number;
+  timestamp: Date;
+  suggestion?: string;
+  configPath?: string;
+  configKey?: string;
+  hookName?: string;
+  hookPath?: string;
+  url?: string;
+  statusCode?: number;
+  path?: string;
+  operation?: string;
+  requiredPermission?: string;
+  command?: string;
+  stdout?: string;
+  stderr?: string;
+  context?: Record<string, unknown>;
+  stack?: string;
+}
+
 export function formatError(error: unknown, options: ErrorOutputOptions = {}): string {
   const { isJson = false, showStackTrace = false, includeDetails = false } = options;
-  
+
   if (isCLIError(error)) {
     if (isJson) {
-      const errorObj: any = {
+      const errorObj: FormattedErrorOutput = {
         success: false,
         error: error.common.message,
         errorType: error.constructor.name,
@@ -80,11 +109,11 @@ export function formatError(error: unknown, options: ErrorOutputOptions = {}): s
         exitCode: error.common.exitCode,
         timestamp: error.common.timestamp,
       };
-      
+
       if (error.common.suggestion) {
         errorObj.suggestion = error.common.suggestion;
       }
-      
+
       if (includeDetails) {
         // Add type-specific details
         if (error instanceof ConfigError) {
@@ -113,52 +142,52 @@ export function formatError(error: unknown, options: ErrorOutputOptions = {}): s
           errorObj.context = error.common.context;
         }
       }
-      
+
       if (showStackTrace && error.common.stack) {
         errorObj.stack = error.common.stack;
       }
-      
+
       return JSON.stringify(errorObj);
     } else {
       // Console output
       let output = `Error: ${error.common.message}`;
-      
+
       if (error.common.suggestion) {
         output += `\n💡 Suggestion: ${error.common.suggestion}`;
       }
-      
+
       if (showStackTrace && error.common.stack) {
         output += `\n\nStack trace:\n${error.common.stack}`;
       }
-      
+
       return output;
     }
   }
-  
+
   // Handle non-CLI errors
   const message = error instanceof Error ? error.message : String(error);
-  
+
   if (isJson) {
-    const errorObj: any = {
+    const errorObj: FormattedErrorOutput = {
       success: false,
       error: message,
       errorType: 'UnknownError',
       exitCode: 1,
       timestamp: new Date(),
     };
-    
+
     if (showStackTrace && error instanceof Error && error.stack) {
       errorObj.stack = error.stack;
     }
-    
+
     return JSON.stringify(errorObj);
   } else {
     let output = `Error: ${message}`;
-    
+
     if (showStackTrace && error instanceof Error && error.stack) {
       output += `\n\nStack trace:\n${error.stack}`;
     }
-    
+
     return output;
   }
 }

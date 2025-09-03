@@ -16,7 +16,7 @@ describe('SettingsService', () => {
   });
 
   it.skip('readSettings - needs FileSystemService mocking', () => {
-    // Test skipped - needs proper module mocking  
+    // Test skipped - needs proper module mocking
   });
 
   it.skip('writeSettings - needs FileSystemService mocking', () => {

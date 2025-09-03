@@ -14,15 +14,15 @@ export function validateInput<T>(
   suggestion?: string
 ): T {
   const result = validator(value);
-  
+
   if (result === false) {
     throw new ValidationError(`Invalid ${fieldName}`, { suggestion });
   }
-  
+
   if (typeof result === 'string') {
     throw new ValidationError(`Invalid ${fieldName}: ${result}`, { suggestion });
   }
-  
+
   return value;
 }
 
@@ -30,8 +30,8 @@ export function validateInput<T>(
  * Assert helper that throws ValidationError for failed assertions
  */
 export function assert(
-  condition: unknown, 
-  message: string, 
+  condition: unknown,
+  message: string,
   suggestion?: string
 ): asserts condition {
   if (!condition) {

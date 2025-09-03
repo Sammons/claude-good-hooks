@@ -106,6 +106,9 @@ describe('Debug Command', () => {
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Debug Status'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('hook1'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('hook2'));
+      // Verify the mocked filesystem operations were called
+      expect(mockExistsSync).toHaveBeenCalled();
+      expect(mockReadFileSync).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -127,6 +130,9 @@ describe('Debug Command', () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringMatching(/^\{[\s\S]*\}$/)
       );
+      // Verify the mocked filesystem operations were called
+      expect(mockExistsSync).toHaveBeenCalled();
+      expect(mockReadFileSync).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -143,6 +149,8 @@ describe('Debug Command', () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('No hooks are currently being debugged')
       );
+      // Verify filesystem check was made
+      expect(mockExistsSync).toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -161,6 +169,8 @@ describe('Debug Command', () => {
         expect.stringContaining('"name":"debug-tracer"'),
         'utf8'
       );
+      // Verify path operations were used
+      expect(mockJoin).toHaveBeenCalled();
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tracing enabled'));
 
@@ -181,6 +191,8 @@ describe('Debug Command', () => {
         expect.stringContaining('"name":"debug-profiler"'),
         'utf8'
       );
+      // Verify path operations were used
+      expect(mockJoin).toHaveBeenCalled();
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Profiling enabled'));
 
@@ -412,6 +424,9 @@ describe('Debug Command', () => {
         expect.stringContaining('"interactive":true'),
         'utf8'
       );
+      // Verify filesystem operations were used
+      expect(mockJoin).toHaveBeenCalled();
+      expect(mockExistsSync).toHaveBeenCalled();
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Setting breakpoint for hook: target-hook'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Condition: file.endsWith(".ts")'));

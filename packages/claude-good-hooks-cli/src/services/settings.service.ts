@@ -21,11 +21,11 @@ export class SettingsService {
 
   readSettings(scope: SettingsScope): ClaudeSettings {
     const path = this.getSettingsPath(scope);
-    
+
     if (!this.fileSystem.exists(path)) {
       return {};
     }
-    
+
     try {
       const content = this.fileSystem.readFile(path, 'utf-8');
       return JSON.parse(content);
@@ -61,7 +61,7 @@ export class SettingsService {
       settings.hooks[eventName] = [];
     }
 
-    settings.hooks[eventName].push(hookConfig);
+    settings.hooks[eventName]!.push(hookConfig);
     this.writeSettings(scope, settings);
   }
 
@@ -77,12 +77,12 @@ export class SettingsService {
     }
 
     if (matcher) {
-      settings.hooks[eventName] = settings.hooks[eventName].filter(
-        config => config.matcher !== matcher
+      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
+        (config: HookConfiguration) => config.matcher !== matcher
       );
     } else {
-      settings.hooks[eventName] = settings.hooks[eventName].filter(
-        config => config.matcher !== undefined
+      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
+        (config: HookConfiguration) => config.matcher !== undefined
       );
     }
 

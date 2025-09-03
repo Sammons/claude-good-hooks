@@ -1,7 +1,7 @@
 /**
  * Error for network-related operations
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class NetworkError extends CLIError {
@@ -16,7 +16,7 @@ export class NetworkError extends CLIError {
       statusCode?: number;
       suggestion?: string;
       cause?: Error;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -30,22 +30,12 @@ export class NetworkError extends CLIError {
         statusCode: options.statusCode,
       },
     });
-    
+
     this.name = 'NetworkError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('NETWORK_ERROR', message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion || 'Check your internet connection and try again.',
-      cause: options.cause,
-      context: {
-        ...options.context,
-        url: options.url,
-        statusCode: options.statusCode,
-      },
-    });
-    
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('NETWORK_ERROR', message, this.common);
+
     this.url = options.url;
     this.statusCode = options.statusCode;
   }

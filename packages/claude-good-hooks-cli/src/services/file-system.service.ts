@@ -1,4 +1,13 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, statSync, rmSync, watch } from 'fs';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  unlinkSync,
+  statSync,
+  rmSync,
+  watch,
+} from 'fs';
 import { homedir } from 'os';
 import { join, dirname } from 'path';
 
@@ -54,7 +63,11 @@ export class FileSystemService {
     }
   }
 
-  watch(path: string, options?: any, listener?: (eventType: string, filename: string | Buffer | null) => void) {
+  watch(
+    path: string,
+    options?: { recursive?: boolean; persistent?: boolean },
+    listener?: (eventType: string, filename: string | Buffer | null) => void
+  ) {
     return watch(path, options, listener);
   }
 }

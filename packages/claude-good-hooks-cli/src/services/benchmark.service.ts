@@ -1,4 +1,5 @@
 import { performance, PerformanceObserver } from 'perf_hooks';
+import { cpus, totalmem, freemem, uptime } from 'os';
 import { FileSystemService } from './file-system.service.js';
 
 export interface BenchmarkResult {
@@ -51,12 +52,21 @@ export interface SystemInfo {
   uptime: number;
 }
 
+export interface BenchmarkSummary {
+  totalOperations: number;
+  totalDuration: number;
+  avgOpsPerSecond: number;
+  fastest: string;
+  slowest: string;
+  performanceRatio: number;
+}
+
 /**
  * Comprehensive benchmarking service for performance analysis
  */
 export class BenchmarkService {
   private performanceObserver: PerformanceObserver | null = null;
-  private performanceEntries: Map<string, PerformanceEntry[]> = new Map();
+  private performanceEntries: Map<string, unknown[]> = new Map();
   private fileSystem = new FileSystemService();
 
   constructor() {
@@ -64,9 +74,9 @@ export class BenchmarkService {
   }
 
   private initializePerformanceObserver(): void {
-    this.performanceObserver = new PerformanceObserver((list) => {
+    this.performanceObserver = new PerformanceObserver(list => {
       const entries = list.getEntries();
-      
+
       for (const entry of entries) {
         if (!this.performanceEntries.has(entry.name)) {
           this.performanceEntries.set(entry.name, []);
@@ -99,13 +109,13 @@ export class BenchmarkService {
     // Run benchmark iterations
     for (let i = 0; i < iterations; i++) {
       const iterationStart = performance.now();
-      
+
       try {
         await fn();
       } catch (error: unknown) {
         throw new Error(`Benchmark ${name} failed on iteration ${i + 1}: ${String(error)}`);
       }
-      
+
       const iterationEnd = performance.now();
       durations.push(iterationEnd - iterationStart);
     }
@@ -146,7 +156,7 @@ export class BenchmarkService {
 
   async runSuite(suite: BenchmarkSuite): Promise<BenchmarkResult[]> {
     console.log(`Running benchmark suite: ${suite.name}`);
-    
+
     // Run setup if provided
     if (suite.setup) {
       await suite.setup();
@@ -157,17 +167,13 @@ export class BenchmarkService {
     try {
       for (const benchmark of suite.benchmarks) {
         console.log(`  Running: ${benchmark.name}...`);
-        
-        const result = await this.runBenchmark(
-          benchmark.name,
-          benchmark.fn,
-          benchmark.iterations
-        );
-        
+
+        const result = await this.runBenchmark(benchmark.name, benchmark.fn, benchmark.iterations);
+
         results.push(result);
-        
+
         // Brief pause between benchmarks
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => globalThis.setTimeout(resolve, 100));
       }
     } finally {
       // Run teardown if provided
@@ -181,19 +187,18 @@ export class BenchmarkService {
 
   compare(baseline: BenchmarkResult, comparison: BenchmarkResult): ComparisonResult {
     const improvementFactor = baseline.meanTime / comparison.meanTime;
-    
+
     // Statistical significance test (simple t-test approximation)
     const pooledStdDev = Math.sqrt(
       (baseline.standardDeviation ** 2 + comparison.standardDeviation ** 2) / 2
     );
-    const standardError = pooledStdDev * Math.sqrt(
-      (1 / baseline.iterations) + (1 / comparison.iterations)
-    );
+    const standardError =
+      pooledStdDev * Math.sqrt(1 / baseline.iterations + 1 / comparison.iterations);
     const tStatistic = Math.abs(baseline.meanTime - comparison.meanTime) / standardError;
     const significantDifference = tStatistic > 1.96; // 95% confidence
 
     // Calculate confidence interval for the improvement factor
-    const marginOfError = 1.96 * standardError / baseline.meanTime;
+    const marginOfError = (1.96 * standardError) / baseline.meanTime;
     const confidenceInterval: [number, number] = [
       improvementFactor - marginOfError,
       improvementFactor + marginOfError,
@@ -216,10 +221,9 @@ export class BenchmarkService {
       summary: this.generateSummary(results),
     };
 
-    const outputPath = filePath ?? this.fileSystem.join(
-      this.fileSystem.cwd(),
-      `benchmark-results-${Date.now()}.json`
-    );
+    const outputPath =
+      filePath ??
+      this.fileSystem.join(this.fileSystem.cwd(), `benchmark-results-${Date.now()}.json`);
 
     this.fileSystem.writeFile(outputPath, JSON.stringify(exportData, null, 2));
 
@@ -234,7 +238,7 @@ export class BenchmarkService {
 
   async trackPerformanceMetrics<T>(name: string, fn: () => Promise<T> | T): Promise<T> {
     performance.mark(`${name}-start`);
-    
+
     try {
       const result = await fn();
       performance.mark(`${name}-end`);
@@ -248,16 +252,14 @@ export class BenchmarkService {
   }
 
   getSystemInfo(): SystemInfo {
-    const os = require('os');
-    
     return {
       platform: process.platform,
       arch: process.arch,
       nodeVersion: process.version,
-      cpuCount: os.cpus().length,
-      totalMemory: os.totalmem(),
-      freeMemory: os.freemem(),
-      uptime: os.uptime(),
+      cpuCount: cpus().length,
+      totalMemory: totalmem(),
+      freeMemory: freemem(),
+      uptime: uptime(),
     };
   }
 
@@ -265,7 +267,7 @@ export class BenchmarkService {
     for (let i = 0; i < iterations; i++) {
       try {
         await fn();
-      } catch (error: unknown) {
+      } catch {
         // Ignore warmup errors
       }
     }
@@ -273,32 +275,34 @@ export class BenchmarkService {
 
   private calculateMedian(sortedNumbers: number[]): number {
     const mid = Math.floor(sortedNumbers.length / 2);
-    
+
     if (sortedNumbers.length % 2 === 0) {
       return (sortedNumbers[mid - 1] + sortedNumbers[mid]) / 2;
     }
-    
+
     return sortedNumbers[mid];
   }
 
   private calculateStandardDeviation(numbers: number[], mean: number): number {
     const squaredDifferences = numbers.map(num => Math.pow(num - mean, 2));
-    const avgSquaredDifference = squaredDifferences.reduce((sum, val) => sum + val, 0) / numbers.length;
+    const avgSquaredDifference =
+      squaredDifferences.reduce((sum, val) => sum + val, 0) / numbers.length;
     return Math.sqrt(avgSquaredDifference);
   }
 
-  private generateSummary(results: BenchmarkResult[]) {
+  private generateSummary(results: BenchmarkResult[]): BenchmarkSummary | null {
     if (results.length === 0) return null;
 
     const totalOperations = results.reduce((sum, result) => sum + result.iterations, 0);
     const totalDuration = results.reduce((sum, result) => sum + result.duration, 0);
-    const avgOpsPerSecond = results.reduce((sum, result) => sum + result.operationsPerSecond, 0) / results.length;
-    
-    const fastest = results.reduce((min, result) => 
+    const avgOpsPerSecond =
+      results.reduce((sum, result) => sum + result.operationsPerSecond, 0) / results.length;
+
+    const fastest = results.reduce((min, result) =>
       result.meanTime < min.meanTime ? result : min
     );
-    
-    const slowest = results.reduce((max, result) => 
+
+    const slowest = results.reduce((max, result) =>
       result.meanTime > max.meanTime ? result : max
     );
 
@@ -312,12 +316,17 @@ export class BenchmarkService {
     };
   }
 
-  private generateMarkdownReport(exportData: any): string {
+  private generateMarkdownReport(exportData: {
+    timestamp: string;
+    systemInfo: SystemInfo;
+    results: BenchmarkResult[];
+    summary: BenchmarkSummary | null;
+  }): string {
     const { systemInfo, results, summary } = exportData;
-    
+
     let report = `# Benchmark Report\n\n`;
     report += `**Generated:** ${exportData.timestamp}\n\n`;
-    
+
     report += `## System Information\n\n`;
     report += `- **Platform:** ${systemInfo.platform} (${systemInfo.arch})\n`;
     report += `- **Node.js:** ${systemInfo.nodeVersion}\n`;
@@ -359,7 +368,9 @@ export class BenchmarkService {
   createCLIBenchmarkSuite(): BenchmarkSuite {
     const testData = {
       smallJson: JSON.stringify({ test: 'data', count: 100 }),
-      largeJson: JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ id: i, data: 'test'.repeat(100) }))),
+      largeJson: JSON.stringify(
+        Array.from({ length: 1000 }, (_, i) => ({ id: i, data: 'test'.repeat(100) }))
+      ),
       testFiles: ['test1.txt', 'test2.txt', 'test3.txt'],
     };
 

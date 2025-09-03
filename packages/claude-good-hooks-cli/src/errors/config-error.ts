@@ -1,7 +1,7 @@
 /**
  * Error for configuration-related issues
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class ConfigError extends CLIError {
@@ -16,7 +16,7 @@ export class ConfigError extends CLIError {
       configKey?: string;
       suggestion?: string;
       cause?: Error;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -30,22 +30,12 @@ export class ConfigError extends CLIError {
         configKey: options.configKey,
       },
     });
-    
+
     this.name = 'ConfigError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('CONFIG_ERROR', message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-      context: {
-        ...options.context,
-        configPath: options.configPath,
-        configKey: options.configKey,
-      },
-    });
-    
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('CONFIG_ERROR', message, this.common);
+
     this.configPath = options.configPath;
     this.configKey = options.configKey;
   }

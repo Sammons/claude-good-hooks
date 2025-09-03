@@ -1,20 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ApplyCommand } from './apply.js';
-import { HookService } from '../../services/hook.service.js';
-import { ProcessService } from '../../services/process.service.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
-// Mock services
-const mockHookService = {
-  applyHook: vi.fn(),
-  getHookHelp: vi.fn(),
-  loadHookPlugin: vi.fn(),
-  addHookToSettings: vi.fn(),
-} as any;
-
-const mockProcessService = {
-  exit: vi.fn(),
-} as any;
+// Mock functions
+const mockLoadHookPlugin = vi.fn();
+const mockAddHookToSettings = vi.fn();
 
 // Mock console methods
 const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -46,12 +36,12 @@ describe('ApplyCommand - successful hook application', () => {
     makeHook: (args) => ({
       PreToolUse: [
         {
-          matcher: args.pattern || '*',
+          matcher: (args.pattern as string) || '*',
           hooks: [
             {
               type: 'command',
               command: `echo "Test hook with pattern ${args.pattern}"`,
-              timeout: args.timeout,
+              timeout: args.timeout as number,
             },
           ],
         },

@@ -56,7 +56,7 @@ export class Spinner {
       if (!this.isSpinning) return;
       
       const frame = this.frames[this.currentFrame];
-      const coloredFrame = chalk[this.color as keyof typeof chalk](frame) as string;
+      const coloredFrame = (chalk as any)[this.color](frame);
       
       process.stdout.write(`\r${coloredFrame} ${this.message}`);
       
@@ -174,7 +174,7 @@ export class ProgressBar {
 
     const filledBar = '█'.repeat(filled);
     const emptyBar = '░'.repeat(empty);
-    const bar = chalk[this.color as keyof typeof chalk](filledBar) + chalk.gray(emptyBar);
+    const bar = (chalk as any)[this.color](filledBar) + chalk.gray(emptyBar);
 
     let output = `\r[${bar}]`;
     

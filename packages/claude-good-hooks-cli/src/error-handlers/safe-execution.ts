@@ -17,14 +17,14 @@ export async function safeExecute<T>(
     if (isCLIError(error)) {
       throw error;
     }
-    
+
     // Convert unknown errors to CLI errors with context
     const message = error instanceof Error ? error.message : String(error);
     const contextualMessage = errorContext ? `${errorContext}: ${message}` : message;
-    
+
     throw new CLIError(contextualMessage, {
       cause: error instanceof Error ? error : undefined,
-      suggestion: 'If this problem persists, please report it as a bug.'
+      suggestion: 'If this problem persists, please report it as a bug.',
     });
   }
 }
@@ -32,24 +32,21 @@ export async function safeExecute<T>(
 /**
  * Safe sync execution wrapper
  */
-export function safeSyncExecute<T>(
-  operation: () => T,
-  errorContext?: string
-): T {
+export function safeSyncExecute<T>(operation: () => T, errorContext?: string): T {
   try {
     return operation();
   } catch (error) {
     if (isCLIError(error)) {
       throw error;
     }
-    
+
     // Convert unknown errors to CLI errors with context
     const message = error instanceof Error ? error.message : String(error);
     const contextualMessage = errorContext ? `${errorContext}: ${message}` : message;
-    
+
     throw new CLIError(contextualMessage, {
       cause: error instanceof Error ? error : undefined,
-      suggestion: 'If this problem persists, please report it as a bug.'
+      suggestion: 'If this problem persists, please report it as a bug.',
     });
   }
 }

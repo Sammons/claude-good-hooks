@@ -119,7 +119,7 @@ export class StandardLogger implements Logger {
   }
 
   withMetadata(metadata: Record<string, unknown>): Logger {
-    const logger = this.child({});
+    const logger = this.child({}) as StandardLogger;
     logger.metadata = { ...this.metadata, ...metadata };
     return logger;
   }

@@ -1,7 +1,7 @@
 /**
  * Error for user input validation failures
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class ValidationError extends CLIError {
@@ -12,7 +12,7 @@ export class ValidationError extends CLIError {
     options: {
       suggestion?: string;
       cause?: Error;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -22,16 +22,10 @@ export class ValidationError extends CLIError {
       cause: options.cause,
       context: options.context,
     });
-    
+
     this.name = 'ValidationError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('VALIDATION_ERROR', message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-      context: options.context,
-    });
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('VALIDATION_ERROR', message, this.common);
   }
 }

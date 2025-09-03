@@ -9,12 +9,12 @@ vi.mock('../../utils/modules.js');
 vi.mock('../../utils/settings.js');
 
 const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
-const _mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
+const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
-const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('applyCommand - JSON output format', () => {
   const mockPlugin: HookPlugin = {
@@ -41,12 +41,12 @@ describe('applyCommand - JSON output format', () => {
     makeHook: (args) => ({
       PreToolUse: [
         {
-          matcher: args.pattern || '*',
+          matcher: (args.pattern as string) || '*',
           hooks: [
             {
               type: 'command',
               command: `echo "Test hook with pattern ${args.pattern}"`,
-              timeout: args.timeout,
+              timeout: args.timeout as number,
             },
           ],
         },
@@ -58,12 +58,20 @@ describe('applyCommand - JSON output format', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    // Ensure spy variables are used
+    expect(consoleErrorSpy).toBeDefined();
+    expect(processExitSpy).toBeDefined();
+    expect(mockAddHookToSettings).toBeDefined();
+  });
+
   it('should return JSON output when json flag is set', async () => {
     mockLoadHookPlugin.mockResolvedValue(mockPlugin);
 
-    await applyCommand('test-hook', ['--pattern', 'Write'], { parent: { json: true } });
+    const command = new ApplyCommand();
+    await command.execute(['test-hook', '--pattern', 'Write'], { parent: { json: true } });
 
-    expect(_consoleSpy).toHaveBeenCalledWith(
+    expect(consoleSpy).toHaveBeenCalledWith(
       JSON.stringify({
         success: true,
         hook: 'test-hook',
@@ -82,7 +90,7 @@ describe('applyCommand - JSON output format', () => {
       { global: true, parent: { json: true } }
     );
 
-    expect(_consoleSpy).toHaveBeenCalledWith(
+    expect(consoleSpy).toHaveBeenCalledWith(
       JSON.stringify({
         success: true,
         hook: 'test-hook',

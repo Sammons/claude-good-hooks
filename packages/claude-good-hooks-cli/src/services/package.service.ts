@@ -19,7 +19,7 @@ export class PackageService {
 
       return {
         name: packageJson.name,
-        version: packageJson.version
+        version: packageJson.version,
       };
     } catch {
       return null;

@@ -15,7 +15,7 @@ describe('HookService', () => {
   });
 
   it.skip('getHookHelp - needs service mocking', () => {
-    // Test skipped - needs proper module mocking  
+    // Test skipped - needs proper module mocking
   });
 
   it.skip('listInstalledHooks - needs service mocking', () => {

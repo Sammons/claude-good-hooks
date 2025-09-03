@@ -29,7 +29,8 @@ export class DoctorService {
       checks.push({
         name: 'claude-good-hooks in PATH',
         status: false,
-        message: 'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks',
+        message:
+          'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks',
       });
     }
 

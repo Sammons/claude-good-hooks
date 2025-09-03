@@ -1,7 +1,7 @@
 /**
  * Error for file system operations
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class FileSystemError extends CLIError {
@@ -16,7 +16,7 @@ export class FileSystemError extends CLIError {
       operation?: string;
       suggestion?: string;
       cause?: Error;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -30,22 +30,12 @@ export class FileSystemError extends CLIError {
         operation: options.operation,
       },
     });
-    
+
     this.name = 'FileSystemError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('FILE_SYSTEM_ERROR', message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-      context: {
-        ...options.context,
-        path: options.path,
-        operation: options.operation,
-      },
-    });
-    
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('FILE_SYSTEM_ERROR', message, this.common);
+
     this.path = options.path;
     this.operation = options.operation;
   }

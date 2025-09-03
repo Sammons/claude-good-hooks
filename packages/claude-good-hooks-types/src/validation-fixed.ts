@@ -304,7 +304,7 @@ export function convertLegacySettings(
             timeout: hook.timeout,
             enabled: true,
           })),
-        })) as any;
+        }));
       }
     }
 

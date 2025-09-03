@@ -126,6 +126,16 @@ export class ApplyCommand {
     }
 
     const hookName = args[0];
+    if (!hookName) {
+      if (isJson) {
+        console.log(JSON.stringify({ success: false, error: 'Hook name is required' }));
+      } else {
+        console.error(chalk.red('Hook name is required'));
+      }
+      this.processService.exit(1);
+      return;
+    }
+    
     const hookArgs = args.slice(1);
 
     let scope: SettingsScope = 'project';
@@ -133,7 +143,11 @@ export class ApplyCommand {
     if (global) scope = 'global'; // Global takes precedence over local
 
     if (help) {
-      await this.showHookHelp(hookName, scope === 'global', isJson || false);
+      await this.showHookHelp({
+        hookName,
+        global: scope === 'global',
+        isJson: Boolean(isJson)
+      });
       return;
     }
 
@@ -159,11 +173,12 @@ export class ApplyCommand {
     }
   }
 
-  private async showHookHelp(
-    hookName: string,
-    global: boolean,
-    isJson: boolean
-  ): Promise<void> {
+  private async showHookHelp(params: {
+    hookName: string;
+    global: boolean;
+    isJson: boolean;
+  }): Promise<void> {
+    const { hookName, global, isJson } = params;
     const helpInfo = await this.hookService.getHookHelp(hookName, global);
 
     if (!helpInfo) {

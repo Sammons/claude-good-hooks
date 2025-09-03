@@ -8,12 +8,12 @@ vi.mock('../../utils/modules.js');
 vi.mock('../../utils/settings.js');
 
 const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
-const _mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
+const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
-const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('ApplyCommand - error handling', () => {
   beforeEach(() => {
@@ -34,6 +34,10 @@ describe('ApplyCommand - error handling', () => {
       expect.stringContaining('Hook \'nonexistent-hook\' not found')
     );
     expect(processExitSpy).toHaveBeenCalledWith(1);
+    // Verify console.log was not called for error cases
+    expect(consoleSpy).not.toHaveBeenCalled();
+    // Verify the mock was not called since hook wasn't found
+    expect(mockAddHookToSettings).not.toHaveBeenCalled();
   });
 
   it('should handle hook not found error in JSON format', async () => {
@@ -52,5 +56,9 @@ describe('ApplyCommand - error handling', () => {
       })
     );
     expect(processExitSpy).toHaveBeenCalledWith(1);
+    // Verify console.error was not called in JSON mode
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    // Verify the mock was not called since hook wasn't found
+    expect(mockAddHookToSettings).not.toHaveBeenCalled();
   });
 });

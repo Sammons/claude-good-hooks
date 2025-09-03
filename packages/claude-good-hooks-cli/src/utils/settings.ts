@@ -1,7 +1,6 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { homedir } from 'os';
-import { join, dirname } from 'path';
-import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
+import { join } from 'path';
+import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { 
   validateSettingsComprehensive,
@@ -16,8 +15,7 @@ import {
 } from '@sammons/claude-good-hooks-types';
 import { 
   migrateSettings,
-  needsMigration,
-  detectSettingsVersion
+  needsMigration
 } from '@sammons/claude-good-hooks-types';
 import { 
   createVersionedSettings,
@@ -128,10 +126,10 @@ export function addHookToSettings(
     }
     
     if (!settings.hooks[eventName]) {
-      settings.hooks[eventName] = [];
+      (settings.hooks as any)[eventName] = [];
     }
     
-    settings.hooks[eventName].push(hookConfig);
+    (settings.hooks as any)[eventName].push(hookConfig);
     
     // Track the change
     return trackSettingsChange(
@@ -166,19 +164,19 @@ export function removeHookFromSettings(
       return settings; // Nothing to remove
     }
     
-    const originalLength = settings.hooks[eventName]!.length;
+    const originalLength = (settings.hooks as any)[eventName].length;
     
     if (matcher) {
-      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        config => config.matcher !== matcher
+      (settings.hooks as any)[eventName] = (settings.hooks as any)[eventName].filter(
+        (config: any) => config.matcher !== matcher
       );
     } else {
-      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        config => config.matcher !== undefined
+      (settings.hooks as any)[eventName] = (settings.hooks as any)[eventName].filter(
+        (config: any) => config.matcher !== undefined
       );
     }
     
-    const removedCount = originalLength - settings.hooks[eventName]!.length;
+    const removedCount = originalLength - (settings.hooks as any)[eventName].length;
     
     if (removedCount > 0) {
       // Track the change

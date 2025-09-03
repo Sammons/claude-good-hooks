@@ -2,23 +2,23 @@
  * Simple console service that wraps console operations
  */
 export class ConsoleService {
-  log(...args: any[]): void {
+  log(...args: unknown[]): void {
     console.log(...args);
   }
 
-  error(...args: any[]): void {
+  error(...args: unknown[]): void {
     console.error(...args);
   }
 
-  warn(...args: any[]): void {
+  warn(...args: unknown[]): void {
     console.warn(...args);
   }
 
-  info(...args: any[]): void {
+  info(...args: unknown[]): void {
     console.info(...args);
   }
 
-  debug(...args: any[]): void {
+  debug(...args: unknown[]): void {
     console.debug(...args);
   }
 }

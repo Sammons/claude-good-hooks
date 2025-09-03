@@ -6,6 +6,7 @@ import { writeSettings, getSettingsPath } from '../../utils/settings.js';
 import { detectProject, getProjectTypeName, getFeatureDescription } from '../../utils/project-detector.js';
 import { generateStarterHooks, getAvailableTemplates } from '../../utils/hook-templates.js';
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
+import type { HelpInfo } from '../command-registry.js';
 
 interface InitOptions {
   force?: boolean;
@@ -18,7 +19,59 @@ interface InitOptions {
 /**
  * Initialize Claude hooks configuration for a project
  */
-export async function initCommand(options: InitOptions = {}): Promise<void> {
+export class InitCommand {
+  name = 'init';
+  description = 'Initialize Claude hooks configuration';
+
+  /**
+   * Check if this command handles the given input
+   */
+  match(command: string): boolean {
+    return command === 'init';
+  }
+
+  /**
+   * Get help information for this command
+   */
+  getHelp(): HelpInfo {
+    return {
+      name: this.name,
+      description: this.description,
+      usage: 'claude-good-hooks init [options]',
+      options: [
+        {
+          name: 'force',
+          description: 'Overwrite existing configuration',
+          type: 'boolean'
+        },
+        {
+          name: 'global',
+          description: 'Initialize global configuration',
+          type: 'boolean'
+        },
+        {
+          name: 'template',
+          description: 'Use specific template',
+          type: 'string'
+        },
+        {
+          name: 'yes',
+          description: 'Accept all defaults (non-interactive)',
+          type: 'boolean'
+        }
+      ],
+      examples: [
+        'claude-good-hooks init',
+        'claude-good-hooks init --force',
+        'claude-good-hooks init --global --yes'
+      ]
+    };
+  }
+
+  /**
+   * Execute the init command
+   */
+  async execute(args: string[], options: InitOptions = {}): Promise<void> {
   const scope = options.scope || 'project';
   const settingsPath = getSettingsPath(scope);
   const settingsDir = join(settingsPath, '..');
@@ -69,7 +122,7 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
     console.log();
 
     // Ask if user wants auto-configuration or custom setup
-    const useAutoConfig = await askYesNo(
+    const useAutoConfig = await this.askYesNo(
       'Would you like to use automatic configuration based on your project? (Y/n): ', 
       true
     );
@@ -78,25 +131,25 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
       settings = generateStarterHooks(projectInfo);
       console.log(chalk.green('✅ Generated hooks based on your project configuration'));
     } else {
-      settings = await customConfiguration();
+      settings = await this.customConfiguration();
     }
 
     // Ask about additional templates
-    const addTemplates = await askYesNo(
+    const addTemplates = await this.askYesNo(
       '\nWould you like to add additional hook templates? (y/N): ', 
       false
     );
 
     if (addTemplates) {
-      const selectedTemplates = await selectTemplates();
-      settings = mergeHookSettings(settings, selectedTemplates);
+      const selectedTemplates = await this.selectTemplates();
+      settings = this.mergeHookSettings(settings, selectedTemplates);
     }
 
     // Show preview
     console.log(chalk.blue('\n📋 Configuration Preview:'));
-    await showConfigPreview(settings);
+    await this.showConfigPreview(settings);
 
-    const confirm = await askYesNo(
+    const confirm = await this.askYesNo(
       '\nDoes this configuration look good? (Y/n): ', 
       true
     );
@@ -117,155 +170,156 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
   console.log(chalk.gray('  • Run "claude-good-hooks list-hooks --installed" to see active hooks'));
   console.log(chalk.gray('  • Use "claude-good-hooks apply <hook-name>" to add more hooks'));
   console.log(chalk.gray('  • Visit the documentation for advanced configuration options'));
-}
+  }
 
-/**
- * Ask yes/no question with default value using readline
- */
-function askYesNo(question: string, defaultValue: boolean): Promise<boolean> {
-  return new Promise((resolve) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
+  /**
+   * Ask yes/no question with default value using readline
+   */
+  private askYesNo(question: string, defaultValue: boolean): Promise<boolean> {
+    return new Promise((resolve) => {
+      const rl = createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
 
-    rl.question(question, (answer) => {
-      rl.close();
-      if (!answer.trim()) {
-        resolve(defaultValue);
-      } else {
-        resolve(answer.toLowerCase().startsWith('y'));
-      }
-    });
-  });
-}
-
-/**
- * Ask a question and return the response
- */
-function askQuestion(question: string): Promise<string> {
-  return new Promise((resolve) => {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-
-/**
- * Custom configuration flow
- */
-async function customConfiguration(): Promise<ClaudeSettings> {
-  const settings: ClaudeSettings = { hooks: {} };
-
-  console.log(chalk.blue('\n🔧 Custom Configuration'));
-  console.log(chalk.gray('Let\'s set up hooks for different events...\n'));
-
-  const events = [
-    { name: 'PreToolUse', description: 'Before Claude uses tools (validation, permission checks)' },
-    { name: 'PostToolUse', description: 'After Claude uses tools (formatting, testing, cleanup)' },
-    { name: 'UserPromptSubmit', description: 'When you submit a prompt (context injection, validation)' },
-    { name: 'SessionStart', description: 'When Claude starts a session (environment setup)' }
-  ];
-
-  for (const event of events) {
-    const addHook = await askYesNo(
-      `Add hooks for ${event.name}? (${event.description}) (y/N): `, 
-      false
-    );
-
-    if (addHook) {
-      const command = await askQuestion('Enter hook command: ');
-      if (command) {
-        if (!settings.hooks![event.name as keyof ClaudeSettings['hooks']]) {
-          settings.hooks![event.name as keyof ClaudeSettings['hooks']] = [];
+      rl.question(question, (answer) => {
+        rl.close();
+        if (!answer.trim()) {
+          resolve(defaultValue);
+        } else {
+          resolve(answer.toLowerCase().startsWith('y'));
         }
-        settings.hooks![event.name as keyof ClaudeSettings['hooks']]!.push({
-          matcher: event.name === 'PreToolUse' || event.name === 'PostToolUse' ? '*' : undefined,
-          hooks: [{
-            type: 'command',
-            command: command,
-            timeout: 30
-          }]
-        });
-      }
-    }
-  }
-
-  return settings;
-}
-
-/**
- * Select from available templates
- */
-async function selectTemplates(): Promise<ClaudeSettings[]> {
-  const templates = getAvailableTemplates();
-  const selected: ClaudeSettings[] = [];
-
-  console.log(chalk.blue('\n📝 Available Templates:'));
-  const templateKeys = Object.keys(templates);
-  
-  templateKeys.forEach((key, index) => {
-    const template = templates[key];
-    console.log(chalk.yellow(`${index + 1}. ${template.name}`));
-    console.log(chalk.gray(`   ${template.description}`));
-  });
-
-  const answer = await askQuestion('\nEnter template numbers (comma-separated, or "all"): ');
-  
-  if (answer.toLowerCase() === 'all') {
-    return templateKeys.map(key => templates[key].hooks);
-  }
-
-  const indices = answer.split(',')
-    .map((s: string) => parseInt(s.trim()) - 1)
-    .filter((i: number) => i >= 0 && i < templateKeys.length);
-
-  return indices.map(i => templates[templateKeys[i]].hooks);
-}
-
-/**
- * Merge multiple hook settings
- */
-function mergeHookSettings(...settingsArray: ClaudeSettings[]): ClaudeSettings {
-  const merged: ClaudeSettings = { hooks: {} };
-
-  for (const settings of settingsArray) {
-    if (!settings.hooks) continue;
-
-    for (const [event, configs] of Object.entries(settings.hooks)) {
-      if (!merged.hooks![event as keyof ClaudeSettings['hooks']]) {
-        merged.hooks![event as keyof ClaudeSettings['hooks']] = [];
-      }
-      merged.hooks![event as keyof ClaudeSettings['hooks']]!.push(...configs);
-    }
-  }
-
-  return merged;
-}
-
-/**
- * Show configuration preview
- */
-async function showConfigPreview(settings: ClaudeSettings): Promise<void> {
-  if (!settings.hooks || Object.keys(settings.hooks).length === 0) {
-    console.log(chalk.gray('  No hooks configured'));
-    return;
-  }
-
-  for (const [event, configs] of Object.entries(settings.hooks)) {
-    console.log(chalk.yellow(`  ${event}:`));
-    configs.forEach((config, index) => {
-      console.log(chalk.gray(`    ${index + 1}. ${config.matcher || 'all tools'} -> ${config.hooks.length} hook(s)`));
-      config.hooks.forEach((hook, hookIndex) => {
-        const preview = hook.command.split('\n')[0].substring(0, 60);
-        console.log(chalk.gray(`       • ${preview}${hook.command.length > 60 ? '...' : ''}`));
       });
     });
+  }
+
+  /**
+   * Ask a question and return the response
+   */
+  private askQuestion(question: string): Promise<string> {
+    return new Promise((resolve) => {
+      const rl = createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+      rl.question(question, (answer) => {
+        rl.close();
+        resolve(answer.trim());
+      });
+    });
+  }
+
+  /**
+   * Custom configuration flow
+   */
+  private async customConfiguration(): Promise<ClaudeSettings> {
+    const settings: ClaudeSettings = { hooks: {} };
+
+    console.log(chalk.blue('\n🔧 Custom Configuration'));
+    console.log(chalk.gray('Let\'s set up hooks for different events...\n'));
+
+    const events = [
+      { name: 'PreToolUse', description: 'Before Claude uses tools (validation, permission checks)' },
+      { name: 'PostToolUse', description: 'After Claude uses tools (formatting, testing, cleanup)' },
+      { name: 'UserPromptSubmit', description: 'When you submit a prompt (context injection, validation)' },
+      { name: 'SessionStart', description: 'When Claude starts a session (environment setup)' }
+    ];
+
+    for (const event of events) {
+      const addHook = await this.askYesNo(
+        `Add hooks for ${event.name}? (${event.description}) (y/N): `, 
+        false
+      );
+
+      if (addHook) {
+        const command = await this.askQuestion('Enter hook command: ');
+        if (command) {
+          if (!settings.hooks![event.name as keyof ClaudeSettings['hooks']]) {
+            settings.hooks![event.name as keyof ClaudeSettings['hooks']] = [];
+          }
+          settings.hooks![event.name as keyof ClaudeSettings['hooks']]!.push({
+            matcher: event.name === 'PreToolUse' || event.name === 'PostToolUse' ? '*' : undefined,
+            hooks: [{
+              type: 'command',
+              command: command,
+              timeout: 30
+            }]
+          });
+        }
+      }
+    }
+
+    return settings;
+  }
+
+  /**
+   * Select from available templates
+   */
+  private async selectTemplates(): Promise<ClaudeSettings[]> {
+    const templates = getAvailableTemplates();
+    const selected: ClaudeSettings[] = [];
+
+    console.log(chalk.blue('\n📝 Available Templates:'));
+    const templateKeys = Object.keys(templates);
+    
+    templateKeys.forEach((key, index) => {
+      const template = templates[key];
+      console.log(chalk.yellow(`${index + 1}. ${template.name}`));
+      console.log(chalk.gray(`   ${template.description}`));
+    });
+
+    const answer = await this.askQuestion('\nEnter template numbers (comma-separated, or "all"): ');
+    
+    if (answer.toLowerCase() === 'all') {
+      return templateKeys.map(key => templates[key].hooks);
+    }
+
+    const indices = answer.split(',')
+      .map((s: string) => parseInt(s.trim()) - 1)
+      .filter((i: number) => i >= 0 && i < templateKeys.length);
+
+    return indices.map(i => templates[templateKeys[i]].hooks);
+  }
+
+  /**
+   * Merge multiple hook settings
+   */
+  private mergeHookSettings(...settingsArray: ClaudeSettings[]): ClaudeSettings {
+    const merged: ClaudeSettings = { hooks: {} };
+
+    for (const settings of settingsArray) {
+      if (!settings.hooks) continue;
+
+      for (const [event, configs] of Object.entries(settings.hooks)) {
+        if (!merged.hooks![event as keyof ClaudeSettings['hooks']]) {
+          merged.hooks![event as keyof ClaudeSettings['hooks']] = [];
+        }
+        merged.hooks![event as keyof ClaudeSettings['hooks']]!.push(...configs);
+      }
+    }
+
+    return merged;
+  }
+
+  /**
+   * Show configuration preview
+   */
+  private async showConfigPreview(settings: ClaudeSettings): Promise<void> {
+    if (!settings.hooks || Object.keys(settings.hooks).length === 0) {
+      console.log(chalk.gray('  No hooks configured'));
+      return;
+    }
+
+    for (const [event, configs] of Object.entries(settings.hooks)) {
+      console.log(chalk.yellow(`  ${event}:`));
+      configs.forEach((config, index) => {
+        console.log(chalk.gray(`    ${index + 1}. ${config.matcher || 'all tools'} -> ${config.hooks.length} hook(s)`));
+        config.hooks.forEach((hook, hookIndex) => {
+          const preview = hook.command.split('\n')[0].substring(0, 60);
+          console.log(chalk.gray(`       • ${preview}${hook.command.length > 60 ? '...' : ''}`));
+        });
+      });
+    }
   }
 }

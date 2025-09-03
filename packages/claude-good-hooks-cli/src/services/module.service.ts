@@ -22,10 +22,7 @@ export class ModuleService {
     }
   }
 
-  async loadHookPlugin(
-    moduleName: string,
-    global: boolean = false
-  ): Promise<HookPlugin | null> {
+  async loadHookPlugin(moduleName: string, global: boolean = false): Promise<HookPlugin | null> {
     try {
       let modulePath: string;
 
@@ -74,7 +71,7 @@ export class ModuleService {
 
   addRemoteHook(moduleName: string): void {
     const configPath = this.fileSystem.join(this.fileSystem.cwd(), '.claude-good-hooks.json');
-    let config: Record<string, any> = {};
+    let config: { remotes?: string[] } = {};
 
     if (this.fileSystem.exists(configPath)) {
       config = JSON.parse(this.fileSystem.readFile(configPath, 'utf-8'));

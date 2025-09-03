@@ -19,8 +19,12 @@ export class ProcessService {
     return execSync(command, { encoding: 'utf8' });
   }
 
-  spawn(command: string, args: string[], options?: any) {
-    return spawn(command, args, options);
+  spawn(
+    command: string,
+    args: string[],
+    options?: { cwd?: string; stdio?: string | string[]; env?: Record<string, string> }
+  ) {
+    return spawn(command, args, options as any);
   }
 
   get env() {

@@ -210,7 +210,13 @@ export class ConsoleOutputFormatter implements OutputFormatter {
       return;
     }
 
-    const headers = options.headers || Object.keys(data[0]);
+    const firstRow = data[0];
+    if (!firstRow) {
+      getLogger().info('No data to display');
+      return;
+    }
+    
+    const headers = options.headers || Object.keys(firstRow);
     const compact = options.compact || false;
 
     // Calculate column widths
@@ -224,14 +230,14 @@ export class ConsoleOutputFormatter implements OutputFormatter {
 
     // Print header
     const headerRow = headers.map(header => 
-      this.padString(chalk.bold(header), widths[header])
+      this.padString(chalk.bold(header), widths[header] || 0)
     ).join(compact ? ' | ' : '  ');
     console.log(headerRow);
 
     // Print separator
     if (!compact) {
       const separator = headers.map(header => 
-        '-'.repeat(widths[header])
+        '-'.repeat(widths[header] || 0)
       ).join('  ');
       console.log(separator);
     }
@@ -239,7 +245,7 @@ export class ConsoleOutputFormatter implements OutputFormatter {
     // Print data rows
     data.forEach(row => {
       const dataRow = headers.map(header => 
-        this.padString(String(row[header] || ''), widths[header])
+        this.padString(String(row[header] || ''), widths[header] || 0)
       ).join(compact ? ' | ' : '  ');
       console.log(dataRow);
     });

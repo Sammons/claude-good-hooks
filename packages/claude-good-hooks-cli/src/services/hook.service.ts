@@ -39,7 +39,7 @@ export class HookService {
     if (!plugin) {
       return {
         success: false,
-        error: `Hook '${hookName}' not found. Make sure it's installed.`
+        error: `Hook '${hookName}' not found. Make sure it's installed.`,
       };
     }
 
@@ -47,7 +47,7 @@ export class HookService {
     const hookConfiguration = plugin.makeHook(parsedArgs);
 
     for (const [eventName, configs] of typedEntries(hookConfiguration)) {
-      if (configs && configs.length > 0) {
+      if (configs && Array.isArray(configs) && configs.length > 0) {
         for (const config of configs) {
           // eventName is guaranteed to be a key of the hook configuration object
           // which matches the structure of ClaudeSettings['hooks']
@@ -64,7 +64,7 @@ export class HookService {
       success: true,
       hook: hookName,
       scope,
-      args: parsedArgs
+      args: parsedArgs,
     };
   }
 
@@ -80,7 +80,7 @@ export class HookService {
       description: plugin.description,
       version: plugin.version,
       customArgs: plugin.customArgs || {},
-      usage: `claude-good-hooks apply ${hookName} [options]`
+      usage: `claude-good-hooks apply ${hookName} [options]`,
     };
   }
 
@@ -133,7 +133,7 @@ export class HookService {
   async listInstalledHooks(scope: SettingsScope): Promise<HookMetadata[]> {
     const hooks: HookMetadata[] = [];
     const isGlobal = scope === 'global';
-    
+
     const installedModules = this.moduleService.getInstalledHookModules(isGlobal);
 
     for (const moduleName of installedModules) {
@@ -153,14 +153,16 @@ export class HookService {
     const settings = this.settingsService.readSettings(scope);
     if (settings.hooks) {
       for (const [eventName, configs] of typedEntries(settings.hooks)) {
-        for (const config of configs || []) {
-          hooks.push({
-            name: `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,
-            description: `Configured ${eventName} hook`,
-            version: 'n/a',
-            source: isGlobal ? 'global' : 'local',
-            installed: true,
-          });
+        if (configs && Array.isArray(configs)) {
+          for (const config of configs) {
+            hooks.push({
+              name: `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,
+              description: `Configured ${eventName} hook`,
+              version: 'n/a',
+              source: isGlobal ? 'global' : 'local',
+              installed: true,
+            });
+          }
         }
       }
     }
@@ -170,7 +172,7 @@ export class HookService {
 
   async listAvailableHooks(global: boolean): Promise<HookMetadata[]> {
     const hooks: HookMetadata[] = [];
-    
+
     const remoteHooks = this.moduleService.getRemoteHooks();
     for (const moduleName of remoteHooks) {
       const plugin = await this.moduleService.loadHookPlugin(moduleName, false);

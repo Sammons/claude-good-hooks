@@ -1,7 +1,7 @@
 /**
  * Error for hook plugin loading or execution failures
  */
-import { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class HookError extends CLIError {
@@ -17,7 +17,7 @@ export class HookError extends CLIError {
       suggestion?: string;
       cause?: Error;
       exitCode?: number;
-      context?: Record<string, any>;
+      context?: Record<string, unknown>;
     } = {}
   ) {
     super(message, {
@@ -31,22 +31,12 @@ export class HookError extends CLIError {
         hookPath: options.hookPath,
       },
     });
-    
+
     this.name = 'HookError';
-    
-    // Update the common attributes with the correct error code
-    this.common = createCommonErrorAttributes('HOOK_ERROR', message, {
-      exitCode: options.exitCode ?? 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-      context: {
-        ...options.context,
-        hookName: options.hookName,
-        hookPath: options.hookPath,
-      },
-    });
-    
+
+    // Override with the correct error code
+    this.common = createCommonErrorAttributes('HOOK_ERROR', message, this.common);
+
     this.hookName = options.hookName;
     this.hookPath = options.hookPath;
   }

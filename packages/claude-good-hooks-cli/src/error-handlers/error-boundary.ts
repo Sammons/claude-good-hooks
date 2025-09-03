@@ -2,32 +2,38 @@
  * Error boundary utilities for wrapping functions with consistent error handling
  */
 
-import { CLIError, formatError, ErrorOutputOptions, ValidationError, InternalError, isCLIError } from '../errors/index.js';
+import {
+  CLIError,
+  formatError,
+  ErrorOutputOptions,
+  InternalError,
+  isCLIError,
+} from '../errors/index.js';
 
 /**
  * Global error handler that processes errors and exits gracefully
  */
 export function handleError(
   error: unknown,
-  options: ErrorOutputOptions & { 
+  options: ErrorOutputOptions & {
     exit?: boolean;
     errorPrefix?: string;
   } = {}
 ): never | void {
   const { exit = true, errorPrefix, ...formatOptions } = options;
-  
+
   // Format the error for output
   const formattedError = formatError(error, formatOptions);
-  
+
   if (formatOptions.isJson) {
     console.log(formattedError);
   } else {
     const prefix = errorPrefix ? `${errorPrefix}: ` : '';
     console.error(prefix + formattedError);
   }
-  
+
   if (exit) {
-    const exitCode = isCLIError(error) ? error.exitCode : 1;
+    const exitCode = isCLIError(error) ? error.common.exitCode : 1;
     process.exit(exitCode);
   }
 }
@@ -44,42 +50,44 @@ export function withErrorBoundary<T extends unknown[], R>(
   } = {}
 ): (...args: T) => Promise<R> {
   const { errorContext, fallback, rethrow = true } = options;
-  
+
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
-    } catch (error) {
+    } catch (caughtError: unknown) {
       // For CLI errors with context, we'll create a new error with context
-      if (isCLIError(error) && errorContext && !error.message.includes(errorContext)) {
+      let processedError: unknown = caughtError;
+
+      if (isCLIError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
         // We can't modify the common attributes directly, so we'll wrap it in a new CLIError
-        const contextualError = new CLIError(`${errorContext}: ${error.message}`, {
-          exitCode: error.exitCode,
-          isUserFacing: error.isUserFacing,
-          suggestion: error.suggestion,
-          cause: error.cause || (error instanceof Error ? error : undefined),
+        processedError = new CLIError(`${errorContext}: ${caughtError.message}`, {
+          exitCode: caughtError.common.exitCode,
+          isUserFacing: caughtError.common.isUserFacing,
+          suggestion: caughtError.common.suggestion,
+          cause:
+            caughtError.common.cause || (caughtError instanceof Error ? caughtError : undefined),
         });
-        error = contextualError;
       }
-      
+
       // Try fallback if available
       if (fallback) {
         try {
-          return await fallback(error, ...args);
-        } catch (fallbackError) {
-          // If fallback fails, use original error
+          return await fallback(processedError, ...args);
+        } catch {
+          // If fallback fails, use processed error
           if (rethrow) {
-            throw error;
+            throw processedError;
           }
-          handleError(error);
+          handleError(processedError);
         }
       }
-      
+
       if (rethrow) {
-        throw error;
+        throw processedError;
       } else {
-        handleError(error);
+        handleError(processedError);
       }
-      
+
       // This should never be reached, but TypeScript needs it
       throw new InternalError('Error boundary reached unreachable code');
     }
@@ -98,42 +106,44 @@ export function withSyncErrorBoundary<T extends unknown[], R>(
   } = {}
 ): (...args: T) => R {
   const { errorContext, fallback, rethrow = true } = options;
-  
+
   return (...args: T): R => {
     try {
       return fn(...args);
-    } catch (error) {
+    } catch (caughtError: unknown) {
       // For CLI errors with context, we'll create a new error with context
-      if (isCLIError(error) && errorContext && !error.message.includes(errorContext)) {
+      let processedError: unknown = caughtError;
+
+      if (isCLIError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
         // We can't modify the common attributes directly, so we'll wrap it in a new CLIError
-        const contextualError = new CLIError(`${errorContext}: ${error.message}`, {
-          exitCode: error.exitCode,
-          isUserFacing: error.isUserFacing,
-          suggestion: error.suggestion,
-          cause: error.cause || (error instanceof Error ? error : undefined),
+        processedError = new CLIError(`${errorContext}: ${caughtError.message}`, {
+          exitCode: caughtError.common.exitCode,
+          isUserFacing: caughtError.common.isUserFacing,
+          suggestion: caughtError.common.suggestion,
+          cause:
+            caughtError.common.cause || (caughtError instanceof Error ? caughtError : undefined),
         });
-        error = contextualError;
       }
-      
+
       // Try fallback if available
       if (fallback) {
         try {
-          return fallback(error, ...args);
-        } catch (fallbackError) {
-          // If fallback fails, use original error
+          return fallback(processedError, ...args);
+        } catch {
+          // If fallback fails, use processed error
           if (rethrow) {
-            throw error;
+            throw processedError;
           }
-          handleError(error);
+          handleError(processedError);
         }
       }
-      
+
       if (rethrow) {
-        throw error;
+        throw processedError;
       } else {
-        handleError(error);
+        handleError(processedError);
       }
-      
+
       // This should never be reached, but TypeScript needs it
       throw new InternalError('Error boundary reached unreachable code');
     }

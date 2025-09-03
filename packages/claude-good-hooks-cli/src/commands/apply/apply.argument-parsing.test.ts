@@ -11,10 +11,10 @@ vi.mock('../../utils/settings.js');
 const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
 const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
-// Mock console methods
-const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+// Mock console methods  
+const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('ApplyCommand - argument parsing', () => {
   const mockPlugin: HookPlugin = {

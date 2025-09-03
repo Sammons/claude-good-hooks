@@ -129,19 +129,17 @@ describe('ApplyCommand - Local Scope', () => {
     it('should apply local hook with custom arguments', async () => {
       mockLoadHookPlugin.mockResolvedValue(localHookPlugin);
 
-      await applyCommand(
+      const command = new ApplyCommand();
+      await command.execute([
         'project-formatter',
-        [
-          '--configFile',
-          './custom.config.json',
-          '--checkOnly',
-          '--extensions',
-          'ts,tsx,js,jsx',
-          '--maxLineLength',
-          '80',
-        ],
-        { local: true, parent: {} }
-      );
+        '--configFile',
+        './custom.config.json',
+        '--checkOnly',
+        '--extensions',
+        'ts,tsx,js,jsx',
+        '--maxLineLength',
+        '80',
+      ], { local: true, parent: {} });
 
       expect(mockAddHookToSettings).toHaveBeenCalledWith(
         'local',
@@ -186,8 +184,13 @@ describe('ApplyCommand - Local Scope', () => {
       };
 
       expect(consoleSpy).toHaveBeenCalledTimes(1);
-      const actualOutput = JSON.parse(consoleSpy.mock.calls[0][0]);
-      expect(actualOutput).toEqual(expectedOutput);
+      const callArgs = consoleSpy.mock.calls[0];
+      expect(callArgs).toBeDefined();
+      if (callArgs) {
+        expect(callArgs[0]).toBeDefined();
+        const actualOutput = JSON.parse(callArgs[0]);
+        expect(actualOutput).toEqual(expectedOutput);
+      }
     });
   });
 
@@ -230,11 +233,13 @@ describe('ApplyCommand - Local Scope', () => {
 
       mockLoadHookPlugin.mockResolvedValue(projectSpecificPlugin);
 
-      await applyCommand(
+      const command = new ApplyCommand();
+      await command.execute([
         'project-scripts',
-        ['--scriptPath', 'validate.sh', '--beforeHook'],
-        { local: true, parent: {} }
-      );
+        '--scriptPath',
+        'validate.sh',
+        '--beforeHook'
+      ], { local: true, parent: {} });
 
       expect(mockAddHookToSettings).toHaveBeenCalledWith(
         'local',
@@ -283,11 +288,13 @@ describe('ApplyCommand - Local Scope', () => {
 
       mockLoadHookPlugin.mockResolvedValue(envSpecificPlugin);
 
-      await applyCommand(
+      const command = new ApplyCommand();
+      await command.execute([
         'env-detector',
-        ['--environment', 'staging', '--enableDebug'],
-        { local: true, parent: { json: true } }
-      );
+        '--environment',
+        'staging',
+        '--enableDebug'
+      ], { local: true, parent: { json: true } });
 
       expect(mockAddHookToSettings).toHaveBeenCalledWith(
         'local',
@@ -361,11 +368,11 @@ describe('ApplyCommand - Local Scope', () => {
 
       mockLoadHookPlugin.mockResolvedValue(multiConfigPlugin);
 
-      await applyCommand(
+      const command = new ApplyCommand();
+      await command.execute([
         'multi-check',
-        ['--enableTypeCheck'],
-        { local: true, parent: {} }
-      );
+        '--enableTypeCheck'
+      ], { local: true, parent: {} });
 
       // Should add linting (default enabled)
       expect(mockAddHookToSettings).toHaveBeenCalledWith(
@@ -473,8 +480,9 @@ describe('ApplyCommand - Local Scope', () => {
         throw new Error('Permission denied writing to .claude/settings.local.json');
       });
 
+      const command = new ApplyCommand();
       await expect(
-        applyCommand('project-formatter', [], { local: true, parent: {} })
+        command.execute(['project-formatter'], { local: true, parent: {} })
       ).rejects.toThrow('Permission denied');
     });
 

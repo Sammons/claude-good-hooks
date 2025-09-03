@@ -75,7 +75,7 @@ export interface EnhancedErrorOptions {
  */
 export class EnhancedError extends Error {
   public readonly code: ErrorCode;
-  public readonly cause?: Error;
+  public override readonly cause?: Error;
   public readonly suggestions: ErrorSuggestion[];
   public readonly context: Record<string, unknown>;
   public readonly recoverable: boolean;

@@ -1,4 +1,10 @@
-import { createReadStream, createWriteStream, type ReadStream, type WriteStream, type FSWatcher } from 'fs';
+import {
+  createReadStream,
+  createWriteStream,
+  type ReadStream,
+  type WriteStream,
+  type FSWatcher,
+} from 'fs';
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import { FileSystemService } from './file-system.service.js';
@@ -34,7 +40,7 @@ export interface BatchResult {
   success: boolean;
   operation: BatchOperation;
   error?: Error;
-  result?: any;
+  result?: unknown;
 }
 
 export interface StreamOptions {
@@ -43,12 +49,17 @@ export interface StreamOptions {
   objectMode?: boolean;
 }
 
+type StreamExecutor = (op: BatchOperation) => Promise<unknown>;
+
 /**
  * High-performance file operations service with batching, streaming, and debouncing
  */
 export class FileOperationsService {
-  private writeTimeouts = new Map<string, NodeJS.Timeout>();
-  private pendingWrites = new Map<string, { content: string; resolve: () => void; reject: (error: Error) => void }[]>();
+  private writeTimeouts = new Map<string, ReturnType<typeof globalThis.setTimeout>>();
+  private pendingWrites = new Map<
+    string,
+    { content: string; resolve: () => void; reject: (error: Error) => void }[]
+  >();
   private watchers = new Map<string, FSWatcher>();
   private fileSystem = new FileSystemService();
 
@@ -65,8 +76,8 @@ export class FileOperationsService {
     const results: BatchResult[] = [];
 
     // Execute operations in parallel within each type
-    const executeOperations = async (ops: BatchOperation[], executor: (op: BatchOperation) => Promise<any>) => {
-      const promises = ops.map(async (operation) => {
+    const executeOperations = async (ops: BatchOperation[], executor: StreamExecutor) => {
+      const promises = ops.map(async operation => {
         try {
           const result = await executor(operation);
           return { success: true, operation, result };
@@ -79,7 +90,7 @@ export class FileOperationsService {
 
     // Execute reads first (they don't modify anything)
     if (readOps.length > 0) {
-      const readResults = await executeOperations(readOps, async (op) => {
+      const readResults = await executeOperations(readOps, async op => {
         return this.fileSystem.readFile(op.source, op.encoding || 'utf-8');
       });
       results.push(...readResults);
@@ -87,7 +98,7 @@ export class FileOperationsService {
 
     // Execute writes
     if (writeOps.length > 0) {
-      const writeResults = await executeOperations(writeOps, async (op) => {
+      const writeResults = await executeOperations(writeOps, async op => {
         if (!op.content) throw new Error('Write operation requires content');
         const dir = this.fileSystem.dirname(op.source);
         if (!this.fileSystem.exists(dir)) {
@@ -101,7 +112,7 @@ export class FileOperationsService {
 
     // Execute copies
     if (copyOps.length > 0) {
-      const copyResults = await executeOperations(copyOps, async (op) => {
+      const copyResults = await executeOperations(copyOps, async op => {
         if (!op.destination) throw new Error('Copy operation requires destination');
         await this.streamCopy(op.source, op.destination);
         return true;
@@ -111,7 +122,7 @@ export class FileOperationsService {
 
     // Execute moves
     if (moveOps.length > 0) {
-      const moveResults = await executeOperations(moveOps, async (op) => {
+      const moveResults = await executeOperations(moveOps, async op => {
         if (!op.destination) throw new Error('Move operation requires destination');
         await this.streamCopy(op.source, op.destination);
         this.fileSystem.unlink(op.source);
@@ -122,7 +133,7 @@ export class FileOperationsService {
 
     // Execute deletes last
     if (deleteOps.length > 0) {
-      const deleteResults = await executeOperations(deleteOps, async (op) => {
+      const deleteResults = await executeOperations(deleteOps, async op => {
         if (this.fileSystem.exists(op.source)) {
           const stats = this.fileSystem.stat(op.source);
           if (stats.isDirectory()) {
@@ -176,7 +187,7 @@ export class FileOperationsService {
   async streamCopy(source: string, destination: string): Promise<void> {
     const readStream = this.createReadStreamOptimized(source);
     const writeStream = this.createWriteStreamOptimized(destination);
-    
+
     try {
       await pipeline(readStream, writeStream);
     } catch (error) {
@@ -198,20 +209,20 @@ export class FileOperationsService {
     outputPath?: string
   ): Promise<T> {
     const readStream = this.createReadStreamOptimized(filePath);
-    
+
     if (outputPath) {
       const writeStream = this.createWriteStreamOptimized(outputPath);
       await pipeline(readStream, processor, writeStream);
       return undefined as T;
     } else {
       // Collect processed data
-      const chunks: any[] = [];
+      const chunks: unknown[] = [];
       const collector = new Transform({
         objectMode: true,
         transform(chunk, encoding, callback) {
           chunks.push(chunk);
           callback();
-        }
+        },
       });
 
       await pipeline(readStream, processor, collector);
@@ -224,7 +235,7 @@ export class FileOperationsService {
       // Clear existing timeout for this file
       const existingTimeout = this.writeTimeouts.get(filePath);
       if (existingTimeout) {
-        clearTimeout(existingTimeout);
+        globalThis.clearTimeout(existingTimeout);
       }
 
       // Add to pending writes
@@ -234,7 +245,7 @@ export class FileOperationsService {
       this.pendingWrites.get(filePath)!.push({ content, resolve, reject });
 
       // Set new timeout
-      const timeout = setTimeout(async () => {
+      const timeout = globalThis.setTimeout(async () => {
         const pending = this.pendingWrites.get(filePath) || [];
         this.pendingWrites.delete(filePath);
         this.writeTimeouts.delete(filePath);
@@ -243,15 +254,15 @@ export class FileOperationsService {
 
         // Use the latest content
         const latest = pending[pending.length - 1];
-        
+
         try {
           const dir = this.fileSystem.dirname(filePath);
           if (!this.fileSystem.exists(dir)) {
             this.fileSystem.mkdir(dir, { recursive: true });
           }
-          
+
           this.fileSystem.writeFile(filePath, latest.content);
-          
+
           // Resolve all pending promises
           for (const p of pending) {
             p.resolve();
@@ -276,7 +287,7 @@ export class FileOperationsService {
   ): () => void {
     const watchKey = `${dirPath}:${options.recursive}`;
     const debounceDelay = options.debounce ?? 100;
-    const debouncedCallbacks = new Map<string, NodeJS.Timeout>();
+    const debouncedCallbacks = new Map<string, ReturnType<typeof globalThis.setTimeout>>();
 
     // Ensure directory exists
     if (!this.fileSystem.exists(dirPath)) {
@@ -290,18 +301,21 @@ export class FileOperationsService {
         if (!filename) return;
 
         const callbackKey = `${eventType}:${filename}`;
-        
+
         // Clear existing debounce timeout
         const existingTimeout = debouncedCallbacks.get(callbackKey);
         if (existingTimeout) {
-          clearTimeout(existingTimeout);
+          globalThis.clearTimeout(existingTimeout);
         }
 
         // Set new debounce timeout
-        const timeout = setTimeout(() => {
+        const timeout = globalThis.setTimeout(() => {
           debouncedCallbacks.delete(callbackKey);
           try {
-            callback(eventType, typeof filename === 'string' ? filename : filename?.toString() || '');
+            callback(
+              eventType,
+              typeof filename === 'string' ? filename : filename?.toString() || ''
+            );
           } catch (error) {
             console.error('Error in directory watch callback:', error);
           }
@@ -317,7 +331,7 @@ export class FileOperationsService {
     return () => {
       // Clear all debounce timeouts
       for (const timeout of Array.from(debouncedCallbacks.values())) {
-        clearTimeout(timeout);
+        globalThis.clearTimeout(timeout);
       }
       debouncedCallbacks.clear();
 
@@ -335,7 +349,7 @@ export class FileOperationsService {
   destroy(): void {
     // Clear all write timeouts
     for (const timeout of Array.from(this.writeTimeouts.values())) {
-      clearTimeout(timeout);
+      globalThis.clearTimeout(timeout);
     }
     this.writeTimeouts.clear();
 
@@ -362,24 +376,22 @@ export class FileProcessingStreams {
   /**
    * Transform stream that processes JSON objects line by line
    */
-  static jsonLineProcessor<T = any>(): Transform {
+  static jsonLineProcessor(): Transform {
     return new Transform({
       objectMode: true,
       transform(chunk: Buffer, encoding, callback) {
         try {
           const lines = chunk.toString().split('\n');
-          const results = lines
-            .filter(line => line.trim())
-            .map(line => JSON.parse(line));
-          
+          const results = lines.filter(line => line.trim()).map(line => JSON.parse(line));
+
           for (const result of results) {
             this.push(result);
           }
           callback();
-        } catch (error) {
-          callback(error);
+        } catch (error: unknown) {
+          callback(toError(error));
         }
-      }
+      },
     });
   }
 
@@ -392,7 +404,7 @@ export class FileProcessingStreams {
         const lines = chunk.toString().split('\n');
         const filtered = lines.filter(predicate).join('\n');
         callback(null, filtered);
-      }
+      },
     });
   }
 
@@ -401,12 +413,12 @@ export class FileProcessingStreams {
    */
   static batcher<T>(batchSize: number): Transform {
     let batch: T[] = [];
-    
+
     return new Transform({
       objectMode: true,
       transform(chunk: T, encoding, callback) {
         batch.push(chunk);
-        
+
         if (batch.length >= batchSize) {
           callback(null, batch);
           batch = [];
@@ -420,7 +432,7 @@ export class FileProcessingStreams {
         } else {
           callback();
         }
-      }
+      },
     });
   }
 }
