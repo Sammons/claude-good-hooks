@@ -93,13 +93,14 @@ export interface PublishingInfo {
  * const results = await marketplace.search({ query: 'linting' });
  * ```
  */
-export function createMarketplaceClient(options: {
+export function createMarketplaceClient(_options: {
   baseUrl?: string;
   apiKey?: string;
   timeout?: number;
 }) {
-  const baseUrl = options.baseUrl || 'https://api.claude-good-hooks.dev';
-  const timeout = options.timeout || 30000;
+  // These will be used for actual API calls in real implementation
+  // const _baseUrl = _options.baseUrl || 'https://api.claude-good-hooks.dev';
+  // const _timeout = _options.timeout || 30000;
 
   return {
     /**
@@ -415,7 +416,7 @@ export function createPopularityTracker(options: {
  * const recommendations = await recommender.recommend('user123');
  * ```
  */
-export function createRecommendationEngine(options: {
+export function createRecommendationEngine(_options: {
   algorithm?: 'collaborative' | 'content' | 'hybrid';
   maxRecommendations?: number;
 }) {
@@ -515,14 +516,14 @@ async function mockMarketplaceSearch(
   };
 }
 
-async function mockGetHook(hookId: string): Promise<MarketplaceHookInfo | null> {
+async function mockGetHook(_hookId: string): Promise<MarketplaceHookInfo | null> {
   // Mock implementation
   return null;
 }
 
 async function mockInstallHook(
-  hookId: string,
-  version?: string
+  _hookId: string,
+  _version?: string
 ): Promise<{
   success: boolean;
   hook?: EnhancedHookPlugin;
@@ -533,21 +534,21 @@ async function mockInstallHook(
 
 async function mockPublishHook(
   plugin: HookPlugin,
-  publishingInfo: PublishingInfo,
-  marketplaceInfo: Partial<HookMarketplaceInfo>
+  _publishingInfo: PublishingInfo,
+  _marketplaceInfo: Partial<HookMarketplaceInfo>
 ): Promise<{ success: boolean; hookId?: string; error?: string }> {
   return { success: true, hookId: `${plugin.name}-${Date.now()}` };
 }
 
 async function mockRateHook(
-  hookId: string,
-  rating: number,
-  review?: string
+  _hookId: string,
+  _rating: number,
+  _review?: string
 ): Promise<{ success: boolean; error?: string }> {
   return { success: true };
 }
 
-async function mockGetRatings(hookId: string): Promise<HookRating[]> {
+async function mockGetRatings(_hookId: string): Promise<HookRating[]> {
   return [];
 }
 
@@ -555,19 +556,19 @@ async function mockGetFeatured(): Promise<MarketplaceHookInfo[]> {
   return [];
 }
 
-async function mockGetByCategory(category: string): Promise<MarketplaceHookInfo[]> {
+async function mockGetByCategory(_category: string): Promise<MarketplaceHookInfo[]> {
   return [];
 }
 
 async function mockGetRecommendations(
-  userId: string,
-  userHooks?: string[],
-  preferences?: any
+  _userId: string,
+  _userHooks?: string[],
+  _preferences?: any
 ): Promise<MarketplaceHookInfo[]> {
   return [];
 }
 
-async function mockGetSimilar(hookId: string, limit?: number): Promise<MarketplaceHookInfo[]> {
+async function mockGetSimilar(_hookId: string, _limit?: number): Promise<MarketplaceHookInfo[]> {
   return [];
 }
 
@@ -591,7 +592,7 @@ async function performSecurityChecks(plugin: HookPlugin): Promise<
 
   try {
     const hooks = plugin.makeHook({});
-    for (const [eventType, configurations] of Object.entries(hooks)) {
+    for (const [_eventType, configurations] of Object.entries(hooks)) {
       for (const config of configurations || []) {
         for (const hook of config.hooks || []) {
           if (hook.type === 'command') {

@@ -8,10 +8,37 @@ export class ModuleService {
 
   constructor() {}
 
+  /**
+   * Detect the package manager being used
+   */
+  private detectPackageManager(): 'pnpm' | 'npm' | 'yarn' {
+    let currentDir = this.fileSystem.cwd();
+    
+    // Check current directory and up to 3 parent directories for package manager files
+    for (let i = 0; i < 4; i++) {
+      if (this.fileSystem.exists(this.fileSystem.join(currentDir, 'pnpm-lock.yaml')) ||
+          this.fileSystem.exists(this.fileSystem.join(currentDir, 'pnpm-workspace.yaml'))) {
+        return 'pnpm';
+      }
+      
+      if (this.fileSystem.exists(this.fileSystem.join(currentDir, 'yarn.lock'))) {
+        return 'yarn';
+      }
+      
+      const parentDir = this.fileSystem.dirname(currentDir);
+      if (parentDir === currentDir) break; // reached root
+      currentDir = parentDir;
+    }
+    
+    return 'npm';
+  }
+
   isModuleInstalled(moduleName: string, global: boolean = false): boolean {
     try {
       if (global) {
-        const globalPath = this.process.execSync('npm root -g').trim();
+        const packageManager = this.detectPackageManager();
+        const command = packageManager === 'pnpm' ? 'pnpm root -g' : 'npm root -g';
+        const globalPath = this.process.execSync(command).trim();
         return this.fileSystem.exists(this.fileSystem.join(globalPath, moduleName));
       } else {
         const localPath = this.fileSystem.join(this.fileSystem.cwd(), 'node_modules', moduleName);
@@ -27,7 +54,9 @@ export class ModuleService {
       let modulePath: string;
 
       if (global) {
-        const globalPath = this.process.execSync('npm root -g').trim();
+        const packageManager = this.detectPackageManager();
+        const command = packageManager === 'pnpm' ? 'pnpm root -g' : 'npm root -g';
+        const globalPath = this.process.execSync(command).trim();
         modulePath = this.fileSystem.join(globalPath, moduleName);
       } else {
         modulePath = moduleName;
@@ -43,7 +72,20 @@ export class ModuleService {
 
   getInstalledHookModules(global: boolean = false): string[] {
     try {
-      const command = global ? 'npm ls -g --json --depth=0' : 'npm ls --json --depth=0';
+      const packageManager = this.detectPackageManager();
+      let command: string;
+      
+      if (global) {
+        command = packageManager === 'pnpm' ? 'pnpm ls -g --json --depth=0' : 'npm ls -g --json --depth=0';
+      } else {
+        // For pnpm workspaces, use pnpm ls which handles symlinks better
+        if (packageManager === 'pnpm') {
+          command = 'pnpm ls --json --depth=0';
+        } else {
+          command = 'npm ls --json --depth=0';
+        }
+      }
+      
       const output = this.process.execSync(command);
       const data = JSON.parse(output);
 
@@ -51,6 +93,51 @@ export class ModuleService {
       return Object.keys(dependencies).filter(
         name => name.includes('claude') && name.includes('hook')
       );
+    } catch (error: unknown) {
+      // In pnpm workspaces, if listing fails due to validation errors,
+      // fall back to checking node_modules directly
+      const packageManager = this.detectPackageManager();
+      if (!global && packageManager === 'pnpm') {
+        return this.getInstalledModulesFromFileSystem();
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Fallback method to check installed modules by scanning node_modules
+   */
+  private getInstalledModulesFromFileSystem(): string[] {
+    try {
+      const nodeModulesPath = this.fileSystem.join(this.fileSystem.cwd(), 'node_modules');
+      if (!this.fileSystem.exists(nodeModulesPath)) {
+        return [];
+      }
+      
+      const items = this.fileSystem.readdir(nodeModulesPath);
+      const hookModules: string[] = [];
+      
+      for (const item of items) {
+        // Handle scoped packages
+        if (item.startsWith('@')) {
+          const scopePath = this.fileSystem.join(nodeModulesPath, item);
+          try {
+            const scopedItems = this.fileSystem.readdir(scopePath);
+            for (const scopedItem of scopedItems) {
+              const fullName = `${item}/${scopedItem}`;
+              if (fullName.includes('claude') && fullName.includes('hook')) {
+                hookModules.push(fullName);
+              }
+            }
+          } catch {
+            // Skip if can't read scoped directory
+          }
+        } else if (item.includes('claude') && item.includes('hook')) {
+          hookModules.push(item);
+        }
+      }
+      
+      return hookModules;
     } catch {
       return [];
     }

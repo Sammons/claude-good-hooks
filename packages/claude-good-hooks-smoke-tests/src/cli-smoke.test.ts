@@ -20,7 +20,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON help output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
       expect(jsonOutput).toHaveProperty('commands');
       expect(jsonOutput.commands).toHaveProperty('help');
       expect(jsonOutput.commands).toHaveProperty('version');
@@ -41,7 +41,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON version output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
       expect(jsonOutput).toHaveProperty('version');
       expect(jsonOutput).toHaveProperty('name');
       expect(jsonOutput.version).toMatch(/\d+\.\d+\.\d+/);
@@ -62,7 +62,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON doctor output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
       expect(jsonOutput).toHaveProperty('checks');
       expect(Array.isArray(jsonOutput.checks)).toBe(true);
       expect(jsonOutput.checks.length).toBeGreaterThan(0);
@@ -82,7 +82,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON list-hooks output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as any[];
       expect(Array.isArray(jsonOutput)).toBe(true);
       // Empty array is valid for no hooks
     });
@@ -99,7 +99,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON list-hooks --installed output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as any[];
       expect(Array.isArray(jsonOutput)).toBe(true);
       // Empty array is valid for no hooks
     });
@@ -117,7 +117,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
       expect(result.success).toBe(true);
       expectNonEmptyOutput(result.stdout, 'JSON remote output');
 
-      const jsonOutput = expectValidJSON(result.stdout);
+      const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
       expect(jsonOutput).toHaveProperty('remotes');
       expect(Array.isArray(jsonOutput.remotes)).toBe(true);
     });
@@ -176,7 +176,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
         const result = await runCLI(['--json', command]);
         expect(result.success).toBe(true);
 
-        const jsonOutput = expectValidJSON(result.stdout);
+        const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
         // Each command has its own response structure
         expect(typeof jsonOutput).toBe('object');
         expect(jsonOutput).not.toBe(null);

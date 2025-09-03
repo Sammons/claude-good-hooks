@@ -57,7 +57,7 @@ describe('Claude Good Hooks CLI - Integration Tests', () => {
       expect(result.exitCode === 0 || result.exitCode === 1).toBe(true);
 
       if (result.stdout.trim()) {
-        const jsonOutput = expectValidJSON(result.stdout);
+        const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
         expect(jsonOutput).toHaveProperty('success');
 
         if (jsonOutput.success === false) {
@@ -74,7 +74,7 @@ describe('Claude Good Hooks CLI - Integration Tests', () => {
       const result = await runCLI(['--json', '--verbose', 'version']);
 
       if (result.success) {
-        const jsonOutput = expectValidJSON(result.stdout);
+        const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
         expect(jsonOutput).toHaveProperty('success', true);
         expect(jsonOutput).toHaveProperty('data');
       } else {
@@ -91,8 +91,8 @@ describe('Claude Good Hooks CLI - Integration Tests', () => {
       expect(result1.success).toBe(result2.success);
 
       if (result1.success && result2.success) {
-        const json1 = expectValidJSON(result1.stdout);
-        const json2 = expectValidJSON(result2.stdout);
+        const json1 = expectValidJSON(result1.stdout) as Record<string, any>;
+        const json2 = expectValidJSON(result2.stdout) as Record<string, any>;
         expect(json1).toEqual(json2);
       }
     });

@@ -341,23 +341,23 @@ export function combineSettings(
     if (!settings.hooks) continue;
 
     for (const [eventType, configurations] of Object.entries(settings.hooks)) {
-      if (!result.hooks![eventType as keyof typeof result.hooks]) {
-        result.hooks![eventType as keyof typeof result.hooks] = [];
+      if (!(result.hooks as any)[eventType]) {
+        (result.hooks as any)[eventType] = [];
       }
 
-      const existing = result.hooks![eventType as keyof typeof result.hooks]!;
+      const existing = (result.hooks as any)[eventType] as any[];
 
       switch (strategy) {
         case 'append':
           existing.push(...configurations);
           break;
         case 'replace':
-          result.hooks![eventType as keyof typeof result.hooks] = [...configurations];
+          (result.hooks as any)[eventType] = [...configurations];
           break;
         case 'merge':
           // Merge by matcher - combine hooks with same matcher
           for (const config of configurations) {
-            const existingConfig = existing.find(e => e.matcher === config.matcher);
+            const existingConfig = existing.find((e: any) => e.matcher === config.matcher);
             if (existingConfig) {
               existingConfig.hooks.push(...config.hooks);
             } else {
@@ -383,7 +383,10 @@ function generateChainScript(chain: HookChain, args: Record<string, any>): strin
 
   for (let i = 0; i < chain.steps.length; i++) {
     const step = chain.steps[i];
-    const stepVar = `step_${i}_result`;
+    if (!step) {
+      throw new Error(`Step at index ${i} is undefined`);
+    }
+    // const _stepVar = `step_${i}_result`; // For future use in parallel execution
 
     script += `# Step ${i + 1}: ${step.hookName}\n`;
 
@@ -417,7 +420,7 @@ function generateParallelScript(
   hooks: string[],
   argString: string,
   waitForAll: boolean = true,
-  timeout?: number
+  _timeout?: number
 ): string {
   let script = '#!/bin/bash\n\n';
 

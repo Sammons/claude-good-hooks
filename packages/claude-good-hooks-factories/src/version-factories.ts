@@ -38,9 +38,9 @@ export function parseVersion(versionString: string): HookVersion {
   const [, major, minor, patch, prerelease, build] = match;
 
   return {
-    major: parseInt(major, 10),
-    minor: parseInt(minor, 10),
-    patch: parseInt(patch, 10),
+    major: parseInt(major || '0', 10),
+    minor: parseInt(minor || '0', 10),
+    patch: parseInt(patch || '0', 10),
     prerelease,
     build,
   };
