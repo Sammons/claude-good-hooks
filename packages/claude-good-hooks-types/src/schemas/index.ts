@@ -39,6 +39,7 @@ export interface SettingsMetadata {
   updatedAt?: string;
   source?: 'global' | 'project' | 'local';
   migrations?: MigrationRecord[];
+  changes?: any[];
 }
 
 // Extended settings interface with versioning and metadata

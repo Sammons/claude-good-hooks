@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@sammons/claude-good-hooks-types": "workspace:*",
+    "@sammons/claude-good-hooks-factories": "workspace:*",
     "chalk": "^5.3.0"
   },
   "devDependencies": {

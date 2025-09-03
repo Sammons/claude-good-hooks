@@ -1,20 +1,12 @@
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
-import type { IFileSystemService, IProcessService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
+import { ProcessService } from './process.service.js';
 
-export interface IModuleService {
-  isModuleInstalled(moduleName: string, global?: boolean): boolean;
-  loadHookPlugin(moduleName: string, global?: boolean): Promise<HookPlugin | null>;
-  getInstalledHookModules(global?: boolean): string[];
-  getRemoteHooks(): string[];
-  addRemoteHook(moduleName: string): void;
-  removeRemoteHook(moduleName: string): void;
-}
+export class ModuleService {
+  private fileSystem = new FileSystemService();
+  private process = new ProcessService();
 
-export class ModuleService implements IModuleService {
-  constructor(
-    private fileSystem: IFileSystemService,
-    private process: IProcessService
-  ) {}
+  constructor() {}
 
   isModuleInstalled(moduleName: string, global: boolean = false): boolean {
     try {

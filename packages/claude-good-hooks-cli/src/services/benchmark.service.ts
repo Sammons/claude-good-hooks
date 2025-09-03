@@ -1,5 +1,5 @@
 import { performance, PerformanceObserver } from 'perf_hooks';
-import type { IFileSystemService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
 
 export interface BenchmarkResult {
   name: string;
@@ -41,15 +41,6 @@ export interface ComparisonResult {
   confidenceInterval: [number, number];
 }
 
-export interface IBenchmarkService {
-  runBenchmark(name: string, fn: () => Promise<void> | void, iterations?: number): Promise<BenchmarkResult>;
-  runSuite(suite: BenchmarkSuite): Promise<BenchmarkResult[]>;
-  compare(baseline: BenchmarkResult, comparison: BenchmarkResult): ComparisonResult;
-  exportResults(results: BenchmarkResult[], filePath?: string): Promise<void>;
-  trackPerformanceMetrics(name: string, fn: () => Promise<any> | any): Promise<any>;
-  getSystemInfo(): SystemInfo;
-}
-
 export interface SystemInfo {
   platform: string;
   arch: string;
@@ -63,11 +54,12 @@ export interface SystemInfo {
 /**
  * Comprehensive benchmarking service for performance analysis
  */
-export class BenchmarkService implements IBenchmarkService {
+export class BenchmarkService {
   private performanceObserver: PerformanceObserver | null = null;
   private performanceEntries: Map<string, PerformanceEntry[]> = new Map();
+  private fileSystem = new FileSystemService();
 
-  constructor(private fileSystem: IFileSystemService) {
+  constructor() {
     this.initializePerformanceObserver();
   }
 

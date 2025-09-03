@@ -7,15 +7,10 @@
 
 import type {
   HookCommand,
-  HookConfiguration,
   HookPlugin,
   ClaudeSettings,
   HookComposition,
-  HookChain,
-  HookVersion,
-  HookDependency,
-  EnhancedHookPlugin
-} from '@sammons/claude-good-hooks-types';
+  HookChain} from '@sammons/claude-good-hooks-types';
 
 /**
  * Creates a composed hook from multiple existing hooks

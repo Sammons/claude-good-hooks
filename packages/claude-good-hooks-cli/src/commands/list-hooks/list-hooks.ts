@@ -1,0 +1,46 @@
+import chalk from 'chalk';
+import { HookService } from '../../services/services.js';
+
+interface ListHooksOptions {
+  installed?: boolean;
+  global?: boolean;
+  json?: boolean;
+  parent?: {
+    json?: boolean;
+  };
+}
+
+export async function listHooks(options: ListHooksOptions): Promise<void> {
+  const { installed, global } = options;
+  const json = options.json || options.parent?.json;
+  const scope = global ? 'global' : 'project';
+  const hookService = new HookService();
+
+  let hooks;
+  if (installed) {
+    hooks = await hookService.listInstalledHooks(scope);
+  } else {
+    hooks = await hookService.listAvailableHooks(global);
+  }
+
+  if (json) {
+    console.log(JSON.stringify(hooks, null, 2));
+  } else {
+    if (hooks.length === 0) {
+      console.log(chalk.yellow('No hooks found'));
+      return;
+    }
+
+    console.log(chalk.bold(`\nAvailable Hooks (${scope}):\n`));
+
+    for (const hook of hooks) {
+      const status = hook.installed ? chalk.green('✓') : chalk.red('✗');
+      console.log(`${status} ${chalk.bold(hook.name)} v${hook.version}`);
+      console.log(`  ${hook.description}`);
+      if (hook.packageName) {
+        console.log(`  Package: ${chalk.dim(hook.packageName)}`);
+      }
+      console.log('');
+    }
+  }
+}

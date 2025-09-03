@@ -1,4 +1,22 @@
-import { parseArgs } from 'node:util';
+import { GlobalOptionProcessor, CommandOptionProcessor, GlobalOptionResult, CommandOptionResult } from './cli-parser/types.js';
+import { CommandRegistry, HelpInfo } from '../commands/command-registry.js';
+import chalk from 'chalk';
+
+// Global option processors
+import { JsonOption } from './cli-parser/json-option.js';
+import { VerboseOption } from './cli-parser/verbose-option.js';
+import { QuietOption } from './cli-parser/quiet-option.js';
+import { NoColorOption } from './cli-parser/no-color-option.js';
+
+// Command option processors
+import { ListHooksOptions } from './cli-parser/list-hooks-options.js';
+import { RemoteOptions } from './cli-parser/remote-options.js';
+import { ApplyOptions } from './cli-parser/apply-options.js';
+import { InitOptions } from './cli-parser/init-options.js';
+import { ValidateOptions } from './cli-parser/validate-options.js';
+import { ExportOptions } from './cli-parser/export-options.js';
+import { ImportOptions } from './cli-parser/import-options.js';
+import { DefaultOptions } from './cli-parser/default-options.js';
 
 export interface CliCommand {
   name: string;
@@ -28,363 +46,16 @@ export interface ParsedCommand {
   globalOptions: Record<string, unknown>;
 }
 
-/**
- * Parse command line arguments using Node.js built-in parseArgs
- */
-export function parseCliArgs(argv: string[]): ParsedCommand {
-  // Remove node and script paths
-  const args = argv.slice(2);
-  
-  if (args.length === 0) {
-    return {
-      command: 'help',
-      args: [],
-      options: {},
-      globalOptions: {}
-    };
-  }
-
-  // Extract global options first
-  const globalOptions: Record<string, unknown> = {};
-  const remainingArgs: string[] = [];
-  
-  let i = 0;
-  while (i < args.length) {
-    const arg = args[i];
-    
-    if (arg === '--json') {
-      globalOptions.json = true;
-      i++;
-    } else if (arg === '--verbose') {
-      globalOptions.verbose = true;
-      i++;
-    } else if (arg === '--quiet') {
-      globalOptions.quiet = true;
-      i++;
-    } else if (arg === '--no-color') {
-      globalOptions.noColor = true;
-      i++;
-    } else {
-      remainingArgs.push(arg);
-      i++;
-    }
-  }
-
-  if (remainingArgs.length === 0) {
-    return {
-      command: 'help',
-      args: [],
-      options: {},
-      globalOptions
-    };
-  }
-
-  const command = remainingArgs[0];
-  const commandArgs = remainingArgs.slice(1);
-
-  // Parse command-specific options based on the command
-  const { args: finalArgs, options } = parseCommandOptions(command, commandArgs);
-
-  return {
-    command,
-    args: finalArgs,
-    options,
-    globalOptions
-  };
-}
-
-/**
- * Parse options for specific commands
- */
-function parseCommandOptions(command: string, args: string[]): { args: string[]; options: Record<string, unknown> } {
-  switch (command) {
-    case 'list-hooks':
-      return parseListHooksOptions(args);
-    case 'remote':
-      return parseRemoteOptions(args);
-    case 'apply':
-      return parseApplyOptions(args);
-    case 'init':
-      return parseInitOptions(args);
-    case 'validate':
-      return parseValidateOptions(args);
-    case 'export':
-      return parseExportOptions(args);
-    case 'import':
-      return parseImportOptions(args);
-    case 'help':
-    case 'version':
-    case 'doctor':
-    case 'update':
-    default:
-      return { args, options: {} };
-  }
-}
-
-/**
- * Parse list-hooks command options
- */
-function parseListHooksOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  try {
-    const parsed = parseArgs({
-      args,
-      options: {
-        installed: { type: 'boolean' },
-        project: { type: 'boolean' },
-        global: { type: 'boolean' },
-      },
-      allowPositionals: false,
-      strict: false
-    });
-
-    return {
-      args: [],
-      options: parsed.values
-    };
-  } catch {
-    return { args, options: {} };
-  }
-}
-
-/**
- * Parse remote command options
- */
-function parseRemoteOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  try {
-    const parsed = parseArgs({
-      args,
-      options: {
-        add: { type: 'string' },
-        remove: { type: 'string' },
-        json: { type: 'boolean' },
-      },
-      allowPositionals: false,
-      strict: false
-    });
-
-    return {
-      args: [],
-      options: parsed.values
-    };
-  } catch {
-    return { args, options: {} };
-  }
-}
-
-/**
- * Parse apply command options
- */
-function parseApplyOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  // Find the hook name (first non-option argument)
-  let hookName = '';
-  const remainingArgs: string[] = [];
-  const options: Record<string, unknown> = {};
-  
-  let i = 0;
-  while (i < args.length) {
-    const arg = args[i];
-    
-    if (arg.startsWith('--')) {
-      if (arg === '--global') {
-        options.global = true;
-        i++;
-      } else if (arg === '--project') {
-        options.project = true;
-        i++;
-      } else if (arg === '--local') {
-        options.local = true;
-        i++;
-      } else if (arg === '--help') {
-        options.help = true;
-        i++;
-      } else {
-        // Pass through other options for hook-specific parsing
-        remainingArgs.push(arg);
-        if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
-          remainingArgs.push(args[i + 1]);
-          i += 2;
-        } else {
-          i++;
-        }
-      }
-    } else {
-      if (!hookName) {
-        hookName = arg;
-        i++;
-      } else {
-        remainingArgs.push(arg);
-        i++;
-      }
-    }
-  }
-
-  const finalArgs = hookName ? [hookName, ...remainingArgs] : remainingArgs;
-  
-  return {
-    args: finalArgs,
-    options
-  };
-}
-
-/**
- * Parse init command options
- */
-function parseInitOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  try {
-    const parsed = parseArgs({
-      args,
-      options: {
-        force: { type: 'boolean' },
-        scope: { type: 'string' },
-        template: { type: 'string' },
-        yes: { type: 'boolean' },
-      },
-      allowPositionals: false,
-      strict: false
-    });
-
-    return {
-      args: [],
-      options: parsed.values
-    };
-  } catch {
-    return { args, options: {} };
-  }
-}
-
-/**
- * Parse validate command options
- */
-function parseValidateOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  try {
-    const parsed = parseArgs({
-      args,
-      options: {
-        scope: { type: 'string' },
-        'test-commands': { type: 'boolean' },
-        'check-paths': { type: 'boolean' },
-        verbose: { type: 'boolean' },
-        fix: { type: 'boolean' },
-      },
-      allowPositionals: false,
-      strict: false
-    });
-
-    // Convert kebab-case to camelCase
-    const options: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(parsed.values)) {
-      if (key === 'test-commands') {
-        options.testCommands = value;
-      } else if (key === 'check-paths') {
-        options.checkPaths = value;
-      } else {
-        options[key] = value;
-      }
-    }
-
-    return {
-      args: [],
-      options
-    };
-  } catch {
-    return { args, options: {} };
-  }
-}
-
-/**
- * Parse export command options
- */
-function parseExportOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  try {
-    const parsed = parseArgs({
-      args,
-      options: {
-        output: { type: 'string' },
-        scope: { type: 'string' },
-        format: { type: 'string' },
-        minify: { type: 'boolean' },
-        'include-metadata': { type: 'boolean' },
-      },
-      allowPositionals: false,
-      strict: false
-    });
-
-    // Convert kebab-case to camelCase
-    const options: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(parsed.values)) {
-      if (key === 'include-metadata') {
-        options.includeMetadata = value;
-      } else {
-        options[key] = value;
-      }
-    }
-
-    return {
-      args: [],
-      options
-    };
-  } catch {
-    return { args, options: {} };
-  }
-}
-
-/**
- * Parse import command options
- */
-function parseImportOptions(args: string[]): { args: string[]; options: Record<string, unknown> } {
-  // Find the source file (first non-option argument)
-  let source = '';
-  const remainingArgs: string[] = [];
-  const options: Record<string, unknown> = {};
-  
-  let i = 0;
-  while (i < args.length) {
-    const arg = args[i];
-    
-    if (arg.startsWith('--')) {
-      if (arg === '--scope') {
-        options.scope = args[i + 1];
-        i += 2;
-      } else if (arg === '--merge') {
-        options.merge = true;
-        i++;
-      } else if (arg === '--force') {
-        options.force = true;
-        i++;
-      } else if (arg === '--dry-run') {
-        options.dryRun = true;
-        i++;
-      } else if (arg === '--no-validate') {
-        options.validate = false;
-        i++;
-      } else if (arg === '--yes') {
-        options.yes = true;
-        i++;
-      } else {
-        // Skip unknown options
-        i++;
-      }
-    } else {
-      if (!source) {
-        source = arg;
-        i++;
-      } else {
-        remainingArgs.push(arg);
-        i++;
-      }
-    }
-  }
-
-  const finalArgs = source ? [source, ...remainingArgs] : remainingArgs;
-  
-  return {
-    args: finalArgs,
-    options
-  };
-}
-
 export interface OptionsWithParent extends Record<string, unknown> {
   parent?: Record<string, unknown>;
+}
+
+/**
+ * Parse command line arguments using the new polymorphic CLIParser
+ */
+export function parseCliArgs(argv: string[]): ParsedCommand {
+  const parser = new CLIParser();
+  return parser.parse(argv);
 }
 
 /**
@@ -409,144 +80,192 @@ export function showHelp(command?: string): void {
 }
 
 function showGeneralHelp(): void {
-  console.log(`
-claude-good-hooks - CLI for managing Claude Code hooks
+  const commandRegistry = new CommandRegistry();
+  const generalHelp = commandRegistry.getGeneralHelp();
 
-USAGE
-  claude-good-hooks <command> [options]
-
-COMMANDS
-  help                                    Show this help message
-  init [options]                         Initialize hooks configuration
-  list-hooks [options]                   List available hooks
-  remote [options]                       Manage remote hook sources
-  apply [options] <hook-name> [args...]  Apply a hook
-  validate [options]                     Validate hooks configuration
-  export [options]                       Export hooks configuration
-  import [options] <source>              Import hooks configuration
-  update                                  Update claude-good-hooks CLI
-  doctor                                  Check system configuration
-  version                                 Show version information
-
-GLOBAL OPTIONS
-  --json                                 Output in JSON format
-  --verbose                              Enable verbose logging
-  --quiet                                Enable quiet mode (errors only)
-  --no-color                             Disable colored output
-
-Run 'claude-good-hooks help <command>' for more information on a command.
-`);
+  console.log(chalk.bold('claude-good-hooks') + ' - CLI for managing Claude Code hooks\n');
+  
+  console.log(chalk.bold('USAGE'));
+  console.log('  claude-good-hooks <command> [options]\n');
+  
+  console.log(chalk.bold('COMMANDS'));
+  for (const cmd of generalHelp.commands) {
+    const padding = ' '.repeat(Math.max(0, 42 - cmd.name.length));
+    console.log(`  ${chalk.cyan(cmd.name)}${padding}${cmd.description}`);
+  }
+  console.log('');
+  
+  console.log(chalk.bold('GLOBAL OPTIONS'));
+  console.log('  --json                                 Output in JSON format');
+  console.log('  --verbose                              Enable verbose logging');
+  console.log('  --quiet                                Enable quiet mode (errors only)');
+  console.log('  --no-color                             Disable colored output\n');
+  
+  console.log("Run 'claude-good-hooks help <command>' for more information on a command.");
 }
 
 function showCommandHelp(command: string): void {
-  switch (command) {
-    case 'list-hooks':
-      console.log(`
-list-hooks - List available hooks
+  const commandRegistry = new CommandRegistry();
+  const helpInfo = commandRegistry.getCommandHelp(command);
 
-USAGE
-  claude-good-hooks list-hooks [options]
+  if (!helpInfo) {
+    console.log(`No help available for command: ${command}`);
+    return;
+  }
 
-OPTIONS
-  --installed    Show only installed hooks
-  --project      Show project-level hooks (default)
-  --global       Show global hooks
-`);
-      break;
-    case 'remote':
-      console.log(`
-remote - Manage remote hook sources
+  formatHelpInfo(helpInfo);
+}
 
-USAGE
-  claude-good-hooks remote [options]
+function formatHelpInfo(help: HelpInfo): void {
+  console.log(chalk.bold(help.name) + ' - ' + help.description + '\n');
+  
+  console.log(chalk.bold('USAGE'));
+  console.log('  ' + help.usage + '\n');
+  
+  if (help.options && help.options.length > 0) {
+    console.log(chalk.bold('OPTIONS'));
+    for (const option of help.options) {
+      const optionName = `--${option.name}`;
+      const typeInfo = option.type === 'string' ? ' <value>' : '';
+      const shortInfo = option.short ? `, -${option.short}` : '';
+      const padding = ' '.repeat(Math.max(0, 20 - optionName.length - typeInfo.length - shortInfo.length));
+      console.log(`  ${optionName}${typeInfo}${shortInfo}${padding}${option.description}`);
+    }
+    console.log('');
+  }
+  
+  if (help.arguments && help.arguments.length > 0) {
+    console.log(chalk.bold('ARGUMENTS'));
+    for (const arg of help.arguments) {
+      const argName = arg.required ? `<${arg.name}>` : `[${arg.name}]`;
+      const variadic = arg.variadic ? '...' : '';
+      const padding = ' '.repeat(Math.max(0, 20 - argName.length - variadic.length));
+      console.log(`  ${argName}${variadic}${padding}${arg.description}`);
+    }
+    console.log('');
+  }
+  
+  if (help.examples && help.examples.length > 0) {
+    console.log(chalk.bold('EXAMPLES'));
+    for (const example of help.examples) {
+      console.log(`  ${chalk.dim('# ' + example)}`);
+      console.log(`  ${example}\n`);
+    }
+  }
+}
 
-OPTIONS
-  --add <module>     Add a remote hook module
-  --remove <module>  Remove a remote hook module
-`);
-      break;
-    case 'apply':
-      console.log(`
-apply - Apply a hook
+export class CLIParser {
+  private globalOptions: GlobalOptionProcessor[] = [
+    new JsonOption(),
+    new VerboseOption(),
+    new QuietOption(),
+    new NoColorOption(),
+  ];
 
-USAGE
-  claude-good-hooks apply [options] <hook-name> [args...]
+  private commandOptions: CommandOptionProcessor[] = [
+    new ListHooksOptions(),
+    new RemoteOptions(),
+    new ApplyOptions(),
+    new InitOptions(),
+    new ValidateOptions(),
+    new ExportOptions(),
+    new ImportOptions(),
+    new DefaultOptions(), // Must be last as it matches many commands
+  ];
 
-OPTIONS
-  --global    Apply globally
-  --project   Apply to project (default)
-  --local     Apply locally (settings.local.json)
-  --help      Show hook-specific help
+  parse(argv: string[]): ParsedCommand {
+    // Remove node and script paths
+    const args = argv.slice(2);
+    
+    if (args.length === 0) {
+      return {
+        command: 'help',
+        args: [],
+        options: {},
+        globalOptions: {}
+      };
+    }
 
-ARGUMENTS
-  <hook-name>  Name of the hook to apply
-  [args...]    Hook-specific arguments
-`);
-      break;
-    case 'init':
-      console.log(`
-init - Initialize hooks configuration
+    // Extract global options first
+    const { remainingArgs, options: globalOptions } = this.parseGlobalOptions(args);
 
-USAGE
-  claude-good-hooks init [options]
+    if (remainingArgs.length === 0) {
+      return {
+        command: 'help',
+        args: [],
+        options: {},
+        globalOptions
+      };
+    }
 
-OPTIONS
-  --force       Overwrite existing configuration
-  --scope       Configuration scope (project|global)
-  --template    Use specific template
-  --yes         Skip interactive prompts
-`);
-      break;
-    case 'validate':
-      console.log(`
-validate - Validate hooks configuration
+    const command = remainingArgs[0];
+    if (command == null) {
+      throw new Error("Unexpectedly nullish command argument. This is a bug.")
+    }
+    const commandArgs = remainingArgs.slice(1);
 
-USAGE
-  claude-good-hooks validate [options]
+    // Parse command-specific options
+    const { args: finalArgs, options } = this.parseCommandOptions(command, commandArgs);
 
-OPTIONS
-  --scope           Validation scope (all|project|global|local)
-  --test-commands   Test command syntax
-  --check-paths     Validate file paths in commands
-  --verbose         Show detailed information
-  --fix             Auto-fix issues (when possible)
-`);
-      break;
-    case 'export':
-      console.log(`
-export - Export hooks configuration
+    return {
+      command,
+      args: finalArgs,
+      options,
+      globalOptions
+    };
+  }
 
-USAGE
-  claude-good-hooks export [options]
+  private parseGlobalOptions(args: string[]): GlobalOptionResult {
+    const options: Record<string, unknown> = {};
+    let currentArgs = args;
 
-OPTIONS
-  --output            Output file path
-  --scope             Export scope (all|project|global|local)
-  --format            Output format (json|yaml|template)
-  --minify            Minimize output
-  --include-metadata  Include export metadata
-`);
-      break;
-    case 'import':
-      console.log(`
-import - Import hooks configuration
+    while (currentArgs.length > 0) {
+      const arg = currentArgs[0];
+      if (arg == null) {
+        throw new Error("Unexpected nullish arg in args[]. This is a bug.")
+      }
+      let matched = false;
 
-USAGE
-  claude-good-hooks import [options] <source>
+      // Check each global option processor
+      for (const processor of this.globalOptions) {
+        if (processor.match(arg)) {
+          const result = processor.process(currentArgs, 0);
+          
+          // Use key-based approach instead of instanceof checks
+          if (result.key) {
+            options[result.key] = result.value;
+          }
 
-OPTIONS
-  --scope        Target scope (project|global|local)
-  --merge        Merge with existing configuration
-  --force        Overwrite existing without confirmation
-  --dry-run      Show what would be imported without applying
-  --no-validate  Skip validation of imported configuration
-  --yes          Skip confirmation prompts
+          currentArgs = result.remainingArgs;
+          matched = true;
+          
+          // Check if we should continue processing (default to true)
+          if (result.continueProcessing === false) {
+            return { remainingArgs: currentArgs, options };
+          }
+          
+          break;
+        }
+      }
 
-ARGUMENTS
-  <source>  File path or URL to import from
-`);
-      break;
-    default:
-      console.log(`No help available for command: ${command}`);
+      if (!matched) {
+        // Stop processing when we hit a non-global option or command
+        break;
+      }
+    }
+
+    return { remainingArgs: currentArgs, options };
+  }
+
+  private parseCommandOptions(command: string, args: string[]): CommandOptionResult {
+    // Find matching command option processor
+    const processor = this.commandOptions.find(p => p.match(command));
+    
+    if (processor) {
+      return processor.process(args);
+    }
+
+    // Fallback for unknown commands
+    return { args, options: {} };
   }
 }

@@ -181,7 +181,8 @@ export function getVersionHistory(settings: VersionedClaudeSettings): VersionHis
     versions.push({
       version: currentVersion,
       timestamp: settings.meta?.createdAt || settings.meta?.updatedAt || getCurrentTimestamp(),
-      description: 'Current version'
+      description: 'Current version',
+      changes: undefined
     });
   }
   

@@ -1,4 +1,5 @@
-import type { IFileSystemService, IProcessService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
+import { ProcessService } from './process.service.js';
 
 export interface SystemCheck {
   name: string;
@@ -11,15 +12,11 @@ export interface DoctorReport {
   allPassed: boolean;
 }
 
-export interface IDoctorService {
-  runSystemCheck(): DoctorReport;
-}
+export class DoctorService {
+  private fileSystem = new FileSystemService();
+  private process = new ProcessService();
 
-export class DoctorService implements IDoctorService {
-  constructor(
-    private fileSystem: IFileSystemService,
-    private process: IProcessService
-  ) {}
+  constructor() {}
 
   runSystemCheck(): DoctorReport {
     const checks: SystemCheck[] = [];

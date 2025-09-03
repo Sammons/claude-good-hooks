@@ -62,6 +62,9 @@ importers:
 
   packages/claude-good-hooks-cli:
     dependencies:
+      '@sammons/claude-good-hooks-factories':
+        specifier: workspace:*
+        version: link:../claude-good-hooks-factories
       '@sammons/claude-good-hooks-types':
         specifier: workspace:*
         version: link:../claude-good-hooks-types

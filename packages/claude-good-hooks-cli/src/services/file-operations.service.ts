@@ -1,7 +1,7 @@
 import { createReadStream, createWriteStream, type ReadStream, type WriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
-import type { IFileSystemService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
 
 export interface BatchOperation {
   type: 'read' | 'write' | 'delete' | 'copy' | 'move';
@@ -24,33 +24,16 @@ export interface StreamOptions {
   objectMode?: boolean;
 }
 
-export interface IFileOperationsService {
-  batchOperations(operations: BatchOperation[]): Promise<BatchResult[]>;
-  createReadStreamOptimized(filePath: string, options?: StreamOptions): ReadStream;
-  createWriteStreamOptimized(filePath: string, options?: StreamOptions): WriteStream;
-  streamCopy(source: string, destination: string): Promise<void>;
-  streamProcessFile<T>(
-    filePath: string,
-    processor: Transform,
-    outputPath?: string
-  ): Promise<T>;
-  debouncedWrite(filePath: string, content: string, delay?: number): Promise<void>;
-  watchDirectory(
-    dirPath: string,
-    callback: (event: string, filename: string) => void,
-    options?: { recursive?: boolean; debounce?: number }
-  ): () => void;
-}
-
 /**
  * High-performance file operations service with batching, streaming, and debouncing
  */
-export class FileOperationsService implements IFileOperationsService {
+export class FileOperationsService {
   private writeTimeouts = new Map<string, NodeJS.Timeout>();
   private pendingWrites = new Map<string, { content: string; resolve: () => void; reject: (error: Error) => void }[]>();
   private watchers = new Map<string, NodeJS.FSWatcher>();
+  private fileSystem = new FileSystemService();
 
-  constructor(private fileSystem: IFileSystemService) {}
+  constructor() {}
 
   async batchOperations(operations: BatchOperation[]): Promise<BatchResult[]> {
     // Group operations by type for optimal execution order

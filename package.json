@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "run": "pnpm tsx packages/",
     "build": "turbo build",
     "build:docs": "turbo build:docs",
     "build:api-docs": "typedoc",

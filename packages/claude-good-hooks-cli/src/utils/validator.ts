@@ -2,7 +2,8 @@ import { existsSync, accessSync, constants, statSync } from 'fs';
 import { join, isAbsolute } from 'path';
 import { spawn } from 'child_process';
 import chalk from 'chalk';
-import type { ClaudeSettings, HookConfiguration, HookCommand, isClaudeSettings, isHookConfiguration, isHookCommand } from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings, HookConfiguration, HookCommand } from '@sammons/claude-good-hooks-types';
+import { isClaudeSettings, isHookConfiguration, isHookCommand } from '@sammons/claude-good-hooks-types';
 
 export interface ValidationResult {
   valid: boolean;

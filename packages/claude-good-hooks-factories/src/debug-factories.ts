@@ -9,7 +9,6 @@ import type {
   HookCommand,
   HookConfiguration,
   HookPlugin,
-  HookExecutionContext,
   HookExecutionResult,
   HookDebugConfig,
   EnhancedHookPlugin
@@ -196,7 +195,9 @@ export function createBreakpointHook(options: {
         hooks: [{
           type: 'command',
           command: generateBreakpointCommand(options),
-          timeout: options.timeout
+          ...(options.timeout && {
+            timeout: options.timeout
+          })
         }]
       }]
     })

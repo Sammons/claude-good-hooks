@@ -1,26 +1,12 @@
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
-import type { IFileSystemService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
 
 export type SettingsScope = 'global' | 'project' | 'local';
 
-export interface ISettingsService {
-  getSettingsPath(scope: SettingsScope): string;
-  readSettings(scope: SettingsScope): ClaudeSettings;
-  writeSettings(scope: SettingsScope, settings: ClaudeSettings): void;
-  addHookToSettings(
-    scope: SettingsScope,
-    eventName: keyof ClaudeSettings['hooks'],
-    hookConfig: HookConfiguration
-  ): void;
-  removeHookFromSettings(
-    scope: SettingsScope,
-    eventName: keyof ClaudeSettings['hooks'],
-    matcher?: string
-  ): void;
-}
+export class SettingsService {
+  private fileSystem = new FileSystemService();
 
-export class SettingsService implements ISettingsService {
-  constructor(private fileSystem: IFileSystemService) {}
+  constructor() {}
 
   getSettingsPath(scope: SettingsScope): string {
     switch (scope) {

@@ -1,6 +1,6 @@
 import type { HookPlugin, HookMetadata, ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import type { IModuleService } from './module.service.js';
-import type { ISettingsService, SettingsScope } from './settings.service.js';
+import { ModuleService } from './module.service.js';
+import { SettingsService, SettingsScope } from './settings.service.js';
 import { typedEntries } from '../utils/keys.js';
 
 // Type for parsed hook arguments based on plugin customArgs definition
@@ -23,23 +23,11 @@ export interface HookHelpInfo {
   usage: string;
 }
 
-export interface IHookService {
-  applyHook(
-    hookName: string,
-    args: string[],
-    scope: SettingsScope
-  ): Promise<ApplyHookResult>;
-  getHookHelp(hookName: string, global: boolean): Promise<HookHelpInfo | null>;
-  parseHookArgs(args: string[], plugin: HookPlugin): ParsedHookArgs;
-  listInstalledHooks(scope: SettingsScope): Promise<HookMetadata[]>;
-  listAvailableHooks(global: boolean): Promise<HookMetadata[]>;
-}
+export class HookService {
+  private moduleService = new ModuleService();
+  private settingsService = new SettingsService();
 
-export class HookService implements IHookService {
-  constructor(
-    private moduleService: IModuleService,
-    private settingsService: ISettingsService
-  ) {}
+  constructor() {}
 
   async applyHook(
     hookName: string,

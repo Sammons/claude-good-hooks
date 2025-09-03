@@ -1,4 +1,4 @@
-import type { IFileSystemService } from '../interfaces/index.js';
+import { FileSystemService } from './file-system.service.js';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,12 +7,10 @@ export interface PackageInfo {
   version: string;
 }
 
-export interface IPackageService {
-  getPackageInfo(): PackageInfo | null;
-}
+export class PackageService {
+  private fileSystem = new FileSystemService();
 
-export class PackageService implements IPackageService {
-  constructor(private fileSystem: IFileSystemService) {}
+  constructor() {}
 
   getPackageInfo(): PackageInfo | null {
     try {

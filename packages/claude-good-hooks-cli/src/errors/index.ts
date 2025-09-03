@@ -1,280 +1,60 @@
 /**
- * Custom error classes for claude-good-hooks CLI
+ * Error handling system for claude-good-hooks CLI using composition pattern
  */
+
+// Export all error types
+export { CLIError } from './cli-error.js';
+export { ValidationError } from './validation-error.js';
+export { ConfigError } from './config-error.js';
+export { HookError } from './hook-error.js';
+export { NetworkError } from './network-error.js';
+export { FileSystemError } from './file-system-error.js';
+export { PermissionError } from './permission-error.js';
+export { CommandError } from './command-error.js';
+export { InternalError } from './internal-error.js';
+
+// Import for internal usage
+import { ConfigError } from './config-error.js';
+import { HookError } from './hook-error.js';
+import { NetworkError } from './network-error.js';
+import { FileSystemError } from './file-system-error.js';
+import { PermissionError } from './permission-error.js';
+import { CommandError } from './command-error.js';
+
+// Export common types and utilities
+export { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';
+
+// Type that represents any CLI error with composition pattern
+export type AnyCLIError = 
+  | CLIError
+  | ValidationError
+  | ConfigError
+  | HookError
+  | NetworkError
+  | FileSystemError
+  | PermissionError
+  | CommandError
+  | InternalError;
 
 /**
- * Base class for all CLI errors
+ * Type guard to check if an error is a CLI error (using composition pattern)
  */
-export class CLIError extends Error {
-  /**
-   * Exit code for the CLI process
-   */
-  public readonly exitCode: number;
-  
-  /**
-   * Whether this error should be formatted in JSON output
-   */
-  public readonly isUserFacing: boolean;
-  
-  /**
-   * Optional actionable advice for the user
-   */
-  public readonly suggestion?: string;
-
-  constructor(
-    message: string,
-    options: {
-      exitCode?: number;
-      isUserFacing?: boolean;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message);
-    this.name = this.constructor.name;
-    this.exitCode = options.exitCode ?? 1;
-    this.isUserFacing = options.isUserFacing ?? true;
-    this.suggestion = options.suggestion;
-    
-    if (options.cause) {
-      this.cause = options.cause;
-    }
-    
-    // Maintain proper stack trace for where our error was thrown
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-  }
-}
-
-/**
- * Error for user input validation failures
- */
-export class ValidationError extends CLIError {
-  constructor(
-    message: string,
-    options: {
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-    });
-  }
-}
-
-/**
- * Error for configuration-related issues
- */
-export class ConfigError extends CLIError {
-  public readonly configPath?: string;
-  public readonly configKey?: string;
-
-  constructor(
-    message: string,
-    options: {
-      configPath?: string;
-      configKey?: string;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-    });
-    
-    this.configPath = options.configPath;
-    this.configKey = options.configKey;
-  }
-}
-
-/**
- * Error for hook plugin loading or execution failures
- */
-export class HookError extends CLIError {
-  public readonly hookName?: string;
-  public readonly hookPath?: string;
-
-  constructor(
-    message: string,
-    options: {
-      hookName?: string;
-      hookPath?: string;
-      suggestion?: string;
-      cause?: Error;
-      exitCode?: number;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: options.exitCode ?? 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-    });
-    
-    this.hookName = options.hookName;
-    this.hookPath = options.hookPath;
-  }
-}
-
-/**
- * Error for network-related operations
- */
-export class NetworkError extends CLIError {
-  public readonly url?: string;
-  public readonly statusCode?: number;
-
-  constructor(
-    message: string,
-    options: {
-      url?: string;
-      statusCode?: number;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion || 'Check your internet connection and try again.',
-      cause: options.cause,
-    });
-    
-    this.url = options.url;
-    this.statusCode = options.statusCode;
-  }
-}
-
-/**
- * Error for file system operations
- */
-export class FileSystemError extends CLIError {
-  public readonly path?: string;
-  public readonly operation?: string;
-
-  constructor(
-    message: string,
-    options: {
-      path?: string;
-      operation?: string;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-    });
-    
-    this.path = options.path;
-    this.operation = options.operation;
-  }
-}
-
-/**
- * Error for permission-related issues
- */
-export class PermissionError extends CLIError {
-  public readonly path?: string;
-  public readonly requiredPermission?: string;
-
-  constructor(
-    message: string,
-    options: {
-      path?: string;
-      requiredPermission?: string;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    const defaultSuggestion = options.path
-      ? `Check file permissions for ${options.path} or run with appropriate privileges.`
-      : 'Check file permissions or run with appropriate privileges.';
-      
-    super(message, {
-      exitCode: 1,
-      isUserFacing: true,
-      suggestion: options.suggestion || defaultSuggestion,
-      cause: options.cause,
-    });
-    
-    this.path = options.path;
-    this.requiredPermission = options.requiredPermission;
-  }
-}
-
-/**
- * Error for command execution failures
- */
-export class CommandError extends CLIError {
-  public readonly command?: string;
-  public readonly stdout?: string;
-  public readonly stderr?: string;
-
-  constructor(
-    message: string,
-    options: {
-      command?: string;
-      stdout?: string;
-      stderr?: string;
-      exitCode?: number;
-      suggestion?: string;
-      cause?: Error;
-    } = {}
-  ) {
-    super(message, {
-      exitCode: options.exitCode ?? 1,
-      isUserFacing: true,
-      suggestion: options.suggestion,
-      cause: options.cause,
-    });
-    
-    this.command = options.command;
-    this.stdout = options.stdout;
-    this.stderr = options.stderr;
-  }
-}
-
-/**
- * Internal error for unexpected conditions (not user-facing)
- */
-export class InternalError extends CLIError {
-  constructor(
-    message: string,
-    options: {
-      cause?: Error;
-      exitCode?: number;
-    } = {}
-  ) {
-    super(`Internal error: ${message}`, {
-      exitCode: options.exitCode ?? 1,
-      isUserFacing: false,
-      suggestion: 'This appears to be a bug in claude-good-hooks. Please report this issue.',
-      cause: options.cause,
-    });
-  }
-}
-
-/**
- * Type guard to check if an error is a CLI error
- */
-export function isCLIError(error: unknown): error is CLIError {
-  return error instanceof CLIError;
+export function isCLIError(error: unknown): error is AnyCLIError {
+  return error != null &&
+    typeof error === 'object' &&
+    'common' in error &&
+    error.common != null &&
+    typeof error.common === 'object' &&
+    'code' in error.common &&
+    'message' in error.common &&
+    'exitCode' in error.common &&
+    'isUserFacing' in error.common;
 }
 
 /**
  * Type guard to check if an error has suggestion property
  */
-export function hasErrorSuggestion(error: unknown): error is CLIError & { suggestion: string } {
+export function hasErrorSuggestion(error: unknown): error is AnyCLIError & { suggestion: string } {
   return isCLIError(error) && typeof error.suggestion === 'string' && error.suggestion.length > 0;
 }
 
@@ -294,13 +74,15 @@ export function formatError(error: unknown, options: ErrorOutputOptions = {}): s
     if (isJson) {
       const errorObj: any = {
         success: false,
-        error: error.message,
+        error: error.common.message,
         errorType: error.constructor.name,
-        exitCode: error.exitCode,
+        errorCode: error.common.code,
+        exitCode: error.common.exitCode,
+        timestamp: error.common.timestamp,
       };
       
-      if (error.suggestion) {
-        errorObj.suggestion = error.suggestion;
+      if (error.common.suggestion) {
+        errorObj.suggestion = error.common.suggestion;
       }
       
       if (includeDetails) {
@@ -325,23 +107,28 @@ export function formatError(error: unknown, options: ErrorOutputOptions = {}): s
           if (error.stdout) errorObj.stdout = error.stdout;
           if (error.stderr) errorObj.stderr = error.stderr;
         }
+
+        // Add context if available
+        if (error.common.context) {
+          errorObj.context = error.common.context;
+        }
       }
       
-      if (showStackTrace && error.stack) {
-        errorObj.stack = error.stack;
+      if (showStackTrace && error.common.stack) {
+        errorObj.stack = error.common.stack;
       }
       
       return JSON.stringify(errorObj);
     } else {
       // Console output
-      let output = `Error: ${error.message}`;
+      let output = `Error: ${error.common.message}`;
       
-      if (error.suggestion) {
-        output += `\n💡 Suggestion: ${error.suggestion}`;
+      if (error.common.suggestion) {
+        output += `\n💡 Suggestion: ${error.common.suggestion}`;
       }
       
-      if (showStackTrace && error.stack) {
-        output += `\n\nStack trace:\n${error.stack}`;
+      if (showStackTrace && error.common.stack) {
+        output += `\n\nStack trace:\n${error.common.stack}`;
       }
       
       return output;
@@ -357,6 +144,7 @@ export function formatError(error: unknown, options: ErrorOutputOptions = {}): s
       error: message,
       errorType: 'UnknownError',
       exitCode: 1,
+      timestamp: new Date(),
     };
     
     if (showStackTrace && error instanceof Error && error.stack) {

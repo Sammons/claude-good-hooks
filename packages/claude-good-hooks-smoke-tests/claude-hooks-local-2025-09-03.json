@@ -1,0 +1,202 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "exported": "2025-09-03T03:06:50.975Z",
+    "source": [
+      "local"
+    ],
+    "generator": "claude-good-hooks-cli",
+    "description": "Exported hooks configuration from local settings"
+  },
+  "settings": {
+    "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+    "version": "1.0.0",
+    "hooks": {
+      "PreToolUse": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Pre-tool validation for Write/Edit operations\"",
+              "timeout": 30,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ],
+          "matcher": "Write|Edit"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Validating bash command before execution\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ],
+          "matcher": "Bash"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Universal pre-tool hook\"",
+              "timeout": 10,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ],
+          "matcher": ".*"
+        }
+      ],
+      "PostToolUse": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"File written, running post-validation\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ],
+          "matcher": "Write"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Files edited, checking formatting\"",
+              "timeout": 45,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ],
+          "matcher": "Edit|MultiEdit"
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Processing user prompt, adding context\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session started, initializing environment\"",
+              "timeout": 60,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude stopped, running cleanup tasks\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "SubagentStop": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Subagent task completed\"",
+              "timeout": 20,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "SessionEnd": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session ended, final cleanup\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "Notification": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude notification received\"",
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ],
+      "PreCompact": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Before compacting conversation\"",
+              "timeout": 15,
+              "enabled": true,
+              "continueOnError": false
+            }
+          ]
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": "2025-09-03T03:06:28.480Z",
+      "updatedAt": "2025-09-03T03:06:50.973Z",
+      "source": "local",
+      "migrations": [
+        {
+          "version": "1.0.0",
+          "appliedAt": "2025-09-03T03:06:28.480Z",
+          "description": "Converted from legacy settings format",
+          "changes": [
+            "Added versioning and metadata",
+            "Applied schema validation"
+          ]
+        },
+        {
+          "version": "1.0.0",
+          "appliedAt": "2025-09-03T03:06:28.481Z",
+          "description": "Convert legacy unversioned settings to versioned format with metadata",
+          "changes": [
+            "Migrated to version 1.0.0"
+          ]
+        }
+      ]
+    }
+  }
+}
