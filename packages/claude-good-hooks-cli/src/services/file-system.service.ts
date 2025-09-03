@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync, statSync, rmSync, watch } from 'fs';
 import { homedir } from 'os';
 import { join, dirname } from 'path';
 
@@ -14,8 +14,8 @@ export class FileSystemService {
     return readFileSync(path, encoding);
   }
 
-  writeFile(path: string, content: string): void {
-    writeFileSync(path, content);
+  writeFile(path: string, content: string, encoding?: BufferEncoding): void {
+    writeFileSync(path, content, encoding ? { encoding } : undefined);
   }
 
   mkdir(path: string, options?: { recursive?: boolean }): void {
@@ -36,5 +36,25 @@ export class FileSystemService {
 
   cwd(): string {
     return process.cwd();
+  }
+
+  unlink(path: string): void {
+    unlinkSync(path);
+  }
+
+  stat(path: string) {
+    return statSync(path);
+  }
+
+  rmdir(path: string, options?: { recursive?: boolean }): void {
+    if (options?.recursive) {
+      rmSync(path, { recursive: true });
+    } else {
+      rmSync(path);
+    }
+  }
+
+  watch(path: string, options?: any, listener?: (eventType: string, filename: string | Buffer | null) => void) {
+    return watch(path, options, listener);
   }
 }

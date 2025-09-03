@@ -1,8 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
-import type {
-  ClaudeSettings,
-  HookMetadata,
-} from './index.js';
+import type { ClaudeSettings, HookMetadata } from './index.js';
 
 /**
  * Settings and Metadata Tests - Testing ClaudeSettings and HookMetadata interfaces

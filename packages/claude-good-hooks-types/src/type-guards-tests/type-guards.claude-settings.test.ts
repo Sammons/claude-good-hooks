@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isClaudeSettings,
-  type ClaudeSettings,
-} from '../index.js';
+import { isClaudeSettings, type ClaudeSettings } from '../index.js';
 
 /**
  * Type Guards Tests - isClaudeSettings
@@ -45,7 +42,7 @@ describe('Type Guards - isClaudeSettings', () => {
       },
     ];
 
-    validSettings.forEach((settings) => {
+    validSettings.forEach(settings => {
       expect(isClaudeSettings(settings)).toBe(true);
     });
   });
@@ -71,9 +68,7 @@ describe('Type Guards - isClaudeSettings', () => {
       },
       {
         hooks: {
-          PreToolUse: [
-            'not a hook configuration',
-          ],
+          PreToolUse: ['not a hook configuration'],
         },
       },
       {
@@ -87,7 +82,7 @@ describe('Type Guards - isClaudeSettings', () => {
       { invalidProperty: 'value', hooks: {} },
     ];
 
-    invalidSettings.forEach((settings) => {
+    invalidSettings.forEach(settings => {
       expect(isClaudeSettings(settings)).toBe(false);
     });
   });
@@ -105,7 +100,7 @@ describe('Type Guards - isClaudeSettings', () => {
       'PreCompact',
     ];
 
-    validHookTypes.forEach((hookType) => {
+    validHookTypes.forEach(hookType => {
       const settings = {
         hooks: {
           [hookType]: [
@@ -141,17 +136,13 @@ describe('Type Guards - isClaudeSettings', () => {
             ],
           },
           {
-            hooks: [
-              { type: 'command', command: 'global-pre-command' },
-            ],
+            hooks: [{ type: 'command', command: 'global-pre-command' }],
           },
         ],
         PostToolUse: [
           {
             matcher: 'mcp__.*__write.*',
-            hooks: [
-              { type: 'command', command: 'mcp-write-handler', timeout: 60000 },
-            ],
+            hooks: [{ type: 'command', command: 'mcp-write-handler', timeout: 60000 }],
           },
         ],
       },

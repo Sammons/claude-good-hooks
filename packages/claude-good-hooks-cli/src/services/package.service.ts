@@ -1,6 +1,4 @@
 import { FileSystemService } from './file-system.service.js';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 export interface PackageInfo {
   name: string;
@@ -14,8 +12,8 @@ export class PackageService {
 
   getPackageInfo(): PackageInfo | null {
     try {
-      const __dirname = dirname(fileURLToPath(import.meta.url));
-      const packagePath = this.fileSystem.join(__dirname, '../package.json');
+      // Use process.cwd() and navigate to package.json
+      const packagePath = this.fileSystem.join(process.cwd(), 'package.json');
       const content = this.fileSystem.readFile(packagePath, 'utf-8');
       const packageJson = JSON.parse(content);
 

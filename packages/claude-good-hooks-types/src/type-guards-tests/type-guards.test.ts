@@ -2,10 +2,10 @@ import { describe, it } from 'vitest';
 
 /**
  * Type Guards Tests - Main test file (split into focused test files)
- * 
+ *
  * This file serves as the main entry point for type guard function tests.
  * Individual test scenarios have been split into focused files for better organization:
- * 
+ *
  * - type-guards.hook-command.test.ts - isHookCommand function tests
  * - type-guards.hook-configuration.test.ts - isHookConfiguration function tests
  * - type-guards.hook-plugin.test.ts - isHookPlugin function tests

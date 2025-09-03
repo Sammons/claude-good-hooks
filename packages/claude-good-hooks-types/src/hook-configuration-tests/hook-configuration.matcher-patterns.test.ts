@@ -34,7 +34,7 @@ describe('HookConfiguration - Matcher Patterns', () => {
       '(Read|Write).*',
     ];
 
-    patterns.forEach((pattern) => {
+    patterns.forEach(pattern => {
       const config: HookConfiguration = {
         matcher: pattern,
         hooks: [{ type: 'command', command: 'pattern-handler' }],
@@ -54,7 +54,7 @@ describe('HookConfiguration - Matcher Patterns', () => {
       'mcp__[a-z]+__.*',
     ];
 
-    complexPatterns.forEach((pattern) => {
+    complexPatterns.forEach(pattern => {
       const config: HookConfiguration = {
         matcher: pattern,
         hooks: [{ type: 'command', command: 'complex-handler' }],

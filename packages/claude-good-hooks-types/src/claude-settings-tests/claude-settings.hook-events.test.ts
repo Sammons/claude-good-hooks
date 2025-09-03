@@ -116,7 +116,8 @@ describe('ClaudeSettings - Hook Event Types', () => {
             hooks: [
               {
                 type: 'command',
-                command: 'osascript -e "display notification \\"Claude Code notification\\" with title \\"Claude Code\\""',
+                command:
+                  'osascript -e "display notification \\"Claude Code notification\\" with title \\"Claude Code\\""',
               },
               {
                 type: 'command',

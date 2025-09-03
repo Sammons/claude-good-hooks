@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ApplyCommand } from '../apply.js';
+import { ApplyCommand } from './apply.js';
 import * as modules from '../../utils/modules.js';
 import * as settings from '../../utils/settings.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';

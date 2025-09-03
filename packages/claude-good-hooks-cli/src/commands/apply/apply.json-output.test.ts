@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { applyCommand } from './apply.js';
+import { ApplyCommand } from './apply.js';
 import * as modules from '../../utils/modules.js';
 import * as settings from '../../utils/settings.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
@@ -9,12 +9,12 @@ vi.mock('../../utils/modules.js');
 vi.mock('../../utils/settings.js');
 
 const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
-const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
+const _mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('applyCommand - JSON output format', () => {
   const mockPlugin: HookPlugin = {
@@ -63,7 +63,7 @@ describe('applyCommand - JSON output format', () => {
 
     await applyCommand('test-hook', ['--pattern', 'Write'], { parent: { json: true } });
 
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(_consoleSpy).toHaveBeenCalledWith(
       JSON.stringify({
         success: true,
         hook: 'test-hook',
@@ -82,7 +82,7 @@ describe('applyCommand - JSON output format', () => {
       { global: true, parent: { json: true } }
     );
 
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(_consoleSpy).toHaveBeenCalledWith(
       JSON.stringify({
         success: true,
         hook: 'test-hook',

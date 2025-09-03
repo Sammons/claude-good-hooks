@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ApplyCommand } from '../apply.js';
+import { ApplyCommand } from './apply.js';
 import * as modules from '../../utils/modules.js';
 import * as settings from '../../utils/settings.js';
 
@@ -8,12 +8,12 @@ vi.mock('../../utils/modules.js');
 vi.mock('../../utils/settings.js');
 
 const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
-const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
+const _mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('ApplyCommand - error handling', () => {
   beforeEach(() => {

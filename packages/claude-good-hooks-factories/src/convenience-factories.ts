@@ -1,7 +1,4 @@
-import type {
-  HookConfiguration,
-  ClaudeSettings
-} from '@sammons/claude-good-hooks-types';
+import type { HookConfiguration, ClaudeSettings } from '@sammons/claude-good-hooks-types';
 
 import { createHookCommand, createHookConfiguration } from './core-factories.js';
 
@@ -21,13 +18,13 @@ export type HookEventType =
 
 /**
  * Creates a simple hook that runs a command for a specific event type
- * 
+ *
  * @param eventType - The hook event type
  * @param command - The shell command to execute
  * @param matcher - Optional matcher pattern (for PreToolUse/PostToolUse events)
  * @param timeout - Optional timeout in seconds
  * @returns Claude settings object with the configured hook
- * 
+ *
  * @example
  * ```typescript
  * const hook = createSimpleHook('PostToolUse', 'echo "File written"', 'Write');
@@ -45,27 +42,27 @@ export function createSimpleHook(
 
   return {
     hooks: {
-      [eventType]: [hookConfig]
-    }
+      [eventType]: [hookConfig],
+    },
   };
 }
 
 /**
  * Creates a file watcher hook that runs commands when specific files are modified
- * 
+ *
  * @param patterns - File patterns to watch (tool matcher patterns)
  * @param command - Command to execute when files match
  * @param timeout - Optional timeout in seconds
  * @returns Claude settings object with file watching hooks
- * 
+ *
  * @example
  * ```typescript
  * // Watch for any file writes
  * const watcher = createFileWatcherHook(['*'], 'npm run lint');
- * 
+ *
  * // Watch for specific file types
  * const tsWatcher = createFileWatcherHook(['*.ts', '*.tsx'], 'npm run type-check');
- * 
+ *
  * // Watch for specific tools
  * const editWatcher = createFileWatcherHook(['Edit', 'Write'], 'git add .');
  * ```
@@ -80,20 +77,20 @@ export function createFileWatcherHook(
   }
 
   const hookCommand = createHookCommand(command, timeout);
-  const hookConfigurations: HookConfiguration[] = patterns.map(pattern => 
+  const hookConfigurations: HookConfiguration[] = patterns.map(pattern =>
     createHookConfiguration(pattern, [hookCommand])
   );
 
   return {
     hooks: {
-      PostToolUse: hookConfigurations
-    }
+      PostToolUse: hookConfigurations,
+    },
   };
 }
 
 /**
  * Creates a conditional hook that runs different commands based on conditions
- * 
+ *
  * @param condition - Shell condition to evaluate (e.g., "test -f package.json")
  * @param trueCommand - Command to run if condition is true
  * @param falseCommand - Command to run if condition is false (optional)
@@ -101,7 +98,7 @@ export function createFileWatcherHook(
  * @param matcher - Optional matcher pattern
  * @param timeout - Optional timeout in seconds
  * @returns Claude settings object with conditional hook
- * 
+ *
  * @example
  * ```typescript
  * const conditionalHook = createConditionalHook(
@@ -109,7 +106,7 @@ export function createFileWatcherHook(
  *   'npm run build',
  *   'echo "No package.json found"'
  * );
- * 
+ *
  * const gitHook = createConditionalHook(
  *   'git diff --staged --quiet',
  *   'echo "No staged changes"',
@@ -147,20 +144,20 @@ export function createConditionalHook(
 
   return {
     hooks: {
-      [eventType]: [hookConfig]
-    }
+      [eventType]: [hookConfig],
+    },
   };
 }
 
 /**
  * Creates a multi-step hook that runs multiple commands in sequence
- * 
+ *
  * @param commands - Array of commands to execute in order
  * @param eventType - Hook event type (default: 'PostToolUse')
  * @param matcher - Optional matcher pattern
  * @param timeout - Optional timeout in seconds (applies to each command)
  * @returns Claude settings object with multi-step hook
- * 
+ *
  * @example
  * ```typescript
  * const buildHook = createMultiStepHook([
@@ -185,22 +182,22 @@ export function createMultiStepHook(
 
   return {
     hooks: {
-      [eventType]: [hookConfig]
-    }
+      [eventType]: [hookConfig],
+    },
   };
 }
 
 /**
  * Creates a debounced hook that only runs if a certain amount of time has passed
  * since the last execution
- * 
+ *
  * @param command - Command to execute
  * @param debounceSeconds - Minimum seconds between executions
  * @param eventType - Hook event type (default: 'PostToolUse')
  * @param matcher - Optional matcher pattern
  * @param timeout - Optional timeout in seconds
  * @returns Claude settings object with debounced hook
- * 
+ *
  * @example
  * ```typescript
  * const debouncedLint = createDebouncedHook(
@@ -236,7 +233,7 @@ export function createDebouncedHook(
 
   return {
     hooks: {
-      [eventType]: [hookConfig]
-    }
+      [eventType]: [hookConfig],
+    },
   };
 }

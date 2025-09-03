@@ -2,17 +2,13 @@
  * Settings version tracking and management system
  */
 
-import type { 
-  VersionedClaudeSettings, 
-  SettingsVersion, 
-  MigrationRecord 
-} from './schemas/index.js';
-import { 
-  parseVersion, 
-  compareVersions, 
-  formatVersion, 
+import type { VersionedClaudeSettings, SettingsVersion, MigrationRecord } from './schemas/index.js';
+import {
+  parseVersion,
+  compareVersions,
+  formatVersion,
   getCurrentTimestamp,
-  CURRENT_SCHEMA_VERSION 
+  CURRENT_SCHEMA_VERSION,
 } from './schemas/index.js';
 import { detectSettingsVersion, needsMigration } from './migrations.js';
 
@@ -59,11 +55,11 @@ export function getVersionInfo(settings: any): VersionInfo {
   const current = detectSettingsVersion(settings);
   const latest = CURRENT_SCHEMA_VERSION;
   const needsUpdate = needsMigration(settings, latest);
-  
+
   const compatibility = VERSION_COMPATIBILITY[current as keyof typeof VERSION_COMPATIBILITY] || {
     supported: false,
     deprecated: true,
-    migrationRequired: true
+    migrationRequired: true,
   };
 
   return {
@@ -71,7 +67,7 @@ export function getVersionInfo(settings: any): VersionInfo {
     latest,
     needsUpdate,
     isSupported: compatibility.supported,
-    migrationAvailable: compatibility.migrationRequired
+    migrationAvailable: compatibility.migrationRequired,
   };
 }
 
@@ -98,14 +94,14 @@ export function getVersionMigrationPath(fromVersion: string, toVersion: string):
   // This would be enhanced with actual migration registry data
   const from = parseVersion(fromVersion);
   const to = parseVersion(toVersion);
-  
+
   const path: string[] = [];
-  
+
   // Simple path generation for now
   if (compareVersions(fromVersion, '1.0.0') < 0) {
     path.push('1.0.0');
   }
-  
+
   return path;
 }
 
@@ -117,7 +113,7 @@ export function createVersionedSettings(
   initialVersion: string = CURRENT_SCHEMA_VERSION
 ): VersionedClaudeSettings {
   const now = getCurrentTimestamp();
-  
+
   return {
     $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
     version: initialVersion,
@@ -126,8 +122,8 @@ export function createVersionedSettings(
       createdAt: now,
       updatedAt: now,
       source,
-      migrations: []
-    }
+      migrations: [],
+    },
   };
 }
 
@@ -140,22 +136,22 @@ export function updateSettingsVersion(
   migrationRecord?: MigrationRecord
 ): VersionedClaudeSettings {
   const updatedSettings = { ...settings };
-  
+
   updatedSettings.version = newVersion;
-  
+
   if (!updatedSettings.meta) {
     updatedSettings.meta = {};
   }
-  
+
   updatedSettings.meta.updatedAt = getCurrentTimestamp();
-  
+
   if (migrationRecord) {
     if (!updatedSettings.meta.migrations) {
       updatedSettings.meta.migrations = [];
     }
     updatedSettings.meta.migrations.push(migrationRecord);
   }
-  
+
   return updatedSettings;
 }
 
@@ -165,16 +161,16 @@ export function updateSettingsVersion(
 export function getVersionHistory(settings: VersionedClaudeSettings): VersionHistory {
   const migrations = settings.meta?.migrations || [];
   const currentVersion = settings.version || '0.0.0';
-  
+
   const versions = migrations
     .map(migration => ({
       version: migration.version,
       timestamp: migration.appliedAt,
       description: migration.description,
-      changes: migration.changes
+      changes: migration.changes,
     }))
     .sort((a, b) => compareVersions(a.version, b.version));
-  
+
   // Add current version if not in migrations
   const hasCurrentVersion = versions.some(v => v.version === currentVersion);
   if (!hasCurrentVersion) {
@@ -182,14 +178,14 @@ export function getVersionHistory(settings: VersionedClaudeSettings): VersionHis
       version: currentVersion,
       timestamp: settings.meta?.createdAt || settings.meta?.updatedAt || getCurrentTimestamp(),
       description: 'Current version',
-      changes: undefined
+      changes: undefined,
     });
   }
-  
+
   return {
     versions,
     currentVersion,
-    totalMigrations: migrations.length
+    totalMigrations: migrations.length,
   };
 }
 
@@ -204,29 +200,29 @@ export function trackSettingsChange(
   metadata?: Record<string, any>
 ): VersionedClaudeSettings {
   const updatedSettings = { ...settings };
-  
+
   if (!updatedSettings.meta) {
     updatedSettings.meta = {};
   }
-  
+
   updatedSettings.meta.updatedAt = getCurrentTimestamp();
-  
+
   // Store change record in metadata (could be extended to separate change log)
   if (!updatedSettings.meta.changes) {
     (updatedSettings.meta as any).changes = [];
   }
-  
+
   const changeRecord: SettingsChangeRecord = {
     timestamp: getCurrentTimestamp(),
     version: updatedSettings.version || '0.0.0',
     changeType,
     description,
     affectedSections,
-    metadata
+    metadata,
   };
-  
+
   (updatedSettings.meta as any).changes.push(changeRecord);
-  
+
   return updatedSettings;
 }
 
@@ -257,13 +253,13 @@ export function compareSettingsVersions(
     metadataChanged: false,
     addedHooks: [] as string[],
     removedHooks: [] as string[],
-    modifiedHooks: [] as string[]
+    modifiedHooks: [] as string[],
   };
-  
+
   // Compare hooks
   const oldHookTypes = new Set(Object.keys(oldSettings.hooks || {}));
   const newHookTypes = new Set(Object.keys(newSettings.hooks || {}));
-  
+
   // Find added hooks
   for (const hookType of newHookTypes) {
     if (!oldHookTypes.has(hookType)) {
@@ -271,7 +267,7 @@ export function compareSettingsVersions(
       result.hooksChanged = true;
     }
   }
-  
+
   // Find removed hooks
   for (const hookType of oldHookTypes) {
     if (!newHookTypes.has(hookType)) {
@@ -279,28 +275,32 @@ export function compareSettingsVersions(
       result.hooksChanged = true;
     }
   }
-  
+
   // Find modified hooks
   for (const hookType of oldHookTypes) {
     if (newHookTypes.has(hookType)) {
-      const oldHooks = JSON.stringify(oldSettings.hooks?.[hookType as keyof typeof oldSettings.hooks]);
-      const newHooks = JSON.stringify(newSettings.hooks?.[hookType as keyof typeof newSettings.hooks]);
-      
+      const oldHooks = JSON.stringify(
+        oldSettings.hooks?.[hookType as keyof typeof oldSettings.hooks]
+      );
+      const newHooks = JSON.stringify(
+        newSettings.hooks?.[hookType as keyof typeof newSettings.hooks]
+      );
+
       if (oldHooks !== newHooks) {
         result.modifiedHooks.push(hookType);
         result.hooksChanged = true;
       }
     }
   }
-  
+
   // Compare metadata (excluding updatedAt which always changes)
   const oldMeta = { ...oldSettings.meta };
   const newMeta = { ...newSettings.meta };
   delete oldMeta?.updatedAt;
   delete newMeta?.updatedAt;
-  
+
   result.metadataChanged = JSON.stringify(oldMeta) !== JSON.stringify(newMeta);
-  
+
   return result;
 }
 
@@ -312,22 +312,22 @@ export function suggestVersionBump(
   currentVersion: string
 ): string {
   const version = parseVersion(currentVersion);
-  
+
   // Major version bump for breaking changes (removed hooks)
   if (changes.removedHooks.length > 0) {
     return formatVersion({ ...version, major: version.major + 1, minor: 0, patch: 0 });
   }
-  
+
   // Minor version bump for new features (added hooks)
   if (changes.addedHooks.length > 0) {
     return formatVersion({ ...version, minor: version.minor + 1, patch: 0 });
   }
-  
+
   // Patch version bump for modifications
   if (changes.modifiedHooks.length > 0 || changes.metadataChanged) {
     return formatVersion({ ...version, patch: version.patch + 1 });
   }
-  
+
   // No version bump needed
   return currentVersion;
 }
@@ -345,26 +345,28 @@ export function validateVersionCompatibility(
 } {
   const warnings: string[] = [];
   const errors: string[] = [];
-  
+
   // Check if version is supported
   if (!isVersionSupported(settingsVersion)) {
     errors.push(`Settings version ${settingsVersion} is not supported`);
   }
-  
+
   // Check if version is deprecated
   if (isVersionDeprecated(settingsVersion)) {
-    warnings.push(`Settings version ${settingsVersion} is deprecated. Consider upgrading to ${CURRENT_SCHEMA_VERSION}`);
+    warnings.push(
+      `Settings version ${settingsVersion} is deprecated. Consider upgrading to ${CURRENT_SCHEMA_VERSION}`
+    );
   }
-  
+
   // Check against required version
   if (requiredVersion && compareVersions(settingsVersion, requiredVersion) < 0) {
     errors.push(`Settings version ${settingsVersion} is below required version ${requiredVersion}`);
   }
-  
+
   return {
     compatible: errors.length === 0,
     warnings,
-    errors
+    errors,
   };
 }
 
@@ -379,10 +381,10 @@ export function getVersionCompatibilityReport(settings: VersionedClaudeSettings)
 } {
   const version = settings.version || '0.0.0';
   const versionInfo = getVersionInfo(settings);
-  
+
   let status: 'current' | 'supported' | 'deprecated' | 'unsupported';
   const recommendations: string[] = [];
-  
+
   if (version === CURRENT_SCHEMA_VERSION) {
     status = 'current';
   } else if (versionInfo.isSupported && !isVersionDeprecated(version)) {
@@ -395,19 +397,19 @@ export function getVersionCompatibilityReport(settings: VersionedClaudeSettings)
     recommendations.push(`Immediately upgrade to version ${CURRENT_SCHEMA_VERSION}`);
     recommendations.push('Backup your current settings before migration');
   }
-  
-  const migrationPath = versionInfo.migrationAvailable 
+
+  const migrationPath = versionInfo.migrationAvailable
     ? getVersionMigrationPath(version, CURRENT_SCHEMA_VERSION)
     : undefined;
-  
+
   if (migrationPath && migrationPath.length > 0) {
     recommendations.push(`Migration path: ${version} → ${migrationPath.join(' → ')}`);
   }
-  
+
   return {
     version,
     status,
     recommendations,
-    migrationPath
+    migrationPath,
   };
 }

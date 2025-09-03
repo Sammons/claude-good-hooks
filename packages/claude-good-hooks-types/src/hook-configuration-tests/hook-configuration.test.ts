@@ -2,10 +2,10 @@ import { describe, it } from 'vitest';
 
 /**
  * Hook Configuration Tests - Main test file (split into focused test files)
- * 
+ *
  * This file serves as the main entry point for Hook Configuration tests.
  * Individual test scenarios have been split into focused files for better organization:
- * 
+ *
  * - hook-configuration.core-structure.test.ts - Core structure and required fields
  * - hook-configuration.matcher-patterns.test.ts - Matcher pattern variations
  * - hook-configuration.hooks-array.test.ts - Hooks array variations and ordering

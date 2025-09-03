@@ -44,7 +44,7 @@ describe('HookConfiguration - Real-world Use Cases', () => {
       ],
     };
 
-    expect(testingHook.hooks.every((hook) => hook.timeout && hook.timeout > 60000)).toBe(true);
+    expect(testingHook.hooks.every(hook => hook.timeout && hook.timeout > 60000)).toBe(true);
   });
 
   it('should support git hooks integration', () => {
@@ -62,14 +62,15 @@ describe('HookConfiguration - Real-world Use Cases', () => {
         },
         {
           type: 'command',
-          command: 'if [ -n "$(git status --porcelain)" ]; then git commit -m "Auto-commit: Claude Code changes"; fi',
+          command:
+            'if [ -n "$(git status --porcelain)" ]; then git commit -m "Auto-commit: Claude Code changes"; fi',
           timeout: 15000,
         },
       ],
     };
 
     expect(gitHook.hooks).toHaveLength(3);
-    expect(gitHook.hooks.every((hook) => hook.command.includes('git'))).toBe(true);
+    expect(gitHook.hooks.every(hook => hook.command.includes('git'))).toBe(true);
   });
 
   it('should support notification hooks', () => {
@@ -77,7 +78,8 @@ describe('HookConfiguration - Real-world Use Cases', () => {
       hooks: [
         {
           type: 'command',
-          command: 'osascript -e "display notification \\"Claude Code is waiting\\" with title \\"Claude Code\\""',
+          command:
+            'osascript -e "display notification \\"Claude Code is waiting\\" with title \\"Claude Code\\""',
         },
         {
           type: 'command',
@@ -134,7 +136,7 @@ describe('HookConfiguration - Real-world Use Cases', () => {
       },
     ];
 
-    sessionHooks.forEach((config) => {
+    sessionHooks.forEach(config => {
       expectTypeOf(config).toEqualTypeOf<HookConfiguration>();
       expect(config.hooks.length).toBeGreaterThan(0);
     });

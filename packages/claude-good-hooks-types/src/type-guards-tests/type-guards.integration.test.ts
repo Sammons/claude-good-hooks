@@ -84,7 +84,7 @@ describe('Type Guards - Integration Tests', () => {
           required: true,
         },
       },
-      makeHook: (args) => ({
+      makeHook: args => ({
         PostToolUse: [
           {
             matcher: 'Write|Edit',
@@ -133,7 +133,7 @@ describe('Type Guards - Integration Tests', () => {
       },
     ];
 
-    packageMetadata.forEach((metadata) => {
+    packageMetadata.forEach(metadata => {
       expect(isHookMetadata(metadata)).toBe(true);
     });
   });

@@ -174,7 +174,7 @@ export function parseVersion(version: string): SettingsVersion {
   if (!match || !match[1] || !match[2] || !match[3]) {
     throw new Error(`Invalid version format: ${version}`);
   }
-  
+
   return {
     major: parseInt(match[1], 10),
     minor: parseInt(match[2], 10),
@@ -185,15 +185,15 @@ export function parseVersion(version: string): SettingsVersion {
 export function compareVersions(a: string, b: string): number {
   const versionA = parseVersion(a);
   const versionB = parseVersion(b);
-  
+
   if (versionA.major !== versionB.major) {
     return versionA.major - versionB.major;
   }
-  
+
   if (versionA.minor !== versionB.minor) {
     return versionA.minor - versionB.minor;
   }
-  
+
   return versionA.patch - versionB.patch;
 }
 
@@ -207,6 +207,7 @@ export function getCurrentTimestamp(): string {
 
 // Constants
 export const CURRENT_SCHEMA_VERSION = '1.0.0';
-export const SCHEMA_URL = 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json';
+export const SCHEMA_URL =
+  'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json';
 export const DEFAULT_TIMEOUT = 60000; // 60 seconds
 export const MAX_TIMEOUT = 3600000; // 1 hour

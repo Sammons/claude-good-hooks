@@ -102,8 +102,8 @@ export class BenchmarkService {
       
       try {
         await fn();
-      } catch (error) {
-        throw new Error(`Benchmark ${name} failed on iteration ${i + 1}: ${error}`);
+      } catch (error: unknown) {
+        throw new Error(`Benchmark ${name} failed on iteration ${i + 1}: ${String(error)}`);
       }
       
       const iterationEnd = performance.now();
@@ -240,7 +240,7 @@ export class BenchmarkService {
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       performance.mark(`${name}-error`);
       performance.measure(`${name}-error`, `${name}-start`, `${name}-error`);
       throw error;
@@ -265,7 +265,7 @@ export class BenchmarkService {
     for (let i = 0; i < iterations; i++) {
       try {
         await fn();
-      } catch (error) {
+      } catch (error: unknown) {
         // Ignore warmup errors
       }
     }

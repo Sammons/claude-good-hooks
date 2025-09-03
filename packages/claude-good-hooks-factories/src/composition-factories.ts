@@ -1,6 +1,6 @@
 /**
  * Hook Composition Factories
- * 
+ *
  * Advanced utilities for composing, chaining, and combining hooks
  * with conditional logic and execution control.
  */
@@ -10,18 +10,19 @@ import type {
   HookPlugin,
   ClaudeSettings,
   HookComposition,
-  HookChain} from '@sammons/claude-good-hooks-types';
+  HookChain,
+} from '@sammons/claude-good-hooks-types';
 
 /**
  * Creates a composed hook from multiple existing hooks
- * 
+ *
  * @param composition - Composition configuration
  * @returns Combined hook plugin
- * 
+ *
  * @example
  * ```typescript
  * import { createComposedHook } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const devWorkflow = createComposedHook({
  *   name: 'dev-workflow',
  *   description: 'Complete development workflow',
@@ -35,9 +36,7 @@ import type {
  */
 export function createComposedHook(composition: HookComposition): HookPlugin {
   // Sort hooks by order if specified
-  const sortedHooks = [...composition.hooks].sort((a, b) => 
-    (a.order || 0) - (b.order || 0)
-  );
+  const sortedHooks = [...composition.hooks].sort((a, b) => (a.order || 0) - (b.order || 0));
 
   return {
     name: composition.name,
@@ -45,42 +44,44 @@ export function createComposedHook(composition: HookComposition): HookPlugin {
     version: '1.0.0',
     makeHook: (args: Record<string, any>) => {
       const commands: HookCommand[] = [];
-      
+
       for (const hook of sortedHooks) {
         if (hook.enabled === false) continue;
-        
+
         // Build command based on hook configuration
         const hookArgs = { ...hook.args, ...args };
         const argString = Object.entries(hookArgs)
           .map(([key, value]) => `--${key}="${value}"`)
           .join(' ');
-          
+
         commands.push({
           type: 'command',
-          command: `claude-good-hooks apply ${hook.hookName} ${argString}`
+          command: `claude-good-hooks apply ${hook.hookName} ${argString}`,
         });
       }
 
       return {
-        PostToolUse: [{
-          matcher: 'Write|Edit',
-          hooks: commands
-        }]
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: commands,
+          },
+        ],
       };
-    }
+    },
   };
 }
 
 /**
  * Creates a hook chain for sequential execution with error handling
- * 
+ *
  * @param chain - Chain configuration
  * @returns Hook plugin with chained execution
- * 
+ *
  * @example
  * ```typescript
  * import { createHookChain } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const ciPipeline = createHookChain({
  *   name: 'ci-pipeline',
  *   description: 'CI/CD pipeline chain',
@@ -100,31 +101,35 @@ export function createHookChain(chain: HookChain): HookPlugin {
     version: '1.0.0',
     makeHook: (args: Record<string, any>) => {
       const shellScript = generateChainScript(chain, args);
-      
+
       return {
-        PostToolUse: [{
-          matcher: 'Write|Edit',
-          hooks: [{
-            type: 'command',
-            command: shellScript,
-            timeout: chain.timeout
-          }]
-        }]
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              {
+                type: 'command',
+                command: shellScript,
+                timeout: chain.timeout,
+              },
+            ],
+          },
+        ],
       };
-    }
+    },
   };
 }
 
 /**
  * Creates a conditional hook that executes based on runtime conditions
- * 
+ *
  * @param options - Conditional configuration
  * @returns Hook plugin with conditional execution
- * 
+ *
  * @example
  * ```typescript
  * import { createConditionalHook } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const conditionalTest = createConditionalHook({
  *   name: 'conditional-test',
  *   description: 'Run tests only on TypeScript files',
@@ -155,33 +160,41 @@ export function createConditionalHook(options: {
       const conditionalScript = `
 if ${options.condition}; then
   claude-good-hooks apply ${options.hook} ${argString}
-${options.fallback ? `else
-  claude-good-hooks apply ${options.fallback} ${argString}` : ''}
+${
+  options.fallback
+    ? `else
+  claude-good-hooks apply ${options.fallback} ${argString}`
+    : ''
+}
 fi`;
 
       return {
-        PostToolUse: [{
-          matcher: 'Write|Edit',
-          hooks: [{
-            type: 'command',
-            command: conditionalScript
-          }]
-        }]
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              {
+                type: 'command',
+                command: conditionalScript,
+              },
+            ],
+          },
+        ],
       };
-    }
+    },
   };
 }
 
 /**
  * Creates parallel hook execution for independent operations
- * 
+ *
  * @param options - Parallel execution configuration
  * @returns Hook plugin with parallel execution
- * 
+ *
  * @example
  * ```typescript
  * import { createParallelHook } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const parallelChecks = createParallelHook({
  *   name: 'parallel-checks',
  *   description: 'Run linting and testing in parallel',
@@ -216,29 +229,33 @@ export function createParallelHook(options: {
       );
 
       return {
-        PostToolUse: [{
-          matcher: 'Write|Edit',
-          hooks: [{
-            type: 'command',
-            command: parallelScript,
-            timeout: options.timeout
-          }]
-        }]
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              {
+                type: 'command',
+                command: parallelScript,
+                timeout: options.timeout,
+              },
+            ],
+          },
+        ],
       };
-    }
+    },
   };
 }
 
 /**
  * Creates a retry wrapper for unreliable hooks
- * 
+ *
  * @param options - Retry configuration
  * @returns Hook plugin with retry logic
- * 
+ *
  * @example
  * ```typescript
  * import { createRetryHook } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const reliableTest = createRetryHook({
  *   name: 'reliable-test',
  *   description: 'Run tests with retry on failure',
@@ -260,7 +277,7 @@ export function createRetryHook(options: {
 }): HookPlugin {
   const maxAttempts = options.maxAttempts || 3;
   const backoffDelay = options.backoffDelay || 1000;
-  
+
   return {
     name: options.name,
     description: options.description,
@@ -280,29 +297,33 @@ export function createRetryHook(options: {
       );
 
       return {
-        PostToolUse: [{
-          matcher: 'Write|Edit',
-          hooks: [{
-            type: 'command',
-            command: retryScript
-          }]
-        }]
+        PostToolUse: [
+          {
+            matcher: 'Write|Edit',
+            hooks: [
+              {
+                type: 'command',
+                command: retryScript,
+              },
+            ],
+          },
+        ],
       };
-    }
+    },
   };
 }
 
 /**
  * Combines multiple Claude settings into a single configuration
- * 
+ *
  * @param settingsArray - Array of Claude settings to merge
  * @param strategy - Merge strategy for conflicts
  * @returns Merged Claude settings
- * 
+ *
  * @example
  * ```typescript
  * import { combineSettings } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const combined = combineSettings([
  *   lintingSettings,
  *   testingSettings,
@@ -315,17 +336,17 @@ export function combineSettings(
   strategy: 'append' | 'replace' | 'merge' = 'append'
 ): ClaudeSettings {
   const result: ClaudeSettings = { hooks: {} };
-  
+
   for (const settings of settingsArray) {
     if (!settings.hooks) continue;
-    
+
     for (const [eventType, configurations] of Object.entries(settings.hooks)) {
       if (!result.hooks![eventType as keyof typeof result.hooks]) {
         result.hooks![eventType as keyof typeof result.hooks] = [];
       }
-      
+
       const existing = result.hooks![eventType as keyof typeof result.hooks]!;
-      
+
       switch (strategy) {
         case 'append':
           existing.push(...configurations);
@@ -347,7 +368,7 @@ export function combineSettings(
       }
     }
   }
-  
+
   return result;
 }
 
@@ -359,17 +380,17 @@ function generateChainScript(chain: HookChain, args: Record<string, any>): strin
     .join(' ');
 
   let script = '#!/bin/bash\nset -e\n\n';
-  
+
   for (let i = 0; i < chain.steps.length; i++) {
     const step = chain.steps[i];
     const stepVar = `step_${i}_result`;
-    
+
     script += `# Step ${i + 1}: ${step.hookName}\n`;
-    
+
     if (step.condition) {
       script += `if ${step.condition}; then\n  `;
     }
-    
+
     switch (step.onError) {
       case 'continue':
         script += `claude-good-hooks apply ${step.hookName} ${argString} || true\n`;
@@ -381,14 +402,14 @@ function generateChainScript(chain: HookChain, args: Record<string, any>): strin
       default:
         script += `claude-good-hooks apply ${step.hookName} ${argString}\n`;
     }
-    
+
     if (step.condition) {
       script += 'fi\n';
     }
-    
+
     script += '\n';
   }
-  
+
   return script;
 }
 
@@ -399,16 +420,16 @@ function generateParallelScript(
   timeout?: number
 ): string {
   let script = '#!/bin/bash\n\n';
-  
+
   // Start all hooks in background
   for (let i = 0; i < hooks.length; i++) {
     const hook = hooks[i];
     script += `claude-good-hooks apply ${hook} ${argString} &\n`;
     script += `pids[${i}]=$!\n`;
   }
-  
+
   script += '\n';
-  
+
   if (waitForAll) {
     script += 'exit_code=0\n';
     script += 'for pid in "${pids[@]}"; do\n';
@@ -418,7 +439,7 @@ function generateParallelScript(
   } else {
     script += 'wait\n';
   }
-  
+
   return script;
 }
 
@@ -432,14 +453,14 @@ function generateRetryScript(
   let script = '#!/bin/bash\n\n';
   script += `attempt=1\nmax_attempts=${maxAttempts}\n`;
   script += `base_delay=${Math.floor(backoffDelay / 1000)}\n\n`;
-  
+
   script += 'while [ $attempt -le $max_attempts ]; do\n';
   script += `  echo "Attempt $attempt of $max_attempts for ${hook}"\n`;
   script += `  if claude-good-hooks apply ${hook} ${argString}; then\n`;
   script += '    echo "Success!"\n';
   script += '    exit 0\n';
   script += '  fi\n\n';
-  
+
   script += '  if [ $attempt -lt $max_attempts ]; then\n';
   if (exponentialBackoff) {
     script += '    delay=$((base_delay * (2 ** (attempt - 1))))\n';
@@ -449,12 +470,12 @@ function generateRetryScript(
   script += '    echo "Waiting ${delay}s before retry..."\n';
   script += '    sleep $delay\n';
   script += '  fi\n\n';
-  
+
   script += '  attempt=$((attempt + 1))\n';
   script += 'done\n\n';
   script += 'echo "All attempts failed"\n';
   script += 'exit 1\n';
-  
+
   return script;
 }
 

@@ -11,7 +11,7 @@ describe('HookPlugin - Edge Cases and Error Scenarios', () => {
       name: 'error-plugin',
       description: 'Plugin that throws errors',
       version: '1.0.0',
-      makeHook: (args) => {
+      makeHook: args => {
         if (args.shouldThrow) {
           throw new Error('Plugin error');
         }
@@ -35,11 +35,11 @@ describe('HookPlugin - Edge Cases and Error Scenarios', () => {
           required: true,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         if (!args.requiredArg) {
           throw new Error('requiredArg is mandatory');
         }
-        
+
         if (typeof args.requiredArg !== 'string') {
           throw new Error('requiredArg must be a string');
         }
@@ -60,7 +60,9 @@ describe('HookPlugin - Edge Cases and Error Scenarios', () => {
     };
 
     expect(() => validatingPlugin.makeHook({})).toThrow('requiredArg is mandatory');
-    expect(() => validatingPlugin.makeHook({ requiredArg: 123 })).toThrow('requiredArg must be a string');
+    expect(() => validatingPlugin.makeHook({ requiredArg: 123 })).toThrow(
+      'requiredArg must be a string'
+    );
     expect(() => validatingPlugin.makeHook({ requiredArg: 'valid' })).not.toThrow();
   });
 

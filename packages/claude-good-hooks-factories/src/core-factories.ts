@@ -2,16 +2,16 @@ import type {
   HookCommand,
   HookConfiguration,
   HookPlugin,
-  ClaudeSettings
+  ClaudeSettings,
 } from '@sammons/claude-good-hooks-types';
 
 /**
  * Creates a hook command with optional timeout
- * 
+ *
  * @param command - The shell command to execute
  * @param timeout - Optional timeout in seconds
  * @returns A properly typed HookCommand
- * 
+ *
  * @example
  * ```typescript
  * const command = createHookCommand('echo "Hello World"');
@@ -29,7 +29,7 @@ export function createHookCommand(command: string, timeout?: number): HookComman
 
   const hookCommand: HookCommand = {
     type: 'command',
-    command
+    command,
   };
 
   if (timeout !== undefined) {
@@ -41,17 +41,17 @@ export function createHookCommand(command: string, timeout?: number): HookComman
 
 /**
  * Creates a hook configuration with optional matcher and hooks
- * 
+ *
  * @param matcher - Optional pattern to match tool names (for PreToolUse/PostToolUse events)
  * @param hooks - Array of hook commands or a single hook command
  * @returns A properly typed HookConfiguration
- * 
+ *
  * @example
  * ```typescript
  * const config = createHookConfiguration('Write', [
  *   createHookCommand('echo "File written"')
  * ]);
- * 
+ *
  * const configWithoutMatcher = createHookConfiguration(undefined, [
  *   createHookCommand('echo "Event triggered"')
  * ]);
@@ -62,13 +62,13 @@ export function createHookConfiguration(
   hooks: HookCommand[] | HookCommand = []
 ): HookConfiguration {
   const hookArray = Array.isArray(hooks) ? hooks : [hooks];
-  
+
   if (hookArray.length === 0) {
     throw new Error('At least one hook command must be provided');
   }
 
   const config: HookConfiguration = {
-    hooks: hookArray
+    hooks: hookArray,
   };
 
   if (matcher !== undefined) {
@@ -83,13 +83,13 @@ export function createHookConfiguration(
 
 /**
  * Creates a hook plugin with metadata and configuration generator
- * 
+ *
  * @param name - Plugin name
  * @param description - Plugin description
  * @param version - Plugin version
  * @param makeHook - Function that generates hook configurations from arguments
  * @returns A properly typed HookPlugin
- * 
+ *
  * @example
  * ```typescript
  * const plugin = createHookPlugin(
@@ -132,16 +132,16 @@ export function createHookPlugin(
     name,
     description,
     version,
-    makeHook
+    makeHook,
   };
 }
 
 /**
  * Creates a complete Claude settings object with hooks
- * 
+ *
  * @param hooks - Object containing hook configurations for different events
  * @returns A properly typed ClaudeSettings object
- * 
+ *
  * @example
  * ```typescript
  * const settings = createClaudeSettings({

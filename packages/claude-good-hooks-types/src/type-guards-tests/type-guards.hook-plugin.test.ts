@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isHookPlugin,
-  type HookPlugin,
-} from '../index.js';
+import { isHookPlugin, type HookPlugin } from '../index.js';
 
 /**
  * Type Guards Tests - isHookPlugin
@@ -39,7 +36,7 @@ describe('Type Guards - isHookPlugin', () => {
             required: false,
           },
         },
-        makeHook: (args) => ({
+        makeHook: args => ({
           PreToolUse: [
             {
               hooks: [{ type: 'command', command: args.stringArg || 'default' }],
@@ -49,7 +46,7 @@ describe('Type Guards - isHookPlugin', () => {
       },
     ];
 
-    validPlugins.forEach((plugin) => {
+    validPlugins.forEach(plugin => {
       expect(isHookPlugin(plugin)).toBe(true);
     });
   });
@@ -84,7 +81,7 @@ describe('Type Guards - isHookPlugin', () => {
       },
     ];
 
-    invalidPlugins.forEach((plugin) => {
+    invalidPlugins.forEach(plugin => {
       expect(isHookPlugin(plugin)).toBe(false);
     });
   });
@@ -109,13 +106,15 @@ describe('Type Guards - isHookPlugin', () => {
       },
     };
 
-    expect(isHookPlugin({
-      name: 'test',
-      description: 'test',
-      version: '1.0.0',
-      customArgs: validCustomArgs,
-      makeHook: () => ({}),
-    })).toBe(true);
+    expect(
+      isHookPlugin({
+        name: 'test',
+        description: 'test',
+        version: '1.0.0',
+        customArgs: validCustomArgs,
+        makeHook: () => ({}),
+      })
+    ).toBe(true);
 
     // Invalid customArgs
     const invalidCustomArgsVariations = [
@@ -144,14 +143,16 @@ describe('Type Guards - isHookPlugin', () => {
       },
     ];
 
-    invalidCustomArgsVariations.forEach((customArgs) => {
-      expect(isHookPlugin({
-        name: 'test',
-        description: 'test',
-        version: '1.0.0',
-        customArgs,
-        makeHook: () => ({}),
-      })).toBe(false);
+    invalidCustomArgsVariations.forEach(customArgs => {
+      expect(
+        isHookPlugin({
+          name: 'test',
+          description: 'test',
+          version: '1.0.0',
+          customArgs,
+          makeHook: () => ({}),
+        })
+      ).toBe(false);
     });
   });
 });

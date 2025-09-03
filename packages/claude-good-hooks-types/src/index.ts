@@ -102,13 +102,13 @@ function isCustomArgsValid(customArgs: unknown): boolean {
   if (typeof customArgs !== 'object' || customArgs === null) {
     return false;
   }
-  
+
   for (const [key, value] of Object.entries(customArgs)) {
     if (typeof key !== 'string' || !isCustomArgValid(value)) {
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -128,28 +128,28 @@ export function isClaudeSettings(obj: unknown): obj is ClaudeSettings {
   if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
     return false;
   }
-  
+
   const keys = Object.keys(obj);
-  
+
   // Empty object is valid ClaudeSettings
   if (keys.length === 0) {
     return true;
   }
-  
+
   // ClaudeSettings should only have 'hooks' property or be empty
   if (keys.length > 1 || (keys.length === 1 && keys[0] !== 'hooks')) {
     return false;
   }
-  
+
   if (!('hooks' in obj)) {
     return true; // Settings object without hooks is valid
   }
-  
+
   const hooks = obj.hooks;
   if (typeof hooks !== 'object' || hooks === null) {
     return false;
   }
-  
+
   const validHookTypes = [
     'PreToolUse',
     'PostToolUse',
@@ -159,9 +159,9 @@ export function isClaudeSettings(obj: unknown): obj is ClaudeSettings {
     'SubagentStop',
     'SessionEnd',
     'SessionStart',
-    'PreCompact'
+    'PreCompact',
   ];
-  
+
   for (const [key, value] of Object.entries(hooks)) {
     if (!validHookTypes.includes(key)) {
       return false;
@@ -170,7 +170,7 @@ export function isClaudeSettings(obj: unknown): obj is ClaudeSettings {
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -377,11 +377,12 @@ export function isHookComposition(obj: unknown): obj is HookComposition {
     typeof obj.description === 'string' &&
     'hooks' in obj &&
     Array.isArray(obj.hooks) &&
-    obj.hooks.every((hook: unknown) => 
-      typeof hook === 'object' &&
-      hook !== null &&
-      'hookName' in hook &&
-      typeof hook.hookName === 'string'
+    obj.hooks.every(
+      (hook: unknown) =>
+        typeof hook === 'object' &&
+        hook !== null &&
+        'hookName' in hook &&
+        typeof hook.hookName === 'string'
     )
   );
 }

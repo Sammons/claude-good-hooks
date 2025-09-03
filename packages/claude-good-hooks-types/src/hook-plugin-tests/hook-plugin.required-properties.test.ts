@@ -36,7 +36,7 @@ describe('HookPlugin - Required Properties', () => {
       'very-long-plugin-name-with-multiple-hyphens',
     ];
 
-    namePatterns.forEach((name) => {
+    namePatterns.forEach(name => {
       const plugin: HookPlugin = {
         name,
         description: 'Test plugin',
@@ -56,7 +56,7 @@ describe('HookPlugin - Required Properties', () => {
       '', // Empty description
     ];
 
-    descriptions.forEach((description) => {
+    descriptions.forEach(description => {
       const plugin: HookPlugin = {
         name: 'test-plugin',
         description,
@@ -85,7 +85,7 @@ describe('HookPlugin - Required Properties', () => {
       '2023.12.25',
     ];
 
-    versions.forEach((version) => {
+    versions.forEach(version => {
       const plugin: HookPlugin = {
         name: 'version-test-plugin',
         description: 'Testing version formats',

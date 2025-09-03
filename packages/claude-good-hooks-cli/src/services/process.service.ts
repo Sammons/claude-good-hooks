@@ -34,4 +34,8 @@ export class ProcessService {
   get cwd() {
     return process.cwd();
   }
+
+  getVersion(): string {
+    return process.version;
+  }
 }

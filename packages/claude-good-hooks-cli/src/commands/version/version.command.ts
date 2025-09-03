@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { PackageService } from '../../services/services.js';
+import { PackageService } from '../../services/package.service.js';
 import { HelpInfo } from '../command-registry.js';
 
 interface ValidationResult {

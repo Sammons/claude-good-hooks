@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isHookMetadata,
-  type HookMetadata,
-} from '../index.js';
+import { isHookMetadata, type HookMetadata } from '../index.js';
 
 /**
  * Type Guards Tests - isHookMetadata
@@ -36,7 +33,7 @@ describe('Type Guards - isHookMetadata', () => {
       },
     ];
 
-    validMetadata.forEach((metadata) => {
+    validMetadata.forEach(metadata => {
       expect(isHookMetadata(metadata)).toBe(true);
     });
   });
@@ -51,7 +48,13 @@ describe('Type Guards - isHookMetadata', () => {
       { name: 'test', description: 123, version: '1.0.0', source: 'local', installed: true }, // description not string
       { name: 'test', description: 'desc', version: 123, source: 'local', installed: true }, // version not string
       { name: 'test', description: 'desc', version: '1.0.0', source: 'invalid', installed: true }, // invalid source
-      { name: 'test', description: 'desc', version: '1.0.0', source: 'local', installed: 'invalid' }, // installed not boolean
+      {
+        name: 'test',
+        description: 'desc',
+        version: '1.0.0',
+        source: 'local',
+        installed: 'invalid',
+      }, // installed not boolean
       {
         name: 'test',
         description: 'desc',
@@ -65,7 +68,7 @@ describe('Type Guards - isHookMetadata', () => {
       [],
     ];
 
-    invalidMetadata.forEach((metadata) => {
+    invalidMetadata.forEach(metadata => {
       expect(isHookMetadata(metadata)).toBe(false);
     });
   });
@@ -74,55 +77,65 @@ describe('Type Guards - isHookMetadata', () => {
     const validSources = ['local', 'global', 'remote'];
     const invalidSources = ['invalid', 'LOCAL', 'Global', 'REMOTE', '', null, undefined, 123];
 
-    validSources.forEach((source) => {
-      expect(isHookMetadata({
-        name: 'test',
-        description: 'desc',
-        version: '1.0.0',
-        source: source as any,
-        installed: true,
-      })).toBe(true);
+    validSources.forEach(source => {
+      expect(
+        isHookMetadata({
+          name: 'test',
+          description: 'desc',
+          version: '1.0.0',
+          source: source as any,
+          installed: true,
+        })
+      ).toBe(true);
     });
 
-    invalidSources.forEach((source) => {
-      expect(isHookMetadata({
-        name: 'test',
-        description: 'desc',
-        version: '1.0.0',
-        source: source as any,
-        installed: true,
-      })).toBe(false);
+    invalidSources.forEach(source => {
+      expect(
+        isHookMetadata({
+          name: 'test',
+          description: 'desc',
+          version: '1.0.0',
+          source: source as any,
+          installed: true,
+        })
+      ).toBe(false);
     });
   });
 
   it('should handle optional packageName', () => {
     // Without packageName
-    expect(isHookMetadata({
-      name: 'test',
-      description: 'desc',
-      version: '1.0.0',
-      source: 'local',
-      installed: true,
-    })).toBe(true);
+    expect(
+      isHookMetadata({
+        name: 'test',
+        description: 'desc',
+        version: '1.0.0',
+        source: 'local',
+        installed: true,
+      })
+    ).toBe(true);
 
     // With valid packageName
-    expect(isHookMetadata({
-      name: 'test',
-      description: 'desc',
-      version: '1.0.0',
-      source: 'remote',
-      installed: true,
-      packageName: '@scope/package-name',
-    })).toBe(true);
+    expect(
+      isHookMetadata({
+        name: 'test',
+        description: 'desc',
+        version: '1.0.0',
+        source: 'remote',
+        installed: true,
+        packageName: '@scope/package-name',
+      })
+    ).toBe(true);
 
     // With invalid packageName
-    expect(isHookMetadata({
-      name: 'test',
-      description: 'desc',
-      version: '1.0.0',
-      source: 'remote',
-      installed: true,
-      packageName: 123 as any,
-    })).toBe(false);
+    expect(
+      isHookMetadata({
+        name: 'test',
+        description: 'desc',
+        version: '1.0.0',
+        source: 'remote',
+        installed: true,
+        packageName: 123 as any,
+      })
+    ).toBe(false);
   });
 });

@@ -4,16 +4,16 @@ import { resolve } from 'path';
 
 /**
  * Template Hook for Claude Code
- * 
+ *
  * This template demonstrates how to create a custom hook plugin for Claude Code.
- * 
+ *
  * It includes examples of:
  * - Custom arguments with validation
  * - Dynamic hook generation based on arguments
  * - Multiple hook events (PreToolUse, PostToolUse)
  * - Proper TypeScript typing
  * - Error handling and fallbacks
- * 
+ *
  * To create your own hook:
  * 1. Change the 'name' property to your hook's unique identifier
  * 2. Update the description to match your hook's purpose
@@ -29,7 +29,7 @@ const templateHook: HookPlugin = {
       const packageJsonPath = resolve(__dirname, '../package.json');
       const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
       return packageJson.version;
-    } catch (error) {
+    } catch {
       // Fallback to hardcoded version if package.json cannot be read
       return '1.0.0';
     }
@@ -80,37 +80,45 @@ const templateHook: HookPlugin = {
     if (safeArgs.verbose) {
       hooks.PreToolUse.push({
         matcher: '*',
-        hooks: [{
-          type: 'command',
-          command: `echo "Verbose mode enabled, logging to ${safeArgs.logFile}"`,
-          timeout: timeoutMs
-        }]
+        hooks: [
+          {
+            type: 'command',
+            command: `echo "Verbose mode enabled, logging to ${safeArgs.logFile}"`,
+            timeout: timeoutMs,
+          },
+        ],
       });
     }
 
     // Add Write|Edit hook
     hooks.PreToolUse.push({
       matcher: 'Write|Edit',
-      hooks: [{
-        type: 'command',
-        command: safeArgs.verbose 
-          ? `echo "[$(date)] File modification" >> ${safeArgs.logFile}`
-          : 'echo "About to modify a file"',
-        timeout: timeoutMs
-      }]
+      hooks: [
+        {
+          type: 'command',
+          command: safeArgs.verbose
+            ? `echo "[$(date)] File modification" >> ${safeArgs.logFile}`
+            : 'echo "About to modify a file"',
+          timeout: timeoutMs,
+        },
+      ],
     });
 
     // Always create PostToolUse hooks
-    hooks.PostToolUse = [{
-      matcher: 'Bash',
-      hooks: [{
-        type: 'command',
-        command: safeArgs.verbose
-          ? `echo "[$(date)] Command executed" >> ${safeArgs.logFile}`
-          : 'echo "Command executed"',
-        timeout: timeoutMs
-      }]
-    }];
+    hooks.PostToolUse = [
+      {
+        matcher: 'Bash',
+        hooks: [
+          {
+            type: 'command',
+            command: safeArgs.verbose
+              ? `echo "[$(date)] Command executed" >> ${safeArgs.logFile}`
+              : 'echo "Command executed"',
+            timeout: timeoutMs,
+          },
+        ],
+      },
+    ];
 
     return hooks;
   },
@@ -118,26 +126,26 @@ const templateHook: HookPlugin = {
 
 /**
  * Export the hook as default.
- * 
+ *
  * Example usage:
- * 
+ *
  * Basic mode (default):
  * ```bash
  * claude-good-hooks apply template
  * ```
- * 
+ *
  * Verbose mode:
  * ```bash
  * claude-good-hooks apply template --verbose=true --logFile=/custom/path.log --timeout=10
  * ```
- * 
+ *
  * Programmatic usage:
  * ```typescript
  * import templateHook from '@sammons/claude-good-hooks-template-hook';
- * 
+ *
  * // Basic configuration
  * const basicHook = templateHook.makeHook({});
- * 
+ *
  * // Verbose configuration
  * const verboseHook = templateHook.makeHook({
  *   verbose: true,

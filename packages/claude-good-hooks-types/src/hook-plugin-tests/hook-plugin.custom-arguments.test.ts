@@ -44,7 +44,7 @@ describe('HookPlugin - Custom Arguments', () => {
     };
 
     const customArgs = plugin.customArgs!;
-    
+
     expect(customArgs.stringParam.type).toBe('string');
     expect(customArgs.stringParam.required).toBe(true);
     expect(customArgs.stringParam.default).toBe('default-value');
@@ -87,8 +87,8 @@ describe('HookPlugin - Custom Arguments', () => {
     };
 
     const customArgs = plugin.customArgs!;
-    
-    Object.values(customArgs).forEach((arg) => {
+
+    Object.values(customArgs).forEach(arg => {
       expect(arg.description).toBeDefined();
       expect(['string', 'boolean', 'number']).toContain(arg.type);
       expect(arg.default).toBeUndefined();
@@ -115,7 +115,8 @@ describe('HookPlugin - Custom Arguments', () => {
           type: 'number',
         },
         'arg_with-mixed_CASE': {
-          description: 'A very detailed description that explains the purpose of this argument, its expected values, and how it affects the plugin behavior in various scenarios.',
+          description:
+            'A very detailed description that explains the purpose of this argument, its expected values, and how it affects the plugin behavior in various scenarios.',
           type: 'string',
           default: 'complex-default-value',
         },
@@ -208,15 +209,16 @@ describe('HookPlugin - Custom Arguments', () => {
 
     expect(plugin.customArgs).toBeUndefined();
     expectTypeOf(plugin.customArgs).toEqualTypeOf<
-      Record<
-        string,
-        {
-          description: string;
-          type: 'string' | 'boolean' | 'number';
-          default?: any;
-          required?: boolean;
-        }
-      > | undefined
+      | Record<
+          string,
+          {
+            description: string;
+            type: 'string' | 'boolean' | 'number';
+            default?: any;
+            required?: boolean;
+          }
+        >
+      | undefined
     >();
   });
 });

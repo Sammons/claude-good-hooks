@@ -48,7 +48,7 @@ describe('dirty-hook plugin', () => {
   describe('default configuration scenarios', () => {
     it('should return git status --short with no arguments', () => {
       const result = dirtyHook.makeHook({});
-      
+
       expect(result).toEqual({
         UserPromptSubmit: [
           {
@@ -71,7 +71,7 @@ describe('dirty-hook plugin', () => {
         filenames: false,
         diffs: false,
       });
-      
+
       expect(result).toEqual({
         UserPromptSubmit: [
           {
@@ -92,7 +92,7 @@ describe('dirty-hook plugin', () => {
         staged: true,
         unstaged: true,
       });
-      
+
       expect(result).toEqual({
         UserPromptSubmit: [
           {
@@ -115,8 +115,10 @@ describe('dirty-hook plugin', () => {
         staged: true,
         unstaged: false,
       });
-      
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached --name-status');
+
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        'git diff --cached --name-status'
+      );
     });
 
     it('should show staged changes with filenames only', () => {
@@ -125,7 +127,7 @@ describe('dirty-hook plugin', () => {
         unstaged: false,
         filenames: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached --name-only');
     });
 
@@ -135,7 +137,7 @@ describe('dirty-hook plugin', () => {
         unstaged: false,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
     });
 
@@ -146,7 +148,7 @@ describe('dirty-hook plugin', () => {
         filenames: true,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
     });
   });
@@ -157,7 +159,7 @@ describe('dirty-hook plugin', () => {
         staged: false,
         unstaged: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --name-status');
     });
 
@@ -167,7 +169,7 @@ describe('dirty-hook plugin', () => {
         unstaged: true,
         filenames: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --name-only');
     });
 
@@ -177,7 +179,7 @@ describe('dirty-hook plugin', () => {
         unstaged: true,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff');
     });
 
@@ -188,7 +190,7 @@ describe('dirty-hook plugin', () => {
         filenames: true,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff');
     });
   });
@@ -198,7 +200,7 @@ describe('dirty-hook plugin', () => {
       const result = dirtyHook.makeHook({
         filenames: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
     });
 
@@ -208,7 +210,7 @@ describe('dirty-hook plugin', () => {
         unstaged: true,
         filenames: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
     });
 
@@ -218,7 +220,7 @@ describe('dirty-hook plugin', () => {
         unstaged: false,
         filenames: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
     });
   });
@@ -228,7 +230,7 @@ describe('dirty-hook plugin', () => {
       const result = dirtyHook.makeHook({
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
     });
 
@@ -238,7 +240,7 @@ describe('dirty-hook plugin', () => {
         unstaged: true,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
     });
 
@@ -248,7 +250,7 @@ describe('dirty-hook plugin', () => {
         unstaged: false,
         diffs: true,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
     });
   });
@@ -261,7 +263,7 @@ describe('dirty-hook plugin', () => {
         filenames: 'yes',
         diffs: '',
       });
-      
+
       // staged='true' (truthy), unstaged='false' (truthy), filenames='yes' (truthy), diffs='' (falsy)
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
     });
@@ -273,7 +275,7 @@ describe('dirty-hook plugin', () => {
         filenames: 0,
         diffs: 1,
       });
-      
+
       // staged=1 (truthy), unstaged=0 (falsy), diffs=1 (truthy)
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
     });
@@ -285,7 +287,7 @@ describe('dirty-hook plugin', () => {
         filenames: null,
         diffs: undefined,
       });
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short');
     });
   });
@@ -293,7 +295,7 @@ describe('dirty-hook plugin', () => {
   describe('hook configuration structure', () => {
     it('should always return UserPromptSubmit configuration', () => {
       const result = dirtyHook.makeHook({});
-      
+
       expect(result).toHaveProperty('UserPromptSubmit');
       expect(Array.isArray(result.UserPromptSubmit)).toBe(true);
       expect(result.UserPromptSubmit).toHaveLength(1);
@@ -302,7 +304,7 @@ describe('dirty-hook plugin', () => {
     it('should have proper hook command structure', () => {
       const result = dirtyHook.makeHook({});
       const hookConfig = result.UserPromptSubmit?.[0];
-      
+
       expect(hookConfig).toEqual({
         hooks: [
           {
@@ -317,7 +319,7 @@ describe('dirty-hook plugin', () => {
     it('should not include matcher in hook configuration', () => {
       const result = dirtyHook.makeHook({});
       const hookConfig = result.UserPromptSubmit?.[0];
-      
+
       expect(hookConfig).not.toHaveProperty('matcher');
     });
 
@@ -332,7 +334,7 @@ describe('dirty-hook plugin', () => {
         { unstaged: true, filenames: true },
       ];
 
-      scenarios.forEach((args) => {
+      scenarios.forEach(args => {
         const result = dirtyHook.makeHook(args);
         expect(result.UserPromptSubmit?.[0]?.hooks[0]?.timeout).toBe(10000);
       });
@@ -340,7 +342,7 @@ describe('dirty-hook plugin', () => {
 
     it('should not return other hook event types', () => {
       const result = dirtyHook.makeHook({});
-      
+
       expect(result).not.toHaveProperty('PreToolUse');
       expect(result).not.toHaveProperty('PostToolUse');
       expect(result).not.toHaveProperty('Notification');
@@ -364,7 +366,10 @@ describe('dirty-hook plugin', () => {
         { args: { unstaged: true, filenames: true }, expected: 'git diff --name-only' },
         { args: { staged: true, diffs: true }, expected: 'git diff --cached' },
         { args: { unstaged: true, diffs: true }, expected: 'git diff' },
-        { args: { staged: true, unstaged: true, filenames: true }, expected: 'git status --short | cut -c4-' },
+        {
+          args: { staged: true, unstaged: true, filenames: true },
+          expected: 'git status --short | cut -c4-',
+        },
         { args: { staged: true, unstaged: true, diffs: true }, expected: 'git diff HEAD' },
       ];
 
@@ -385,8 +390,10 @@ describe('dirty-hook plugin', () => {
         unknown: 'value',
         another: 123,
       });
-      
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached --name-status');
+
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        'git diff --cached --name-status'
+      );
     });
   });
 });

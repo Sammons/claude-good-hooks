@@ -122,9 +122,11 @@ export class ValidateCommand {
             config.hooks.forEach((hook, hookIndex) => {
               const pathResult = validateCommandPaths(hook.command);
               if (!pathResult.valid) {
-                result.errors.push(...pathResult.errors.map(err => 
-                  `${event}[${configIndex}].hooks[${hookIndex}]: ${err}`
-                ));
+                result.errors.push(...pathResult.errors.map(err => ({
+                  type: 'path' as const,
+                  message: `${event}[${configIndex}].hooks[${hookIndex}]: ${err}`,
+                  location: `${event}[${configIndex}].hooks[${hookIndex}]`
+                })));
               }
             });
           });
@@ -139,10 +141,18 @@ export class ValidateCommand {
               try {
                 const testResult = await testCommand(hook.command);
                 if (!testResult.valid) {
-                  result.errors.push(`${event}[${configIndex}].hooks[${hookIndex}]: Command test failed - ${testResult.error}`);
+                  result.errors.push({
+                    type: 'command',
+                    message: `${event}[${configIndex}].hooks[${hookIndex}]: Command test failed - ${testResult.errors.map(e => e.message).join(', ')}`,
+                    location: `${event}[${configIndex}].hooks[${hookIndex}]`
+                  });
                 }
               } catch (error) {
-                result.errors.push(`${event}[${configIndex}].hooks[${hookIndex}]: Command test error - ${error}`);
+                result.errors.push({
+                  type: 'command',
+                  message: `${event}[${configIndex}].hooks[${hookIndex}]: Command test error - ${error}`,
+                  location: `${event}[${configIndex}].hooks[${hookIndex}]`
+                });
               }
             });
           });
@@ -152,7 +162,7 @@ export class ValidateCommand {
       results.push({ scope: currentScope, result, path: settingsPath });
 
       if (verbose || !result.valid) {
-        printValidationResults(result, settingsPath);
+        printValidationResults(result, verbose);
       }
 
       if (!result.valid) {

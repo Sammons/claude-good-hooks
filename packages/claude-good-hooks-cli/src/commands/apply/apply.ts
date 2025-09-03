@@ -1,6 +1,7 @@
 import chalk from 'chalk';
-import { HookService, ProcessService } from '../../services/services.js';
-import type { SettingsScope } from '../../services/services.js';
+import { HookService } from '../../services/hook.service.js';
+import { ProcessService } from '../../services/process.service.js';
+import type { SettingsScope } from '../../services/settings.service.js';
 import type { HelpInfo } from '../command-registry.js';
 
 interface ValidationResult {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ApplyCommand } from '../apply.js';
+import { ApplyCommand } from './apply.js';
 import * as modules from '../../utils/modules.js';
 import * as settings from '../../utils/settings.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
@@ -12,9 +12,9 @@ const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
 const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+const _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 describe('ApplyCommand - argument parsing', () => {
   const mockPlugin: HookPlugin = {
@@ -41,12 +41,12 @@ describe('ApplyCommand - argument parsing', () => {
     makeHook: (args) => ({
       PreToolUse: [
         {
-          matcher: args.pattern || '*',
+          matcher: (args.pattern as string) || '*',
           hooks: [
             {
               type: 'command',
               command: `echo "Test hook with pattern ${args.pattern}"`,
-              timeout: args.timeout,
+              timeout: args.timeout as number,
             },
           ],
         },

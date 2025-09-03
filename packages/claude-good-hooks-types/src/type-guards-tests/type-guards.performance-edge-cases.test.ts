@@ -51,7 +51,7 @@ describe('Type Guards - Performance and Edge Cases', () => {
       Promise.resolve({}),
     ];
 
-    malformedData.forEach((data) => {
+    malformedData.forEach(data => {
       expect(() => isHookCommand(data)).not.toThrow();
       expect(() => isHookConfiguration(data)).not.toThrow();
       expect(() => isHookPlugin(data)).not.toThrow();
@@ -81,7 +81,7 @@ describe('Type Guards - Performance and Edge Cases', () => {
     };
     circularObject.self = circularObject;
 
-    // Should not throw, but circular object actually passes basic validation 
+    // Should not throw, but circular object actually passes basic validation
     // since our type guards don't do deep traversal
     expect(() => isHookMetadata(circularObject)).not.toThrow();
     // The circular reference doesn't affect the basic property validation

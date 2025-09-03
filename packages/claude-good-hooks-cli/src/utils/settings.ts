@@ -215,7 +215,7 @@ export function validateSettingsFile(scope: 'global' | 'project' | 'local'): {
   versionInfo?: ReturnType<typeof getVersionInfo>;
 } {
   const path = getSettingsPath(scope);
-  const result = { valid: true, errors: [] as string[], warnings: [] as string[] };
+  const result: { valid: boolean; errors: string[]; warnings: string[]; versionInfo?: ReturnType<typeof getVersionInfo> } = { valid: true, errors: [], warnings: [] };
   
   // Check file integrity
   const integrityCheck = verifyFileIntegrity(path);
@@ -337,6 +337,10 @@ export function getSettingsDiagnostics(scope: 'global' | 'project' | 'local'): {
     exists: existsSync(path),
     readable: false,
     valid: false,
+    version: undefined as string | undefined,
+    size: undefined as number | undefined,
+    lastModified: undefined as Date | undefined,
+    backupCount: undefined as number | undefined,
     issues: [] as string[],
     recommendations: [] as string[]
   };

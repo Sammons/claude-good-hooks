@@ -124,7 +124,7 @@ describe('ClaudeSettings - Complex Hook Configurations', () => {
       },
     };
 
-    const matchers = settings.hooks!.PostToolUse!.map((config) => config.matcher);
+    const matchers = settings.hooks!.PostToolUse!.map(config => config.matcher);
     expect(matchers).toEqual([
       '^(Write|Edit|MultiEdit)$',
       'Notebook.*',

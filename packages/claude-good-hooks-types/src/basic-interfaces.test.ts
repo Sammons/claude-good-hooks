@@ -1,9 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
-import type {
-  HookCommand,
-  HookConfiguration,
-  HookPlugin,
-} from './index.js';
+import type { HookCommand, HookConfiguration, HookPlugin } from './index.js';
 
 /**
  * Basic Interface Tests - Testing core type definitions
@@ -19,7 +15,7 @@ describe('HookCommand Interface', () => {
     expectTypeOf(basicCommand).toEqualTypeOf<HookCommand>();
     expectTypeOf(basicCommand.type).toEqualTypeOf<'command'>();
     expectTypeOf(basicCommand.command).toEqualTypeOf<string>();
-    
+
     expect(basicCommand.type).toBe('command');
     expect(basicCommand.command).toBe('echo "Hello World"');
   });
@@ -43,7 +39,7 @@ describe('HookCommand Interface', () => {
     };
 
     expectTypeOf(validCommand.type).toEqualTypeOf<'command'>();
-    
+
     // TypeScript should prevent invalid types at compile time
     // This would fail at compile time:
     // const invalidCommand: HookCommand = {
@@ -153,7 +149,7 @@ describe('HookPlugin Interface', () => {
           default: 30000,
         },
       },
-      makeHook: (args) => ({
+      makeHook: args => ({
         PostToolUse: [
           {
             hooks: [
@@ -169,15 +165,16 @@ describe('HookPlugin Interface', () => {
     };
 
     expectTypeOf(pluginWithCustomArgs.customArgs).toEqualTypeOf<
-      Record<
-        string,
-        {
-          description: string;
-          type: 'string' | 'boolean' | 'number';
-          default?: any;
-          required?: boolean;
-        }
-      > | undefined
+      | Record<
+          string,
+          {
+            description: string;
+            type: 'string' | 'boolean' | 'number';
+            default?: any;
+            required?: boolean;
+          }
+        >
+      | undefined
     >();
   });
 
@@ -186,7 +183,7 @@ describe('HookPlugin Interface', () => {
       name: 'comprehensive-plugin',
       description: 'Plugin that uses all hook types',
       version: '1.0.0',
-      makeHook: (_args) => ({
+      makeHook: _args => ({
         PreToolUse: [
           {
             matcher: 'Bash',
@@ -237,7 +234,7 @@ describe('HookPlugin Interface', () => {
     };
 
     const hookResult = comprehensivePlugin.makeHook({});
-    
+
     // Verify all hook types are optional but correctly typed
     expectTypeOf(hookResult.PreToolUse).toEqualTypeOf<HookConfiguration[] | undefined>();
     expectTypeOf(hookResult.PostToolUse).toEqualTypeOf<HookConfiguration[] | undefined>();

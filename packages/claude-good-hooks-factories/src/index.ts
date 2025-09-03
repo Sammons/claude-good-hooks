@@ -1,6 +1,6 @@
 /**
  * Claude Good Hooks Factories
- * 
+ *
  * A collection of factory functions and utilities to simplify creating
  * Claude Code hooks with TypeScript support.
  */
@@ -22,7 +22,7 @@ export type {
   EnhancedHookPlugin,
   HookExecutionContext,
   HookExecutionResult,
-  VersionCompatibility
+  VersionCompatibility,
 } from '@sammons/claude-good-hooks-types';
 
 // Export type guards for runtime validation
@@ -38,7 +38,7 @@ export {
   isHookComposition,
   isEnhancedHookPlugin,
   isHookExecutionContext,
-  isHookExecutionResult
+  isHookExecutionResult,
 } from '@sammons/claude-good-hooks-types';
 
 // Core factory functions - the building blocks
@@ -46,7 +46,7 @@ export {
   createHookCommand,
   createHookConfiguration,
   createHookPlugin,
-  createClaudeSettings
+  createClaudeSettings,
 } from './core-factories.js';
 
 // Convenience factory functions - simplified hook creation
@@ -56,9 +56,8 @@ export {
   createConditionalHook,
   createMultiStepHook,
   createDebouncedHook,
-  type HookEventType
+  type HookEventType,
 } from './convenience-factories.js';
-
 
 // Utility factory functions - common development workflows
 export {
@@ -69,7 +68,7 @@ export {
   createBuildHook,
   createFileBackupHook,
   createDevServerRestartHook,
-  createDocumentationHook
+  createDocumentationHook,
 } from './utility-factories.js';
 
 // Advanced composition and chaining factories
@@ -79,7 +78,7 @@ export {
   createConditionalHook as createAdvancedConditionalHook,
   createParallelHook,
   createRetryHook,
-  combineSettings
+  combineSettings,
 } from './composition-factories.js';
 
 // Version management factories
@@ -92,7 +91,7 @@ export {
   validateDependencies,
   generateDeprecationWarning,
   createMigrationGuide,
-  incrementVersion
+  incrementVersion,
 } from './version-factories.js';
 
 // Debug and profiling factories
@@ -103,7 +102,7 @@ export {
   createBreakpointHook,
   createErrorDiagnosisHook,
   generateDebugReport,
-  createHookLogger
+  createHookLogger,
 } from './debug-factories.js';
 
 // Marketplace integration factories
@@ -116,7 +115,7 @@ export {
   type MarketplaceSearchResult,
   type MarketplaceHookInfo,
   type HookRating,
-  type PublishingInfo
+  type PublishingInfo,
 } from './marketplace-factories.js';
 
 // Import types for internal use
@@ -138,14 +137,14 @@ export interface FactoryOptions {
 /**
  * Creates a comprehensive development workflow hook that combines
  * linting, testing, and building
- * 
+ *
  * @param options - Configuration options
  * @returns Claude settings with full development workflow
- * 
+ *
  * @example
  * ```typescript
  * import { createDevWorkflowHook } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const devHook = createDevWorkflowHook({
  *   lintCommand: 'eslint .',
  *   testCommand: 'npm test',
@@ -165,60 +164,72 @@ export function createDevWorkflowHook(options: {
     testCommand = 'npm test',
     buildCommand = 'npm run build',
     matcher = 'Write|Edit',
-    autoFix = false
+    autoFix = false,
   } = options;
 
   const commands: string[] = [];
-  
+
   if (autoFix) {
     commands.push(`${lintCommand} --fix || ${lintCommand}`);
   } else {
     commands.push(lintCommand);
   }
-  
+
   commands.push(testCommand);
   commands.push(buildCommand);
 
   return {
     hooks: {
-      PostToolUse: [{
-        matcher,
-        hooks: commands.map(cmd => ({
-          type: 'command' as const,
-          command: cmd
-        }))
-      }]
-    }
+      PostToolUse: [
+        {
+          matcher,
+          hooks: commands.map(cmd => ({
+            type: 'command' as const,
+            command: cmd,
+          })),
+        },
+      ],
+    },
   };
 }
 
 /**
  * Quick start function that creates a basic hook setup for new projects
- * 
+ *
  * @param projectType - Type of project (react, node, etc.)
  * @returns Claude settings with sensible defaults for the project type
- * 
+ *
  * @example
  * ```typescript
  * import { quickStartHooks } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const hooks = quickStartHooks('react');
  * ```
  */
-export function quickStartHooks(projectType: 'react' | 'node' | 'typescript' | 'generic' = 'generic'): ClaudeSettings {
+export function quickStartHooks(
+  projectType: 'react' | 'node' | 'typescript' | 'generic' = 'generic'
+): ClaudeSettings {
   const commonHooks = {
-    SessionStart: [{
-      hooks: [{
-        type: 'command' as const,
-        command: 'echo "Claude session started in $(pwd)"'
-      }]
-    }],
-    SessionEnd: [{
-      hooks: [{
-        type: 'command' as const,
-        command: 'echo "Claude session ended"'
-      }]
-    }]
+    SessionStart: [
+      {
+        hooks: [
+          {
+            type: 'command' as const,
+            command: 'echo "Claude session started in $(pwd)"',
+          },
+        ],
+      },
+    ],
+    SessionEnd: [
+      {
+        hooks: [
+          {
+            type: 'command' as const,
+            command: 'echo "Claude session ended"',
+          },
+        ],
+      },
+    ],
   };
 
   switch (projectType) {
@@ -226,62 +237,70 @@ export function quickStartHooks(projectType: 'react' | 'node' | 'typescript' | '
       return {
         hooks: {
           ...commonHooks,
-          PostToolUse: [{
-            matcher: 'Write|Edit',
-            hooks: [{
-              type: 'command',
-              command: 'npm run lint && npm test && npm run build'
-            }]
-          }]
-        }
+          PostToolUse: [
+            {
+              matcher: 'Write|Edit',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'npm run lint && npm test && npm run build',
+                },
+              ],
+            },
+          ],
+        },
       };
-    
+
     case 'node':
       return {
         hooks: {
           ...commonHooks,
-          PostToolUse: [{
-            matcher: 'Write|Edit',
-            hooks: [{
-              type: 'command',
-              command: 'npm run lint && npm test'
-            }]
-          }]
-        }
+          PostToolUse: [
+            {
+              matcher: 'Write|Edit',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'npm run lint && npm test',
+                },
+              ],
+            },
+          ],
+        },
       };
-    
+
     case 'typescript':
       return {
         hooks: {
           ...commonHooks,
-          PostToolUse: [{
-            matcher: 'Write|Edit',
-            hooks: [{
-              type: 'command',
-              command: 'npm run type-check && npm run lint'
-            }]
-          }]
-        }
+          PostToolUse: [
+            {
+              matcher: 'Write|Edit',
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'npm run type-check && npm run lint',
+                },
+              ],
+            },
+          ],
+        },
       };
-    
+
     default:
       return {
-        hooks: commonHooks
+        hooks: commonHooks,
       };
   }
 }
 
 // Import for default export
-import {
-  createHookCommand,
-  createHookConfiguration,
-  createHookPlugin
-} from './core-factories.js';
+import { createHookCommand, createHookConfiguration, createHookPlugin } from './core-factories.js';
 
 import {
   createSimpleHook,
   createFileWatcherHook,
-  createConditionalHook
+  createConditionalHook,
 } from './convenience-factories.js';
 
 // Default export for convenience
@@ -293,7 +312,7 @@ const factories = {
   createFileWatcherHook,
   createConditionalHook,
   createDevWorkflowHook,
-  quickStartHooks
+  quickStartHooks,
 };
 
 export default factories;

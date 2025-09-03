@@ -28,7 +28,7 @@ describe('HookPlugin - Real-world Examples', () => {
           default: true,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         const hooks = [
           {
             type: 'command' as const,
@@ -92,13 +92,13 @@ describe('HookPlugin - Real-world Examples', () => {
           default: 300000,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         let command = args.testCommand || 'npm test';
-        
+
         if (args.coverage) {
           command += ' -- --coverage';
         }
-        
+
         if (args.watchMode) {
           command += ' --watch';
         }
@@ -158,7 +158,7 @@ describe('HookPlugin - Real-world Examples', () => {
           default: false,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         const hooks = [];
 
         if (args.autoStage !== false) {
@@ -233,13 +233,14 @@ describe('HookPlugin - Real-world Examples', () => {
           default: false,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         const hooks = [];
 
         if (args.notifyOnComplete !== false) {
           hooks.push({
             type: 'command' as const,
-            command: 'osascript -e "display notification \\"Task completed\\" with title \\"Claude Code\\""',
+            command:
+              'osascript -e "display notification \\"Task completed\\" with title \\"Claude Code\\""',
           });
         }
 
@@ -261,7 +262,8 @@ describe('HookPlugin - Real-world Examples', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'osascript -e "display notification \\"Session ended\\" with title \\"Claude Code\\""',
+                  command:
+                    'osascript -e "display notification \\"Session ended\\" with title \\"Claude Code\\""',
                 },
               ],
             },

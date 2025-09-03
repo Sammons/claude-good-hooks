@@ -16,7 +16,7 @@ import {
   type HookComposition,
   type HookChain,
   type VersionCompatibility,
-  type HookDebugConfig
+  type HookDebugConfig,
 } from '@sammons/claude-good-hooks-factories';
 import {
   isHookVersion,
@@ -26,30 +26,30 @@ import {
   isHookExecutionResult,
   type HookDependency,
   type HookExecutionContext,
-  type HookExecutionResult
+  type HookExecutionResult,
 } from '@sammons/claude-good-hooks-types';
 
 describe('Version Management', () => {
   describe('parseVersion', () => {
     it('should parse semantic version strings correctly', () => {
       const version = parseVersion('1.2.3-beta.1+build.123');
-      
+
       expect(version).toEqual({
         major: 1,
         minor: 2,
         patch: 3,
         prerelease: 'beta.1',
-        build: 'build.123'
+        build: 'build.123',
       });
     });
 
     it('should parse version without prerelease and build', () => {
       const version = parseVersion('2.0.0');
-      
+
       expect(version).toEqual({
         major: 2,
         minor: 0,
-        patch: 0
+        patch: 0,
       });
     });
 
@@ -65,9 +65,9 @@ describe('Version Management', () => {
         minor: 2,
         patch: 3,
         prerelease: 'alpha.1',
-        build: 'build.456'
+        build: 'build.456',
       };
-      
+
       expect(formatVersion(version)).toBe('1.2.3-alpha.1+build.456');
     });
 
@@ -75,9 +75,9 @@ describe('Version Management', () => {
       const version: HookVersion = {
         major: 2,
         minor: 1,
-        patch: 0
+        patch: 0,
       };
-      
+
       expect(formatVersion(version)).toBe('2.1.0');
     });
   });
@@ -101,7 +101,7 @@ describe('Version Management', () => {
       const compatibility: VersionCompatibility = {
         minimumVersion: '1.0.0',
         maximumVersion: '2.0.0',
-        excludedVersions: ['1.5.0']
+        excludedVersions: ['1.5.0'],
       };
 
       expect(checkCompatibility('1.2.0', compatibility)).toBe(true);
@@ -121,15 +121,15 @@ describe('Hook Composition', () => {
         hooks: [
           { hookName: 'linter', order: 1 },
           { hookName: 'tester', order: 2 },
-          { hookName: 'builder', order: 3 }
-        ]
+          { hookName: 'builder', order: 3 },
+        ],
       };
 
       const composedHook = createComposedHook(composition);
-      
+
       expect(composedHook.name).toBe('test-composition');
       expect(composedHook.description).toBe('Test composition');
-      
+
       const hooks = composedHook.makeHook({});
       expect(hooks).toHaveProperty('PostToolUse');
       expect(hooks.PostToolUse).toHaveLength(1);
@@ -143,13 +143,13 @@ describe('Hook Composition', () => {
         hooks: [
           { hookName: 'third', order: 3 },
           { hookName: 'first', order: 1 },
-          { hookName: 'second', order: 2 }
-        ]
+          { hookName: 'second', order: 2 },
+        ],
       };
 
       const composedHook = createComposedHook(composition);
       const hooks = composedHook.makeHook({});
-      
+
       const commands = hooks.PostToolUse![0].hooks;
       expect(commands[0].command).toContain('first');
       expect(commands[1].command).toContain('second');
@@ -163,13 +163,13 @@ describe('Hook Composition', () => {
         hooks: [
           { hookName: 'enabled', enabled: true },
           { hookName: 'disabled', enabled: false },
-          { hookName: 'default' }
-        ]
+          { hookName: 'default' },
+        ],
       };
 
       const composedHook = createComposedHook(composition);
       const hooks = composedHook.makeHook({});
-      
+
       expect(hooks.PostToolUse![0].hooks).toHaveLength(2);
       expect(hooks.PostToolUse![0].hooks.some(h => h.command.includes('disabled'))).toBe(false);
     });
@@ -183,14 +183,14 @@ describe('Hook Composition', () => {
         steps: [
           { hookName: 'step1', onError: 'stop' },
           { hookName: 'step2', onError: 'retry', retryCount: 2 },
-          { hookName: 'step3', onError: 'continue' }
-        ]
+          { hookName: 'step3', onError: 'continue' },
+        ],
       };
 
       const chainHook = createHookChain(chain);
-      
+
       expect(chainHook.name).toBe('test-chain');
-      
+
       const hooks = chainHook.makeHook({});
       expect(hooks.PostToolUse![0].hooks[0].command).toContain('#!/bin/bash');
     });
@@ -205,26 +205,28 @@ describe('Debug Features', () => {
         description: 'Test hook',
         version: '1.0.0',
         makeHook: () => ({
-          PostToolUse: [{
-            hooks: [{ type: 'command' as const, command: 'echo "test"' }]
-          }]
-        })
+          PostToolUse: [
+            {
+              hooks: [{ type: 'command' as const, command: 'echo "test"' }],
+            },
+          ],
+        }),
       };
 
       const debugConfig: HookDebugConfig = {
         enabled: true,
         tracing: true,
         profiling: true,
-        logLevel: 'debug'
+        logLevel: 'debug',
       };
 
       const debugHook = createDebugHook(originalHook, debugConfig);
-      
+
       expect(debugHook.debug).toEqual(debugConfig);
-      
+
       const hooks = debugHook.makeHook({});
       const command = hooks.PostToolUse![0].hooks[0].command;
-      
+
       expect(command).toContain('[TRACE]');
       expect(command).toContain('time');
     });
@@ -234,15 +236,15 @@ describe('Debug Features', () => {
         name: 'test-hook',
         description: 'Test hook',
         version: '1.0.0',
-        makeHook: () => ({})
+        makeHook: () => ({}),
       };
 
       const debugConfig: HookDebugConfig = {
-        enabled: false
+        enabled: false,
       };
 
       const debugHook = createDebugHook(originalHook, debugConfig);
-      
+
       expect(debugHook).toBe(originalHook);
     });
   });
@@ -253,11 +255,11 @@ describe('Marketplace Features', () => {
     it('should create marketplace client with search capabilities', async () => {
       const client = createMarketplaceClient({
         baseUrl: 'https://test-api.com',
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       });
 
       const results = await client.search({ query: 'test' });
-      
+
       expect(results).toHaveProperty('hooks');
       expect(results).toHaveProperty('total');
       expect(results).toHaveProperty('hasMore');
@@ -266,11 +268,11 @@ describe('Marketplace Features', () => {
 
     it('should filter search results by criteria', async () => {
       const client = createMarketplaceClient({});
-      
+
       const results = await client.search({
         query: 'eslint',
         verified: true,
-        category: 'Development Tools'
+        category: 'Development Tools',
       });
 
       // Mock implementation should return filtered results
@@ -285,9 +287,9 @@ describe('Type Guards', () => {
       const validVersion: HookVersion = {
         major: 1,
         minor: 0,
-        patch: 0
+        patch: 0,
       };
-      
+
       expect(isHookVersion(validVersion)).toBe(true);
       expect(isHookVersion({})).toBe(false);
       expect(isHookVersion({ major: 1 })).toBe(false);
@@ -299,9 +301,9 @@ describe('Type Guards', () => {
     it('should validate hook dependency objects', () => {
       const validDependency: HookDependency = {
         name: 'test-dep',
-        version: '>=1.0.0'
+        version: '>=1.0.0',
       };
-      
+
       expect(isHookDependency(validDependency)).toBe(true);
       expect(isHookDependency({})).toBe(false);
       expect(isHookDependency({ name: 'test' })).toBe(false);
@@ -313,11 +315,9 @@ describe('Type Guards', () => {
       const validComposition: HookComposition = {
         name: 'test',
         description: 'Test composition',
-        hooks: [
-          { hookName: 'test-hook' }
-        ]
+        hooks: [{ hookName: 'test-hook' }],
       };
-      
+
       expect(isHookComposition(validComposition)).toBe(true);
       expect(isHookComposition({})).toBe(false);
       expect(isHookComposition({ name: 'test', description: 'desc', hooks: [] })).toBe(true);
@@ -330,9 +330,9 @@ describe('Type Guards', () => {
         hookName: 'test-hook',
         eventType: 'PostToolUse',
         timestamp: new Date(),
-        executionId: 'test-id'
+        executionId: 'test-id',
       };
-      
+
       expect(isHookExecutionContext(validContext)).toBe(true);
       expect(isHookExecutionContext({})).toBe(false);
       expect(isHookExecutionContext({ hookName: 'test' })).toBe(false);
@@ -346,12 +346,12 @@ describe('Type Guards', () => {
           hookName: 'test-hook',
           eventType: 'PostToolUse',
           timestamp: new Date(),
-          executionId: 'test-id'
+          executionId: 'test-id',
         },
         success: true,
-        duration: 100
+        duration: 100,
       };
-      
+
       expect(isHookExecutionResult(validResult)).toBe(true);
       expect(isHookExecutionResult({})).toBe(false);
       expect(isHookExecutionResult({ context: {}, success: true, duration: 100 })).toBe(false);
@@ -366,15 +366,15 @@ describe('Integration Tests', () => {
       description: 'Composition with versioning',
       hooks: [
         { hookName: 'linter', args: { version: '1.2.3' } },
-        { hookName: 'tester', args: { version: '2.0.0' } }
-      ]
+        { hookName: 'tester', args: { version: '2.0.0' } },
+      ],
     };
 
     const composedHook = createComposedHook(composition);
-    
+
     expect(composedHook).toBeDefined();
     expect(composedHook.name).toBe('versioned-composition');
-    
+
     const hooks = composedHook.makeHook({ globalFlag: true });
     expect(hooks.PostToolUse![0].hooks).toHaveLength(2);
   });
@@ -383,12 +383,12 @@ describe('Integration Tests', () => {
     const debugConfig: HookDebugConfig = {
       enabled: true,
       tracing: true,
-      logLevel: 'info'
+      logLevel: 'info',
     };
 
     const client = createMarketplaceClient({});
     const results = await client.search({ query: 'debug' });
-    
+
     // Mock should return some results
     expect(results.hooks.length).toBeGreaterThanOrEqual(0);
   });

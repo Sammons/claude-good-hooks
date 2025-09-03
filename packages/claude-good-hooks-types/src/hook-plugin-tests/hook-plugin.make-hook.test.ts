@@ -11,7 +11,7 @@ describe('HookPlugin - makeHook Function', () => {
       name: 'empty-args-plugin',
       description: 'Plugin that works with empty args',
       version: '1.0.0',
-      makeHook: (args) => {
+      makeHook: args => {
         expect(typeof args).toBe('object');
         return {
           PreToolUse: [
@@ -50,7 +50,7 @@ describe('HookPlugin - makeHook Function', () => {
           default: true,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         if (!args.enabled) {
           return {};
         }
@@ -148,7 +148,7 @@ describe('HookPlugin - makeHook Function', () => {
     };
 
     const result = plugin.makeHook({});
-    
+
     expect(result.PreToolUse).toBeDefined();
     expect(result.PostToolUse).toBeDefined();
     expect(result.UserPromptSubmit).toBeDefined();
@@ -176,7 +176,7 @@ describe('HookPlugin - makeHook Function', () => {
       name: 'partial-plugin',
       description: 'Plugin that returns partial configurations',
       version: '1.0.0',
-      makeHook: (args) => {
+      makeHook: args => {
         const hooks: any = {};
 
         if (args.enablePreToolUse) {
@@ -236,10 +236,10 @@ describe('HookPlugin - makeHook Function', () => {
           default: false,
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         const tools = args.tools || 'Write|Edit';
         const commands = (args.commands || 'lint,test,format').split(',');
-        
+
         return {
           PostToolUse: [
             {

@@ -2,10 +2,10 @@ import { describe, it } from 'vitest';
 
 /**
  * Claude Settings Tests - Main test file (split into focused test files)
- * 
+ *
  * This file serves as the main entry point for Claude Settings tests.
  * Individual test scenarios have been split into focused files for better organization:
- * 
+ *
  * - claude-settings.basic-structure.test.ts - Basic settings structure validation
  * - claude-settings.hook-events.test.ts - Individual hook event type configurations
  * - claude-settings.complex-configurations.test.ts - Complex matcher patterns and multiple configurations

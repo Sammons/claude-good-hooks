@@ -22,7 +22,7 @@ describe('ClaudeSettings - Type Safety and Validation', () => {
     };
 
     const hooks = settings.hooks!;
-    
+
     expectTypeOf(hooks.PreToolUse).toEqualTypeOf<HookConfiguration[] | undefined>();
     expectTypeOf(hooks.PostToolUse).toEqualTypeOf<HookConfiguration[] | undefined>();
     expectTypeOf(hooks.UserPromptSubmit).toEqualTypeOf<HookConfiguration[] | undefined>();
@@ -67,7 +67,8 @@ describe('ClaudeSettings - Type Safety and Validation', () => {
             hooks: [
               {
                 type: 'command',
-                command: 'complex-command-with-args.sh --arg1 value1 --arg2 "value with spaces" --flag',
+                command:
+                  'complex-command-with-args.sh --arg1 value1 --arg2 "value with spaces" --flag',
                 timeout: 45000,
               },
             ],
@@ -80,7 +81,7 @@ describe('ClaudeSettings - Type Safety and Validation', () => {
     expectTypeOf(command.type).toEqualTypeOf<'command'>();
     expectTypeOf(command.command).toEqualTypeOf<string>();
     expectTypeOf(command.timeout).toEqualTypeOf<number | undefined>();
-    
+
     expect(command.command.length).toBeGreaterThan(50);
     expect(command.timeout).toBe(45000);
   });

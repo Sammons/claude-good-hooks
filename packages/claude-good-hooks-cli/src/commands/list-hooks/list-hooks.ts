@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { HookService } from '../../services/services.js';
+import { HookService } from '../../services/hook.service.js';
 
 interface ListHooksOptions {
   installed?: boolean;

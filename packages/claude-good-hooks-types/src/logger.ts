@@ -10,7 +10,7 @@ export enum LogLevel {
   WARN = 1,
   INFO = 2,
   DEBUG = 3,
-  TRACE = 4
+  TRACE = 4,
 }
 
 export interface LoggerOptions {
@@ -40,12 +40,12 @@ export interface Logger {
   trace(message: string, ...args: unknown[]): void;
   success(message: string, ...args: unknown[]): void;
   log(level: LogLevel, message: string, ...args: unknown[]): void;
-  
+
   // Structured logging
   withPrefix(prefix: string): Logger;
   withMetadata(metadata: Record<string, unknown>): Logger;
   child(options: Partial<LoggerOptions>): Logger;
-  
+
   // Utility methods
   setLevel(level: LogLevel): void;
   getLevel(): LogLevel;
@@ -63,11 +63,11 @@ export class StandardLogger implements Logger {
     this.options = {
       level: options.level ?? LogLevel.INFO,
       prefix: options.prefix ?? '',
-      enableColors: options.enableColors ?? !process.env.NO_COLOR && process.stdout.isTTY,
+      enableColors: options.enableColors ?? (!process.env.NO_COLOR && process.stdout.isTTY),
       enableTimestamps: options.enableTimestamps ?? false,
       enableMetadata: options.enableMetadata ?? false,
       outputFormat: options.outputFormat ?? 'text',
-      silent: options.silent ?? false
+      silent: options.silent ?? false,
     };
 
     // Disable chalk if colors are disabled
@@ -127,7 +127,7 @@ export class StandardLogger implements Logger {
   child(options: Partial<LoggerOptions>): Logger {
     const childOptions: LoggerOptions = {
       ...this.options,
-      ...options
+      ...options,
     };
     const child = new StandardLogger(childOptions);
     child.metadata = { ...this.metadata };
@@ -153,7 +153,7 @@ export class StandardLogger implements Logger {
       timestamp: new Date().toISOString(),
       prefix: this.options.prefix || undefined,
       metadata: Object.keys(this.metadata).length > 0 ? this.metadata : undefined,
-      args: args.length > 0 ? args : undefined
+      args: args.length > 0 ? args : undefined,
     };
   }
 
@@ -189,9 +189,7 @@ export class StandardLogger implements Logger {
 
     // Arguments
     if (entry.args && entry.args.length > 0) {
-      const formattedArgs = entry.args
-        .map(arg => this.formatArgument(arg))
-        .join(' ');
+      const formattedArgs = entry.args.map(arg => this.formatArgument(arg)).join(' ');
       parts.push(formattedArgs);
     }
 
@@ -218,24 +216,37 @@ export class StandardLogger implements Logger {
 
   private getLevelName(level: LogLevel): string {
     switch (level) {
-      case LogLevel.ERROR: return 'ERROR';
-      case LogLevel.WARN: return 'WARN';
-      case LogLevel.INFO: return 'INFO';
-      case LogLevel.DEBUG: return 'DEBUG';
-      case LogLevel.TRACE: return 'TRACE';
-      default: return 'INFO';
+      case LogLevel.ERROR:
+        return 'ERROR';
+      case LogLevel.WARN:
+        return 'WARN';
+      case LogLevel.INFO:
+        return 'INFO';
+      case LogLevel.DEBUG:
+        return 'DEBUG';
+      case LogLevel.TRACE:
+        return 'TRACE';
+      default:
+        return 'INFO';
     }
   }
 
   private colorizeLevel(levelName: string): string {
     switch (levelName) {
-      case 'ERROR': return chalk.red('ERROR');
-      case 'WARN': return chalk.yellow('WARN');
-      case 'INFO': return chalk.blue('INFO');
-      case 'DEBUG': return chalk.gray('DEBUG');
-      case 'TRACE': return chalk.gray('TRACE');
-      case 'success': return chalk.green('SUCCESS');
-      default: return levelName;
+      case 'ERROR':
+        return chalk.red('ERROR');
+      case 'WARN':
+        return chalk.yellow('WARN');
+      case 'INFO':
+        return chalk.blue('INFO');
+      case 'DEBUG':
+        return chalk.gray('DEBUG');
+      case 'TRACE':
+        return chalk.gray('TRACE');
+      case 'success':
+        return chalk.green('SUCCESS');
+      default:
+        return levelName;
     }
   }
 
@@ -273,7 +284,7 @@ export function getLogger(): Logger {
 export function createLogger(prefix: string, options: LoggerOptions = {}): Logger {
   return new StandardLogger({
     ...options,
-    prefix
+    prefix,
   });
 }
 
@@ -284,30 +295,43 @@ export const LogLevels = {
   fromString(level: string): LogLevel {
     const normalizedLevel = level.toUpperCase();
     switch (normalizedLevel) {
-      case 'ERROR': return LogLevel.ERROR;
-      case 'WARN': case 'WARNING': return LogLevel.WARN;
-      case 'INFO': return LogLevel.INFO;
-      case 'DEBUG': return LogLevel.DEBUG;
-      case 'TRACE': return LogLevel.TRACE;
-      default: return LogLevel.INFO;
+      case 'ERROR':
+        return LogLevel.ERROR;
+      case 'WARN':
+      case 'WARNING':
+        return LogLevel.WARN;
+      case 'INFO':
+        return LogLevel.INFO;
+      case 'DEBUG':
+        return LogLevel.DEBUG;
+      case 'TRACE':
+        return LogLevel.TRACE;
+      default:
+        return LogLevel.INFO;
     }
   },
 
   toString(level: LogLevel): string {
     switch (level) {
-      case LogLevel.ERROR: return 'ERROR';
-      case LogLevel.WARN: return 'WARN';
-      case LogLevel.INFO: return 'INFO';
-      case LogLevel.DEBUG: return 'DEBUG';
-      case LogLevel.TRACE: return 'TRACE';
-      default: return 'INFO';
+      case LogLevel.ERROR:
+        return 'ERROR';
+      case LogLevel.WARN:
+        return 'WARN';
+      case LogLevel.INFO:
+        return 'INFO';
+      case LogLevel.DEBUG:
+        return 'DEBUG';
+      case LogLevel.TRACE:
+        return 'TRACE';
+      default:
+        return 'INFO';
     }
   },
 
   fromEnvironment(): LogLevel {
     const envLevel = process.env.LOG_LEVEL || process.env.DEBUG ? 'DEBUG' : 'INFO';
     return LogLevels.fromString(envLevel);
-  }
+  },
 };
 
 /**
@@ -343,10 +367,10 @@ export class PerformanceLogger {
   time<T>(label: string, fn: () => Promise<T>): Promise<T>;
   time<T>(label: string, fn: () => T | Promise<T>): T | Promise<T> {
     this.startTimer(label);
-    
+
     try {
       const result = fn();
-      
+
       if (result instanceof Promise) {
         return result.finally(() => {
           this.endTimer(label);
@@ -384,19 +408,22 @@ export class LoggingContext {
   }
 
   static current(): Record<string, unknown> {
-    return this.contextStack.length > 0 
+    return this.contextStack.length > 0
       ? { ...this.contextStack[this.contextStack.length - 1] }
       : {};
   }
 
   static withContext<T>(context: Record<string, unknown>, fn: () => T): T;
   static withContext<T>(context: Record<string, unknown>, fn: () => Promise<T>): Promise<T>;
-  static withContext<T>(context: Record<string, unknown>, fn: () => T | Promise<T>): T | Promise<T> {
+  static withContext<T>(
+    context: Record<string, unknown>,
+    fn: () => T | Promise<T>
+  ): T | Promise<T> {
     this.push(context);
-    
+
     try {
       const result = fn();
-      
+
       if (result instanceof Promise) {
         return result.finally(() => {
           this.pop();
@@ -420,5 +447,5 @@ export const loggers = {
   hook: createLogger('HOOK'),
   config: createLogger('CONFIG'),
   network: createLogger('NET'),
-  filesystem: createLogger('FS')
+  filesystem: createLogger('FS'),
 };

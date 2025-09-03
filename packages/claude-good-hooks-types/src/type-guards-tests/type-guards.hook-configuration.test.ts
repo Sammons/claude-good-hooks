@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isHookConfiguration,
-  type HookConfiguration,
-} from '../index.js';
+import { isHookConfiguration, type HookConfiguration } from '../index.js';
 
 /**
  * Type Guards Tests - isHookConfiguration
@@ -12,9 +9,7 @@ describe('Type Guards - isHookConfiguration', () => {
   it('should validate correct HookConfiguration objects', () => {
     const validConfigurations: HookConfiguration[] = [
       {
-        hooks: [
-          { type: 'command', command: 'test' },
-        ],
+        hooks: [{ type: 'command', command: 'test' }],
       },
       {
         matcher: 'Write',
@@ -29,7 +24,7 @@ describe('Type Guards - isHookConfiguration', () => {
       },
     ];
 
-    validConfigurations.forEach((config) => {
+    validConfigurations.forEach(config => {
       expect(isHookConfiguration(config)).toBe(true);
     });
   });
@@ -48,32 +43,40 @@ describe('Type Guards - isHookConfiguration', () => {
       [],
     ];
 
-    invalidConfigurations.forEach((config) => {
+    invalidConfigurations.forEach(config => {
       expect(isHookConfiguration(config)).toBe(false);
     });
   });
 
   it('should handle edge cases', () => {
     // Empty hooks array should be valid
-    expect(isHookConfiguration({
-      hooks: [],
-    })).toBe(true);
+    expect(
+      isHookConfiguration({
+        hooks: [],
+      })
+    ).toBe(true);
 
     // Empty string matcher should be valid
-    expect(isHookConfiguration({
-      matcher: '',
-      hooks: [{ type: 'command', command: 'test' }],
-    })).toBe(true);
+    expect(
+      isHookConfiguration({
+        matcher: '',
+        hooks: [{ type: 'command', command: 'test' }],
+      })
+    ).toBe(true);
 
     // Missing matcher should be valid
-    expect(isHookConfiguration({
-      hooks: [{ type: 'command', command: 'test' }],
-    })).toBe(true);
+    expect(
+      isHookConfiguration({
+        hooks: [{ type: 'command', command: 'test' }],
+      })
+    ).toBe(true);
 
     // Complex regex matcher should be valid
-    expect(isHookConfiguration({
-      matcher: '^(Write|Edit)$|Notebook.*',
-      hooks: [{ type: 'command', command: 'test' }],
-    })).toBe(true);
+    expect(
+      isHookConfiguration({
+        matcher: '^(Write|Edit)$|Notebook.*',
+        hooks: [{ type: 'command', command: 'test' }],
+      })
+    ).toBe(true);
   });
 });

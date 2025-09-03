@@ -2,7 +2,15 @@
  * Atomic file operations for safe configuration management
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, renameSync, copyFileSync } from 'fs';
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+  renameSync,
+  copyFileSync,
+} from 'fs';
 import { join, dirname, basename } from 'path';
 import { randomBytes } from 'crypto';
 import type { VersionedClaudeSettings } from './schemas/index.js';
@@ -64,12 +72,12 @@ export function atomicReadFile(
 ): { success: boolean; content?: string; error?: Error } {
   try {
     if (!existsSync(filePath)) {
-      return { 
-        success: true, 
-        content: options.defaultValue || '{}' 
+      return {
+        success: true,
+        content: options.defaultValue || '{}',
       };
     }
-    
+
     const content = readFileSync(filePath, options.encoding || 'utf-8');
     return { success: true, content };
   } catch (error) {
@@ -89,7 +97,7 @@ export function atomicWriteFile(
     backup = true,
     validateBeforeWrite = true,
     createDirectories = true,
-    encoding = 'utf-8'
+    encoding = 'utf-8',
   } = options;
 
   let tempPath: string | undefined;
@@ -106,18 +114,20 @@ export function atomicWriteFile(
       try {
         const parsed = JSON.parse(content);
         const validation = validateSettingsComprehensive(parsed);
-        
+
         if (!validation.valid) {
           return {
             success: false,
             validationErrors: validation.errors,
-            error: new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`)
+            error: new Error(
+              `Validation failed: ${validation.errors.map(e => e.message).join(', ')}`
+            ),
           };
         }
       } catch (parseError) {
         return {
           success: false,
-          error: new Error(`Invalid JSON: ${(parseError as Error).message}`)
+          error: new Error(`Invalid JSON: ${(parseError as Error).message}`),
         };
       }
     }
@@ -146,7 +156,6 @@ export function atomicWriteFile(
       result.backupPath = backupPath;
     }
     return result;
-
   } catch (error) {
     // Clean up temporary file if it exists
     if (tempPath && existsSync(tempPath)) {
@@ -159,7 +168,7 @@ export function atomicWriteFile(
 
     const result: AtomicOperationResult = {
       success: false,
-      error: error as Error
+      error: error as Error,
     };
     if (backupPath) {
       result.backupPath = backupPath;
@@ -182,7 +191,7 @@ export function atomicWriteSettings(
   } catch (error) {
     return {
       success: false,
-      error: new Error(`Failed to serialize settings: ${(error as Error).message}`)
+      error: new Error(`Failed to serialize settings: ${(error as Error).message}`),
     };
   }
 }
@@ -201,7 +210,7 @@ export function atomicUpdateSettings(
     if (!readResult.success) {
       return {
         success: false,
-        error: new Error(`Failed to read settings: ${readResult.error?.message}`)
+        error: new Error(`Failed to read settings: ${readResult.error?.message}`),
       };
     }
 
@@ -212,7 +221,7 @@ export function atomicUpdateSettings(
     } catch (parseError) {
       return {
         success: false,
-        error: new Error(`Invalid JSON in settings file: ${(parseError as Error).message}`)
+        error: new Error(`Invalid JSON in settings file: ${(parseError as Error).message}`),
       };
     }
 
@@ -227,11 +236,10 @@ export function atomicUpdateSettings(
 
     // Write updated settings
     return atomicWriteSettings(filePath, updatedSettings, options);
-
   } catch (error) {
     return {
       success: false,
-      error: error as Error
+      error: error as Error,
     };
   }
 }
@@ -244,17 +252,16 @@ export function rollbackFromBackup(filePath: string, backupPath: string): Atomic
     if (!existsSync(backupPath)) {
       return {
         success: false,
-        error: new Error(`Backup file does not exist: ${backupPath}`)
+        error: new Error(`Backup file does not exist: ${backupPath}`),
       };
     }
 
     copyFileSync(backupPath, filePath);
     return { success: true };
-
   } catch (error) {
     return {
       success: false,
-      error: error as Error
+      error: error as Error,
     };
   }
 }
@@ -265,7 +272,7 @@ export function rollbackFromBackup(filePath: string, backupPath: string): Atomic
 export function cleanupBackups(filePath: string, keepCount: number = 5): void {
   const dir = dirname(filePath);
   const baseName = basename(filePath);
-  
+
   try {
     if (!existsSync(dir)) {
       return;
@@ -277,9 +284,9 @@ export function cleanupBackups(filePath: string, keepCount: number = 5): void {
       .map((file: string) => ({
         name: file,
         path: join(dir, file),
-        mtime: statSync(join(dir, file)).mtime
+        mtime: statSync(join(dir, file)).mtime,
       }))
-      .sort((a: {mtime: Date}, b: {mtime: Date}) => b.mtime.getTime() - a.mtime.getTime()); // Sort by newest first
+      .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime()); // Sort by newest first
 
     // Remove old backups beyond keepCount
     const filesToDelete = files.slice(keepCount);
@@ -315,16 +322,17 @@ export function verifyFileIntegrity(filePath: string): {
     if (!validation.valid) {
       return {
         valid: false,
-        error: new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`)
+        error: new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`),
       };
     }
 
-    const result: { valid: boolean; error?: Error; settings?: VersionedClaudeSettings } = { valid: true };
+    const result: { valid: boolean; error?: Error; settings?: VersionedClaudeSettings } = {
+      valid: true,
+    };
     if (validation.settings) {
       result.settings = validation.settings;
     }
     return result;
-
   } catch (error) {
     return { valid: false, error: error as Error };
   }

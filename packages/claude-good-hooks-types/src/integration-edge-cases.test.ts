@@ -30,7 +30,7 @@ describe('Type Integration Tests', () => {
           default: false,
         },
       },
-      makeHook: (args) => ({
+      makeHook: args => ({
         PostToolUse: [
           {
             matcher: 'Write|Edit',
@@ -48,7 +48,7 @@ describe('Type Integration Tests', () => {
 
     // Generate settings from plugin
     const hookConfig = plugin.makeHook({ format: 'eslint', autoFix: true });
-    
+
     const settings: ClaudeSettings = {
       hooks: hookConfig,
     };
@@ -141,7 +141,7 @@ describe('Type Constraint Tests', () => {
 
   it('should prevent invalid source types in metadata', () => {
     expect(() => {
-      // @ts-expect-error - should not allow invalid source types  
+      // @ts-expect-error - should not allow invalid source types
       const invalidMetadata: HookMetadata = {
         name: 'test',
         description: 'test',
@@ -257,7 +257,7 @@ describe('Edge Cases and Error Scenarios', () => {
           default: '{"level1": {"level2": {"level3": "value"}}}',
         },
       },
-      makeHook: (args) => {
+      makeHook: args => {
         const parsed = JSON.parse(args.nested || '{}');
         return {
           PreToolUse: [

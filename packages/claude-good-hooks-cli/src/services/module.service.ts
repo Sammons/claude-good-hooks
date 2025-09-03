@@ -38,8 +38,8 @@ export class ModuleService {
 
       const module = await import(modulePath);
       return module.HookPlugin || module.default || null;
-    } catch (error) {
-      console.error(`Failed to load hook plugin from ${moduleName}:`, error);
+    } catch (error: unknown) {
+      console.error(`Failed to load hook plugin from ${moduleName}:`, String(error));
       return null;
     }
   }

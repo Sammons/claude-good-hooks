@@ -1,19 +1,19 @@
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import { 
-  createSimpleHook, 
-  createMultiStepHook, 
+import {
+  createSimpleHook,
+  createMultiStepHook,
   createConditionalHook,
-  type HookEventType 
+  type HookEventType,
 } from './convenience-factories.js';
 
 /**
  * Creates a notification hook that displays messages to the user
- * 
+ *
  * @param message - Message to display
  * @param eventType - Hook event type (default: 'PostToolUse')
  * @param matcher - Optional matcher pattern
  * @returns Claude settings object with notification hook
- * 
+ *
  * @example
  * ```typescript
  * const notification = createNotificationHook(
@@ -28,22 +28,23 @@ export function createNotificationHook(
   eventType: HookEventType = 'PostToolUse',
   matcher?: string
 ): ClaudeSettings {
-  const notifyCommand = process.platform === 'darwin' 
-    ? `osascript -e 'display notification "${message}" with title "Claude Hook"'`
-    : process.platform === 'linux'
-    ? `notify-send "Claude Hook" "${message}"`
-    : `echo "${message}"`;
+  const notifyCommand =
+    process.platform === 'darwin'
+      ? `osascript -e 'display notification "${message}" with title "Claude Hook"'`
+      : process.platform === 'linux'
+        ? `notify-send "Claude Hook" "${message}"`
+        : `echo "${message}"`;
 
   return createSimpleHook(eventType, notifyCommand, matcher);
 }
 
 /**
  * Creates a git auto-commit hook that commits changes after file operations
- * 
+ *
  * @param commitMessage - Commit message template (default: "Auto-commit: {filename}")
  * @param matcher - Tool matcher pattern (default: 'Write|Edit')
  * @returns Claude settings object with git auto-commit hook
- * 
+ *
  * @example
  * ```typescript
  * const gitHook = createGitAutoCommitHook('Auto-save changes');
@@ -65,12 +66,12 @@ export function createGitAutoCommitHook(
 
 /**
  * Creates a linting hook that runs linter after code changes
- * 
+ *
  * @param lintCommand - Lint command to run (default: 'npm run lint')
  * @param fixCommand - Optional auto-fix command
  * @param matcher - Tool matcher pattern (default: file extensions for common languages)
  * @returns Claude settings object with linting hook
- * 
+ *
  * @example
  * ```typescript
  * const eslintHook = createLintingHook('eslint .', 'eslint . --fix');
@@ -83,7 +84,7 @@ export function createLintingHook(
   matcher: string = 'Write|Edit'
 ): ClaudeSettings {
   const commands = [lintCommand];
-  
+
   if (fixCommand) {
     // Run linter, and if it fails, try to auto-fix
     return createConditionalHook(
@@ -100,12 +101,12 @@ export function createLintingHook(
 
 /**
  * Creates a testing hook that runs tests after code changes
- * 
+ *
  * @param testCommand - Test command to run (default: 'npm test')
  * @param matcher - Tool matcher pattern (default: 'Write|Edit')
  * @param runOnlyOnTestFiles - Whether to only run when test files are modified
  * @returns Claude settings object with testing hook
- * 
+ *
  * @example
  * ```typescript
  * const testHook = createTestingHook('npm run test:unit');
@@ -133,12 +134,12 @@ export function createTestingHook(
 
 /**
  * Creates a build hook that builds the project after changes
- * 
+ *
  * @param buildCommand - Build command to run (default: 'npm run build')
  * @param matcher - Tool matcher pattern (default: 'Write|Edit')
  * @param skipOnTests - Whether to skip build when only test files are modified
  * @returns Claude settings object with build hook
- * 
+ *
  * @example
  * ```typescript
  * const buildHook = createBuildHook('pnpm build');
@@ -165,11 +166,11 @@ export function createBuildHook(
 
 /**
  * Creates a file backup hook that backs up files before modification
- * 
+ *
  * @param backupDir - Directory to store backups (default: '.claude-backups')
  * @param matcher - Tool matcher pattern (default: 'Write|Edit')
  * @returns Claude settings object with backup hook
- * 
+ *
  * @example
  * ```typescript
  * const backupHook = createFileBackupHook('./backups');
@@ -193,12 +194,12 @@ export function createFileBackupHook(
 
 /**
  * Creates a development server restart hook
- * 
+ *
  * @param restartCommand - Command to restart the dev server
  * @param pidFile - Path to PID file for the server (optional)
  * @param matcher - Tool matcher pattern (default: 'Write|Edit')
  * @returns Claude settings object with dev server restart hook
- * 
+ *
  * @example
  * ```typescript
  * const devHook = createDevServerRestartHook('npm run dev:restart');
@@ -227,11 +228,11 @@ export function createDevServerRestartHook(
 
 /**
  * Creates a documentation generation hook
- * 
+ *
  * @param docCommand - Command to generate docs (default: 'npm run docs')
  * @param matcher - Tool matcher pattern (default: matches code files)
  * @returns Claude settings object with documentation hook
- * 
+ *
  * @example
  * ```typescript
  * const docHook = createDocumentationHook('typedoc src');

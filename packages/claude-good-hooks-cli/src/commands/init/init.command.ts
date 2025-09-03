@@ -156,7 +156,7 @@ export class InitCommand {
 
       if (addTemplates) {
         const selectedTemplates = await this.selectTemplates();
-        settings = this.mergeHookSettings(settings, selectedTemplates);
+        settings = this.mergeHookSettings(settings, ...selectedTemplates);
       }
 
       // Show preview

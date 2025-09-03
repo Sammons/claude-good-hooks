@@ -1,7 +1,26 @@
-import { createReadStream, createWriteStream, type ReadStream, type WriteStream } from 'fs';
+import { createReadStream, createWriteStream, type ReadStream, type WriteStream, type FSWatcher } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Transform } from 'stream';
 import { FileSystemService } from './file-system.service.js';
+
+// Type guard for Error instances
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+
+// Convert unknown error to Error
+function toError(error: unknown): Error {
+  if (isError(error)) {
+    return error;
+  }
+  if (typeof error === 'string') {
+    return new Error(error);
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    return new Error(String(error.message));
+  }
+  return new Error(`Unknown error: ${String(error)}`);
+}
 
 export interface BatchOperation {
   type: 'read' | 'write' | 'delete' | 'copy' | 'move';
@@ -30,7 +49,7 @@ export interface StreamOptions {
 export class FileOperationsService {
   private writeTimeouts = new Map<string, NodeJS.Timeout>();
   private pendingWrites = new Map<string, { content: string; resolve: () => void; reject: (error: Error) => void }[]>();
-  private watchers = new Map<string, NodeJS.FSWatcher>();
+  private watchers = new Map<string, FSWatcher>();
   private fileSystem = new FileSystemService();
 
   constructor() {}
@@ -51,8 +70,8 @@ export class FileOperationsService {
         try {
           const result = await executor(operation);
           return { success: true, operation, result };
-        } catch (error) {
-          return { success: false, operation, error: error as Error };
+        } catch (error: unknown) {
+          return { success: false, operation, error: toError(error) };
         }
       });
       return Promise.all(promises);
@@ -237,10 +256,11 @@ export class FileOperationsService {
           for (const p of pending) {
             p.resolve();
           }
-        } catch (error) {
+        } catch (error: unknown) {
           // Reject all pending promises
+          const errorObj = toError(error);
           for (const p of pending) {
-            p.reject(error as Error);
+            p.reject(errorObj);
           }
         }
       }, delay);
@@ -281,7 +301,7 @@ export class FileOperationsService {
         const timeout = setTimeout(() => {
           debouncedCallbacks.delete(callbackKey);
           try {
-            callback(eventType, filename);
+            callback(eventType, typeof filename === 'string' ? filename : filename?.toString() || '');
           } catch (error) {
             console.error('Error in directory watch callback:', error);
           }
@@ -296,7 +316,7 @@ export class FileOperationsService {
     // Return cleanup function
     return () => {
       // Clear all debounce timeouts
-      for (const timeout of debouncedCallbacks.values()) {
+      for (const timeout of Array.from(debouncedCallbacks.values())) {
         clearTimeout(timeout);
       }
       debouncedCallbacks.clear();
@@ -314,13 +334,13 @@ export class FileOperationsService {
    */
   destroy(): void {
     // Clear all write timeouts
-    for (const timeout of this.writeTimeouts.values()) {
+    for (const timeout of Array.from(this.writeTimeouts.values())) {
       clearTimeout(timeout);
     }
     this.writeTimeouts.clear();
 
     // Reject all pending writes
-    for (const pending of this.pendingWrites.values()) {
+    for (const pending of Array.from(this.pendingWrites.values())) {
       for (const p of pending) {
         p.reject(new Error('FileOperationsService destroyed'));
       }
@@ -328,7 +348,7 @@ export class FileOperationsService {
     this.pendingWrites.clear();
 
     // Close all watchers
-    for (const watcher of this.watchers.values()) {
+    for (const watcher of Array.from(this.watchers.values())) {
       watcher.close();
     }
     this.watchers.clear();

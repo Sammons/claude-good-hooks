@@ -13,7 +13,9 @@
     "budget:check": "tsx check-bundle-budget.ts",
     "badge": "tsx generate-badge.ts",
     "preview": "vite preview",
-    "build:docs": "vite build --outDir ./dist --emptyOutDir --base /claude-good-hooks/"
+    "build:docs": "vite build --outDir ./dist --emptyOutDir --base /claude-good-hooks/",
+    "lint": "eslint analyze-bundle.ts",
+    "lint:fix": "eslint analyze-bundle.ts --fix"
   },
   "keywords": [
     "claude",

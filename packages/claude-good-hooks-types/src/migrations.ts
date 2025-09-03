@@ -3,16 +3,12 @@
  */
 
 import type { ClaudeSettings } from './index.js';
-import type { 
-  VersionedClaudeSettings, 
-  MigrationRecord, 
-  SettingsVersion 
-} from './schemas/index.js';
-import { 
-  parseVersion, 
-  compareVersions, 
+import type { VersionedClaudeSettings, MigrationRecord, SettingsVersion } from './schemas/index.js';
+import {
+  parseVersion,
+  compareVersions,
   formatVersion,
-  CURRENT_SCHEMA_VERSION 
+  CURRENT_SCHEMA_VERSION,
 } from './schemas/index.js';
 import { convertLegacySettings, validateSettingsComprehensive } from './validation.js';
 
@@ -48,19 +44,21 @@ export class MigrationRegistry {
    * Get all migrations in version order
    */
   getAllMigrations(): Migration[] {
-    return Array.from(this.migrations.values())
-      .sort((a, b) => compareVersions(a.version, b.version));
+    return Array.from(this.migrations.values()).sort((a, b) =>
+      compareVersions(a.version, b.version)
+    );
   }
 
   /**
    * Get migrations needed to upgrade from one version to another
    */
   getMigrationsForRange(fromVersion: string, toVersion: string): Migration[] {
-    return this.getAllMigrations()
-      .filter(migration => {
-        return compareVersions(migration.version, fromVersion) > 0 &&
-               compareVersions(migration.version, toVersion) <= 0;
-      });
+    return this.getAllMigrations().filter(migration => {
+      return (
+        compareVersions(migration.version, fromVersion) > 0 &&
+        compareVersions(migration.version, toVersion) <= 0
+      );
+    });
   }
 
   /**
@@ -91,10 +89,14 @@ migrationRegistry.register({
     return convertLegacySettings(settings, 'project');
   },
   validate: (settings: any): boolean => {
-    return settings && typeof settings === 'object' && 
-           typeof settings.version === 'string' &&
-           settings.meta && typeof settings.meta === 'object';
-  }
+    return (
+      settings &&
+      typeof settings === 'object' &&
+      typeof settings.version === 'string' &&
+      settings.meta &&
+      typeof settings.meta === 'object'
+    );
+  },
 });
 
 /**
@@ -128,7 +130,10 @@ export function detectSettingsVersion(settings: any): string {
 /**
  * Check if settings need migration
  */
-export function needsMigration(settings: any, targetVersion: string = CURRENT_SCHEMA_VERSION): boolean {
+export function needsMigration(
+  settings: any,
+  targetVersion: string = CURRENT_SCHEMA_VERSION
+): boolean {
   const currentVersion = detectSettingsVersion(settings);
   return compareVersions(currentVersion, targetVersion) < 0;
 }
@@ -137,7 +142,7 @@ export function needsMigration(settings: any, targetVersion: string = CURRENT_SC
  * Get the migration path from current version to target version
  */
 export function getMigrationPath(
-  fromVersion: string, 
+  fromVersion: string,
   toVersion: string = CURRENT_SCHEMA_VERSION
 ): Migration[] {
   return migrationRegistry.getMigrationsForRange(fromVersion, toVersion);
@@ -159,38 +164,37 @@ export function applyMigration(
     if (migration.validate && !migration.validate(migratedSettings)) {
       return {
         success: false,
-        error: `Migration validation failed for version ${migration.version}`
+        error: `Migration validation failed for version ${migration.version}`,
       };
     }
 
     // Add migration record to metadata
     const now = new Date().toISOString();
-    
+
     if (!migratedSettings.meta) {
       migratedSettings.meta = {};
     }
-    
+
     if (!migratedSettings.meta.migrations) {
       migratedSettings.meta.migrations = [];
     }
-    
+
     const migrationRecord: MigrationRecord = {
       version: migration.version,
       appliedAt: now,
       description: migration.description,
-      changes: [`Migrated to version ${migration.version}`]
+      changes: [`Migrated to version ${migration.version}`],
     };
-    
+
     migratedSettings.meta.migrations.push(migrationRecord);
     migratedSettings.meta.updatedAt = now;
     migratedSettings.meta.source = source;
 
     return { success: true, settings: migratedSettings };
-
   } catch (error) {
     return {
       success: false,
-      error: `Migration failed: ${(error as Error).message}`
+      error: `Migration failed: ${(error as Error).message}`,
     };
   }
 }
@@ -206,13 +210,13 @@ export function migrateSettings(
   const result: MigrationResult = {
     success: false,
     appliedMigrations: [],
-    errors: []
+    errors: [],
   };
 
   try {
     let currentSettings = settings;
     const currentVersion = detectSettingsVersion(settings);
-    
+
     // Check if migration is needed
     if (!needsMigration(currentSettings, targetVersion)) {
       // Validate current settings
@@ -221,34 +225,36 @@ export function migrateSettings(
         success: validation.valid,
         migratedSettings: validation.settings,
         appliedMigrations: [],
-        errors: validation.valid ? [] : validation.errors.map(e => e.message)
+        errors: validation.valid ? [] : validation.errors.map(e => e.message),
       };
     }
 
     // Get migration path
     const migrations = getMigrationPath(currentVersion, targetVersion);
-    
+
     if (migrations.length === 0) {
-      result.errors.push(`No migration path found from version ${currentVersion} to ${targetVersion}`);
+      result.errors.push(
+        `No migration path found from version ${currentVersion} to ${targetVersion}`
+      );
       return result;
     }
 
     // Apply each migration in sequence
     for (const migration of migrations) {
       const migrationResult = applyMigration(currentSettings, migration, source);
-      
+
       if (!migrationResult.success) {
         result.errors.push(migrationResult.error || 'Unknown migration error');
         return result;
       }
-      
+
       currentSettings = migrationResult.settings;
       result.appliedMigrations.push(migration.version);
     }
 
     // Final validation
     const finalValidation = validateSettingsComprehensive(currentSettings, source);
-    
+
     if (!finalValidation.valid) {
       result.errors.push(...finalValidation.errors.map(e => e.message));
       return result;
@@ -256,9 +262,8 @@ export function migrateSettings(
 
     result.success = true;
     result.migratedSettings = finalValidation.settings;
-    
-    return result;
 
+    return result;
   } catch (error) {
     result.errors.push(`Migration process failed: ${(error as Error).message}`);
     return result;
@@ -277,7 +282,7 @@ export function createMigrationRecord(
     version,
     appliedAt: new Date().toISOString(),
     description,
-    changes
+    changes,
   };
 }
 
@@ -291,10 +296,8 @@ export function isMigrationApplied(
   if (!settings.meta?.migrations) {
     return false;
   }
-  
-  return settings.meta.migrations.some(
-    migration => migration.version === migrationVersion
-  );
+
+  return settings.meta.migrations.some(migration => migration.version === migrationVersion);
 }
 
 /**
@@ -313,11 +316,11 @@ export function rollbackMigration(
 ): { success: boolean; settings?: VersionedClaudeSettings; error?: string } {
   try {
     const currentVersion = settings.version || CURRENT_SCHEMA_VERSION;
-    
+
     if (compareVersions(targetVersion, currentVersion) >= 0) {
       return {
         success: false,
-        error: 'Target version must be lower than current version for rollback'
+        error: 'Target version must be lower than current version for rollback',
       };
     }
 
@@ -325,8 +328,10 @@ export function rollbackMigration(
     const migrationsToRollback = migrationRegistry
       .getAllMigrations()
       .filter(migration => {
-        return compareVersions(migration.version, targetVersion) > 0 &&
-               compareVersions(migration.version, currentVersion) <= 0;
+        return (
+          compareVersions(migration.version, targetVersion) > 0 &&
+          compareVersions(migration.version, currentVersion) <= 0
+        );
       })
       .reverse(); // Apply rollbacks in reverse order
 
@@ -337,22 +342,23 @@ export function rollbackMigration(
       if (!migration.down) {
         return {
           success: false,
-          error: `No rollback available for migration ${migration.version}`
+          error: `No rollback available for migration ${migration.version}`,
         };
       }
 
       try {
         currentSettings = migration.down(currentSettings);
-        
+
         // Remove migration record
         if (currentSettings.meta?.migrations) {
-          currentSettings.meta.migrations = currentSettings.meta.migrations
-            .filter(record => record.version !== migration.version);
+          currentSettings.meta.migrations = currentSettings.meta.migrations.filter(
+            record => record.version !== migration.version
+          );
         }
       } catch (error) {
         return {
           success: false,
-          error: `Rollback failed for migration ${migration.version}: ${(error as Error).message}`
+          error: `Rollback failed for migration ${migration.version}: ${(error as Error).message}`,
         };
       }
     }
@@ -364,11 +370,10 @@ export function rollbackMigration(
     }
 
     return { success: true, settings: currentSettings };
-
   } catch (error) {
     return {
       success: false,
-      error: `Rollback process failed: ${(error as Error).message}`
+      error: `Rollback process failed: ${(error as Error).message}`,
     };
   }
 }
@@ -406,7 +411,9 @@ export function dryRunMigrations(
         }
       }
     } catch (error) {
-      errors.push(`Migration ${migration.version} validation check failed: ${(error as Error).message}`);
+      errors.push(
+        `Migration ${migration.version} validation check failed: ${(error as Error).message}`
+      );
       wouldSucceed = false;
     }
   }

@@ -1,6 +1,6 @@
 /**
  * Marketplace Integration Factories
- * 
+ *
  * Utilities for integrating with hook marketplaces,
  * including search, rating, verification, and publishing features.
  */
@@ -9,7 +9,7 @@ import type {
   HookPlugin,
   HookMetadata,
   HookMarketplaceInfo,
-  EnhancedHookPlugin
+  EnhancedHookPlugin,
 } from '@sammons/claude-good-hooks-types';
 
 /**
@@ -77,19 +77,19 @@ export interface PublishingInfo {
 
 /**
  * Creates a marketplace client for searching and managing hooks
- * 
+ *
  * @param options - Marketplace configuration
  * @returns Marketplace client
- * 
+ *
  * @example
  * ```typescript
  * import { createMarketplaceClient } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const marketplace = createMarketplaceClient({
  *   baseUrl: 'https://claude-hooks.dev/api',
  *   apiKey: 'your-api-key'
  * });
- * 
+ *
  * const results = await marketplace.search({ query: 'linting' });
  * ```
  */
@@ -121,7 +121,10 @@ export function createMarketplaceClient(options: {
     /**
      * Install a hook from the marketplace
      */
-    async install(hookId: string, version?: string): Promise<{
+    async install(
+      hookId: string,
+      version?: string
+    ): Promise<{
       success: boolean;
       hook?: EnhancedHookPlugin;
       error?: string;
@@ -180,26 +183,26 @@ export function createMarketplaceClient(options: {
     async getByCategory(category: string): Promise<MarketplaceHookInfo[]> {
       // Mock implementation
       return mockGetByCategory(category);
-    }
+    },
   };
 }
 
 /**
  * Creates a hook verification utility for marketplace submissions
- * 
+ *
  * @param options - Verification configuration
  * @returns Verification utility
- * 
+ *
  * @example
  * ```typescript
  * import { createHookVerifier } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const verifier = createHookVerifier({
  *   checkSecurity: true,
  *   validateMetadata: true,
  *   testExecution: true
  * });
- * 
+ *
  * const result = await verifier.verify(hookPlugin);
  * ```
  */
@@ -227,7 +230,7 @@ export function createHookVerifier(options: {
         category: string;
         message: string;
       }> = [];
-      
+
       let score = 100;
 
       // Metadata validation
@@ -236,7 +239,7 @@ export function createHookVerifier(options: {
           issues.push({
             severity: 'error',
             category: 'metadata',
-            message: 'Hook name must be at least 3 characters long'
+            message: 'Hook name must be at least 3 characters long',
           });
           score -= 20;
         }
@@ -245,7 +248,7 @@ export function createHookVerifier(options: {
           issues.push({
             severity: 'warning',
             category: 'metadata',
-            message: 'Hook description should be more descriptive'
+            message: 'Hook description should be more descriptive',
           });
           score -= 5;
         }
@@ -254,7 +257,7 @@ export function createHookVerifier(options: {
           issues.push({
             severity: 'error',
             category: 'metadata',
-            message: 'Hook version is required'
+            message: 'Hook version is required',
           });
           score -= 15;
         }
@@ -284,7 +287,7 @@ export function createHookVerifier(options: {
               issues.push({
                 severity: 'warning',
                 category: 'custom',
-                message: result.message || 'Custom validation failed'
+                message: result.message || 'Custom validation failed',
               });
               score -= 10;
             }
@@ -292,7 +295,7 @@ export function createHookVerifier(options: {
             issues.push({
               severity: 'error',
               category: 'custom',
-              message: `Custom check failed: ${error}`
+              message: `Custom check failed: ${error}`,
             });
             score -= 15;
           }
@@ -302,28 +305,28 @@ export function createHookVerifier(options: {
       return {
         valid: issues.filter(i => i.severity === 'error').length === 0,
         score: Math.max(0, score),
-        issues
+        issues,
       };
-    }
+    },
   };
 }
 
 /**
  * Creates a hook popularity tracker
- * 
+ *
  * @param options - Tracking configuration
  * @returns Popularity tracker
- * 
+ *
  * @example
  * ```typescript
  * import { createPopularityTracker } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const tracker = createPopularityTracker({
  *   trackDownloads: true,
  *   trackUsage: true,
  *   reportingInterval: 86400000 // 24 hours
  * });
- * 
+ *
  * tracker.trackDownload('my-hook', '1.0.0');
  * ```
  */
@@ -341,7 +344,7 @@ export function createPopularityTracker(options: {
      */
     trackDownload(hookName: string, version: string): void {
       if (!options.trackDownloads) return;
-      
+
       const key = `${hookName}@${version}`;
       downloadCounts.set(key, (downloadCounts.get(key) || 0) + 1);
     },
@@ -351,7 +354,7 @@ export function createPopularityTracker(options: {
      */
     trackUsage(hookName: string): void {
       if (!options.trackUsage) return;
-      
+
       usageCounts.set(hookName, (usageCounts.get(hookName) || 0) + 1);
     },
 
@@ -371,7 +374,7 @@ export function createPopularityTracker(options: {
       return {
         downloads: new Map(downloadCounts),
         usage: new Map(usageCounts),
-        popular
+        popular,
       };
     },
 
@@ -382,33 +385,33 @@ export function createPopularityTracker(options: {
       const metrics = this.getMetrics();
       let report = '📊 Hook Popularity Report\n';
       report += '='.repeat(30) + '\n\n';
-      
+
       report += '🔥 Most Popular Hooks:\n';
       metrics.popular.forEach((hook, index) => {
         const usage = metrics.usage.get(hook) || 0;
         report += `${index + 1}. ${hook} (${usage} uses)\n`;
       });
-      
+
       return report;
-    }
+    },
   };
 }
 
 /**
  * Creates a hook recommendation engine
- * 
+ *
  * @param options - Recommendation configuration
  * @returns Recommendation engine
- * 
+ *
  * @example
  * ```typescript
  * import { createRecommendationEngine } from '@sammons/claude-good-hooks-factories';
- * 
+ *
  * const recommender = createRecommendationEngine({
  *   algorithm: 'collaborative',
  *   maxRecommendations: 5
  * });
- * 
+ *
  * const recommendations = await recommender.recommend('user123');
  * ```
  */
@@ -439,16 +442,18 @@ export function createRecommendationEngine(options: {
     async getSimilar(hookId: string, limit?: number): Promise<MarketplaceHookInfo[]> {
       // Mock implementation
       return mockGetSimilar(hookId, limit);
-    }
+    },
   };
 }
 
 // Mock implementations for demonstration (would be replaced with real API calls)
 
-async function mockMarketplaceSearch(criteria: MarketplaceSearchCriteria): Promise<MarketplaceSearchResult> {
+async function mockMarketplaceSearch(
+  criteria: MarketplaceSearchCriteria
+): Promise<MarketplaceSearchResult> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 100));
-  
+
   const mockHooks: MarketplaceHookInfo[] = [
     {
       name: 'eslint-formatter',
@@ -465,8 +470,8 @@ async function mockMarketplaceSearch(criteria: MarketplaceSearchCriteria): Promi
         downloads: 15420,
         tags: ['linting', 'javascript', 'formatting'],
         category: 'Development Tools',
-        lastUpdated: new Date('2024-01-15')
-      }
+        lastUpdated: new Date('2024-01-15'),
+      },
     },
     {
       name: 'git-committer',
@@ -483,14 +488,18 @@ async function mockMarketplaceSearch(criteria: MarketplaceSearchCriteria): Promi
         downloads: 8930,
         tags: ['git', 'automation', 'commits'],
         category: 'Version Control',
-        lastUpdated: new Date('2024-02-01')
-      }
-    }
+        lastUpdated: new Date('2024-02-01'),
+      },
+    },
   ];
 
   return {
     hooks: mockHooks.filter(hook => {
-      if (criteria.query && !hook.name.includes(criteria.query) && !hook.description.includes(criteria.query)) {
+      if (
+        criteria.query &&
+        !hook.name.includes(criteria.query) &&
+        !hook.description.includes(criteria.query)
+      ) {
         return false;
       }
       if (criteria.category && hook.marketplace.category !== criteria.category) {
@@ -502,7 +511,7 @@ async function mockMarketplaceSearch(criteria: MarketplaceSearchCriteria): Promi
       return true;
     }),
     total: mockHooks.length,
-    hasMore: false
+    hasMore: false,
   };
 }
 
@@ -511,7 +520,10 @@ async function mockGetHook(hookId: string): Promise<MarketplaceHookInfo | null> 
   return null;
 }
 
-async function mockInstallHook(hookId: string, version?: string): Promise<{
+async function mockInstallHook(
+  hookId: string,
+  version?: string
+): Promise<{
   success: boolean;
   hook?: EnhancedHookPlugin;
   error?: string;
@@ -561,11 +573,13 @@ async function mockGetSimilar(hookId: string, limit?: number): Promise<Marketpla
 
 // Helper functions
 
-async function performSecurityChecks(plugin: HookPlugin): Promise<Array<{
-  severity: 'error' | 'warning' | 'info';
-  category: string;
-  message: string;
-}>> {
+async function performSecurityChecks(plugin: HookPlugin): Promise<
+  Array<{
+    severity: 'error' | 'warning' | 'info';
+    category: string;
+    message: string;
+  }>
+> {
   const issues: Array<{
     severity: 'error' | 'warning' | 'info';
     category: string;
@@ -573,13 +587,7 @@ async function performSecurityChecks(plugin: HookPlugin): Promise<Array<{
   }> = [];
 
   // Check for dangerous commands
-  const dangerousPatterns = [
-    /rm\s+-rf/,
-    /sudo/,
-    /curl.*sh/,
-    /wget.*sh/,
-    /eval/
-  ];
+  const dangerousPatterns = [/rm\s+-rf/, /sudo/, /curl.*sh/, /wget.*sh/, /eval/];
 
   try {
     const hooks = plugin.makeHook({});
@@ -592,7 +600,7 @@ async function performSecurityChecks(plugin: HookPlugin): Promise<Array<{
                 issues.push({
                   severity: 'warning',
                   category: 'security',
-                  message: `Potentially dangerous command detected: ${pattern.source}`
+                  message: `Potentially dangerous command detected: ${pattern.source}`,
                 });
               }
             }
@@ -604,18 +612,20 @@ async function performSecurityChecks(plugin: HookPlugin): Promise<Array<{
     issues.push({
       severity: 'error',
       category: 'security',
-      message: `Failed to analyze hook security: ${error}`
+      message: `Failed to analyze hook security: ${error}`,
     });
   }
 
   return issues;
 }
 
-async function performExecutionTests(plugin: HookPlugin): Promise<Array<{
-  severity: 'error' | 'warning' | 'info';
-  category: string;
-  message: string;
-}>> {
+async function performExecutionTests(plugin: HookPlugin): Promise<
+  Array<{
+    severity: 'error' | 'warning' | 'info';
+    category: string;
+    message: string;
+  }>
+> {
   const issues: Array<{
     severity: 'error' | 'warning' | 'info';
     category: string;
@@ -625,18 +635,18 @@ async function performExecutionTests(plugin: HookPlugin): Promise<Array<{
   try {
     // Test hook generation
     const hooks = plugin.makeHook({});
-    
+
     if (!hooks || typeof hooks !== 'object') {
       issues.push({
         severity: 'error',
         category: 'execution',
-        message: 'Hook makeHook function must return an object'
+        message: 'Hook makeHook function must return an object',
       });
     }
 
     // Test with different arguments
     const testArgs = [{}, { test: true }, { value: 'test' }];
-    
+
     for (const args of testArgs) {
       try {
         const result = plugin.makeHook(args);
@@ -644,14 +654,14 @@ async function performExecutionTests(plugin: HookPlugin): Promise<Array<{
           issues.push({
             severity: 'warning',
             category: 'execution',
-            message: `Hook returns null/undefined for args: ${JSON.stringify(args)}`
+            message: `Hook returns null/undefined for args: ${JSON.stringify(args)}`,
           });
         }
       } catch (error) {
         issues.push({
           severity: 'error',
           category: 'execution',
-          message: `Hook throws error for args ${JSON.stringify(args)}: ${error}`
+          message: `Hook throws error for args ${JSON.stringify(args)}: ${error}`,
         });
       }
     }
@@ -659,7 +669,7 @@ async function performExecutionTests(plugin: HookPlugin): Promise<Array<{
     issues.push({
       severity: 'error',
       category: 'execution',
-      message: `Failed to test hook execution: ${error}`
+      message: `Failed to test hook execution: ${error}`,
     });
   }
 

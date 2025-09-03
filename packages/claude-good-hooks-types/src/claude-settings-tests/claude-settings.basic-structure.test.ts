@@ -50,7 +50,7 @@ describe('ClaudeSettings - Basic Structure', () => {
     expect(hooks.PreCompact).toBeDefined();
 
     // Verify all are arrays
-    Object.values(hooks).forEach((hookArray) => {
+    Object.values(hooks).forEach(hookArray => {
       expect(Array.isArray(hookArray)).toBe(true);
     });
   });

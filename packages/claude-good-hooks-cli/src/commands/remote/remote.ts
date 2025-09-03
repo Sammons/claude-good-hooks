@@ -1,5 +1,6 @@
 import chalk from 'chalk';
-import { ModuleService, ProcessService } from '../../services/services.js';
+import { ModuleService } from '../../services/module.service.js';
+import { ProcessService } from '../../services/process.service.js';
 
 interface RemoteOptions {
   add?: string;

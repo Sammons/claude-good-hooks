@@ -178,9 +178,15 @@ describe('ClaudeSettings - Real-world Configuration Examples', () => {
       },
     };
 
-    expect(securitySettings.hooks!.UserPromptSubmit![0].hooks[0].command).toContain('scan-prompt-for-secrets');
-    expect(securitySettings.hooks!.PreToolUse![0].hooks[0].command).toContain('validate-command-safety');
-    expect(securitySettings.hooks!.PreToolUse![1].hooks[1].command).toContain('scan-for-sensitive-content');
+    expect(securitySettings.hooks!.UserPromptSubmit![0].hooks[0].command).toContain(
+      'scan-prompt-for-secrets'
+    );
+    expect(securitySettings.hooks!.PreToolUse![0].hooks[0].command).toContain(
+      'validate-command-safety'
+    );
+    expect(securitySettings.hooks!.PreToolUse![1].hooks[1].command).toContain(
+      'scan-for-sensitive-content'
+    );
     expect(securitySettings.hooks!.PostToolUse![0].matcher).toBe('*');
   });
 

@@ -29,8 +29,8 @@ export class SettingsService {
     try {
       const content = this.fileSystem.readFile(path, 'utf-8');
       return JSON.parse(content);
-    } catch (error) {
-      console.error(`Error reading ${scope} settings:`, error);
+    } catch (error: unknown) {
+      console.error(`Error reading ${scope} settings:`, String(error));
       return {};
     }
   }

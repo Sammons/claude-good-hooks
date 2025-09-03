@@ -15,7 +15,7 @@ describe('HookConfiguration - Command Variations', () => {
       ],
     };
 
-    simpleCommands.hooks.forEach((hook) => {
+    simpleCommands.hooks.forEach(hook => {
       expectTypeOf(hook.command).toEqualTypeOf<string>();
       expect(typeof hook.command).toBe('string');
     });
@@ -42,7 +42,7 @@ describe('HookConfiguration - Command Variations', () => {
     };
 
     expect(complexCommands.hooks).toHaveLength(3);
-    complexCommands.hooks.forEach((hook) => {
+    complexCommands.hooks.forEach(hook => {
       expect(hook.command.length).toBeGreaterThan(10);
     });
   });
@@ -66,7 +66,7 @@ describe('HookConfiguration - Command Variations', () => {
       ],
     };
 
-    scriptExecution.hooks.forEach((hook) => {
+    scriptExecution.hooks.forEach(hook => {
       expect(hook.command).toMatch(/\.(sh|py)$|validator$/);
     });
   });
@@ -89,7 +89,7 @@ describe('HookConfiguration - Command Variations', () => {
       ],
     };
 
-    envCommands.hooks.forEach((hook) => {
+    envCommands.hooks.forEach(hook => {
       expect(hook.command).toMatch(/[A-Z_]+=|export/);
     });
   });

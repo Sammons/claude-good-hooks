@@ -20,7 +20,7 @@ export interface ValidationError {
 }
 
 export interface ValidationWarning {
-  type: 'performance' | 'security' | 'compatibility' | 'best-practice';
+  type: 'performance' | 'security' | 'compatibility' | 'best-practice' | 'permission';
   message: string;
   location?: string;
   suggestion?: string;
@@ -411,7 +411,7 @@ export function validateCommandPaths(command: string, basePath: string = process
   }
 
   // Check if paths exist
-  for (const path of foundPaths) {
+  for (const path of Array.from(foundPaths)) {
     let fullPath = path;
     if (!isAbsolute(path)) {
       fullPath = join(basePath, path);

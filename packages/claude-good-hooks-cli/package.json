@@ -13,7 +13,9 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --shims --tsconfig tsconfig.build.json",
     "test": "vitest run",
-    "dev": "tsup src/index.ts --format esm --watch"
+    "dev": "tsup src/index.ts --format esm --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "keywords": [
     "claude",

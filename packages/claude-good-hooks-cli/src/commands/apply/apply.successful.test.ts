@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ApplyCommand } from '../apply.js';
-import { HookService, ProcessService } from '../../services/services.js';
+import { ApplyCommand } from './apply.js';
+import { HookService } from '../../services/hook.service.js';
+import { ProcessService } from '../../services/process.service.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
 // Mock services

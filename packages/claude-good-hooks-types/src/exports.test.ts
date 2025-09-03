@@ -238,11 +238,11 @@ describe('Module Exports', () => {
       const expectedExports = [
         // Types (these are type-only exports, so we check indirectly)
         'HookCommand',
-        'HookConfiguration', 
+        'HookConfiguration',
         'HookPlugin',
         'ClaudeSettings',
         'HookMetadata',
-        
+
         // Functions
         'isHookCommand',
         'isHookConfiguration',
@@ -252,7 +252,7 @@ describe('Module Exports', () => {
       ];
 
       const actualExports = Object.keys(TypesModule);
-      
+
       // Check that all expected function exports are present
       const expectedFunctionExports = expectedExports.filter(name => name.startsWith('is'));
       expectedFunctionExports.forEach(exportName => {
@@ -282,13 +282,8 @@ describe('Module Exports', () => {
 
     it('should allow destructuring imports', () => {
       // This tests that named exports work correctly
-      const {
-        isHookCommand,
-        isHookConfiguration,
-        isHookPlugin,
-        isClaudeSettings,
-        isHookMetadata,
-      } = TypesModule;
+      const { isHookCommand, isHookConfiguration, isHookPlugin, isClaudeSettings, isHookMetadata } =
+        TypesModule;
 
       expect(typeof isHookCommand).toBe('function');
       expect(typeof isHookConfiguration).toBe('function');
@@ -332,7 +327,7 @@ describe('Module Exports', () => {
             required: true,
           },
         },
-        makeHook: (args) => ({
+        makeHook: args => ({
           PostToolUse: [
             {
               matcher: 'Write',
@@ -384,16 +379,16 @@ describe('Module Exports', () => {
 
       const config = createHookConfiguration('Write', ['prettier', 'eslint']);
 
-      // Verify the structure is correct  
+      // Verify the structure is correct
       expect(config.matcher).toBe('Write');
       expect(config.hooks).toHaveLength(2);
       expect(config.hooks[0].command).toBe('prettier');
       expect(config.hooks[1].command).toBe('eslint');
-      
+
       // Test individual hook commands first
       expect(TypesModule.isHookCommand(config.hooks[0])).toBe(true);
       expect(TypesModule.isHookCommand(config.hooks[1])).toBe(true);
-      
+
       // Now test the full configuration
       expect(TypesModule.isHookConfiguration(config)).toBe(true);
     });
@@ -410,9 +405,9 @@ describe('Module Exports', () => {
       // This test verifies that both import patterns work:
       // import * as TypesModule from './index.js' (used in this file)
       // import { HookCommand, isHookCommand } from './index.js' (used in other tests)
-      
+
       expect(TypesModule).toBeDefined();
-      
+
       // These should be accessible through namespace import
       expect(TypesModule.isHookCommand).toBeDefined();
       expect(TypesModule.isHookConfiguration).toBeDefined();

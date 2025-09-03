@@ -4,27 +4,23 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import type { ClaudeSettings } from './index.js';
 import type { VersionedClaudeSettings } from './schemas/index.js';
-import { 
-  validateSettings, 
-  validateAndNormalizeSettings, 
+import {
+  validateSettings,
+  validateAndNormalizeSettings,
   validateSettingsComprehensive,
-  convertLegacySettings 
+  convertLegacySettings,
 } from './validation.js';
-import { 
-  atomicReadFile, 
-  atomicWriteSettings, 
-  atomicUpdateSettings, 
-  verifyFileIntegrity 
+import {
+  atomicReadFile,
+  atomicWriteSettings,
+  atomicUpdateSettings,
+  verifyFileIntegrity,
 } from './atomic-operations.js';
-import { 
-  migrateSettings, 
-  detectSettingsVersion, 
-  needsMigration 
-} from './migrations.js';
-import { 
-  createVersionedSettings, 
-  getVersionInfo, 
-  trackSettingsChange 
+import { migrateSettings, detectSettingsVersion, needsMigration } from './migrations.js';
+import {
+  createVersionedSettings,
+  getVersionInfo,
+  trackSettingsChange,
 } from './version-tracking.js';
 
 /**
@@ -37,7 +33,10 @@ describe('Configuration Validation and Management', () => {
 
   beforeEach(() => {
     tempDir = tmpdir();
-    testFilePath = join(tempDir, `test-settings-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`);
+    testFilePath = join(
+      tempDir,
+      `test-settings-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`
+    );
   });
 
   afterEach(() => {
@@ -73,17 +72,17 @@ describe('Configuration Validation and Management', () => {
                   type: 'command',
                   command: 'prettier --write .',
                   timeout: 30000,
-                  description: 'Format with Prettier'
-                }
-              ]
-            }
-          ]
+                  description: 'Format with Prettier',
+                },
+              ],
+            },
+          ],
         },
         meta: {
           createdAt: '2025-01-01T10:00:00Z',
           updatedAt: '2025-01-01T10:00:00Z',
-          source: 'project'
-        }
+          source: 'project',
+        },
       };
 
       const result = validateSettings(validSettings);
@@ -99,12 +98,12 @@ describe('Configuration Validation and Management', () => {
               hooks: [
                 {
                   type: 'invalid-type',
-                  command: 'echo test'
-                }
-              ]
-            }
-          ]
-        }
+                  command: 'echo test',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const result = validateSettings(invalidSettings);
@@ -120,18 +119,20 @@ describe('Configuration Validation and Management', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'echo test'
-                }
-              ]
-            }
-          ]
-        }
+                  command: 'echo test',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const result = validateAndNormalizeSettings(basicSettings, 'project');
       expect(result.valid).toBe(true);
       expect(result.settings).toBeDefined();
-      expect(result.settings!.$schema).toBe('https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json');
+      expect(result.settings!.$schema).toBe(
+        'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json'
+      );
       expect(result.settings!.version).toBe('1.0.0');
       expect(result.settings!.meta?.source).toBe('project');
       expect(result.settings!.meta?.createdAt).toBeDefined();
@@ -150,12 +151,12 @@ describe('Configuration Validation and Management', () => {
                 {
                   type: 'command',
                   command: 'rm -rf /',
-                  description: 'Dangerous command'
-                }
-              ]
-            }
-          ]
-        }
+                  description: 'Dangerous command',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const result = validateSettingsComprehensive(dangerousSettings);
@@ -173,12 +174,12 @@ describe('Configuration Validation and Management', () => {
                 {
                   type: 'command',
                   command: 'echo test',
-                  timeout: -1000 // Negative timeout
-                }
-              ]
-            }
-          ]
-        }
+                  timeout: -1000, // Negative timeout
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const result = validateSettingsComprehensive(invalidTimeoutSettings);
@@ -196,12 +197,12 @@ describe('Configuration Validation and Management', () => {
               hooks: [
                 {
                   type: 'command',
-                  command: 'echo test'
-                }
-              ]
-            }
-          ]
-        }
+                  command: 'echo test',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const result = validateSettingsComprehensive(invalidRegexSettings);
@@ -218,10 +219,10 @@ describe('Configuration Validation and Management', () => {
           hooks: [
             {
               type: 'command',
-              command: 'echo "test"'
-            }
-          ]
-        }
+              command: 'echo "test"',
+            },
+          ],
+        },
       ];
 
       // Write settings
@@ -238,18 +239,18 @@ describe('Configuration Validation and Management', () => {
 
     it('should create backups when writing', () => {
       const initialSettings = createVersionedSettings('project');
-      
+
       // Write initial settings
       atomicWriteSettings(testFilePath, initialSettings);
-      
+
       // Update settings (should create backup)
       const updatedSettings = { ...initialSettings };
       updatedSettings.hooks!.SessionStart = [
         {
-          hooks: [{ type: 'command', command: 'git status' }]
-        }
+          hooks: [{ type: 'command', command: 'git status' }],
+        },
       ];
-      
+
       const writeResult = atomicWriteSettings(testFilePath, updatedSettings, { backup: true });
       expect(writeResult.success).toBe(true);
       expect(writeResult.backupPath).toBeDefined();
@@ -259,14 +260,14 @@ describe('Configuration Validation and Management', () => {
     it('should validate before writing', () => {
       const invalidSettings = {
         hooks: {
-          InvalidEvent: 'not an array'
-        }
+          InvalidEvent: 'not an array',
+        },
       };
 
       const writeResult = atomicWriteSettings(testFilePath, invalidSettings as any, {
-        validateBeforeWrite: true
+        validateBeforeWrite: true,
       });
-      
+
       expect(writeResult.success).toBe(false);
       expect(writeResult.validationErrors).toBeDefined();
       expect(writeResult.validationErrors!.length).toBeGreaterThan(0);
@@ -277,13 +278,13 @@ describe('Configuration Validation and Management', () => {
       const initialSettings = createVersionedSettings('project');
       atomicWriteSettings(testFilePath, initialSettings);
 
-      const updateResult = atomicUpdateSettings(testFilePath, (settings) => {
+      const updateResult = atomicUpdateSettings(testFilePath, settings => {
         if (!settings.hooks) settings.hooks = {};
         settings.hooks.PreToolUse = [
           {
             matcher: 'Bash',
-            hooks: [{ type: 'command', command: 'validate-command.sh' }]
-          }
+            hooks: [{ type: 'command', command: 'validate-command.sh' }],
+          },
         ];
         return settings;
       });
@@ -307,7 +308,7 @@ describe('Configuration Validation and Management', () => {
 
       // Corrupt the file
       writeFileSync(testFilePath, 'invalid json{', 'utf-8');
-      
+
       const corruptIntegrityResult = verifyFileIntegrity(testFilePath);
       expect(corruptIntegrityResult.valid).toBe(false);
       expect(corruptIntegrityResult.error).toBeDefined();
@@ -321,17 +322,17 @@ describe('Configuration Validation and Management', () => {
           PostToolUse: [
             {
               matcher: 'Write',
-              hooks: [{ type: 'command', command: 'prettier --write .' }]
-            }
-          ]
-        }
+              hooks: [{ type: 'command', command: 'prettier --write .' }],
+            },
+          ],
+        },
       };
 
       expect(detectSettingsVersion(legacySettings)).toBe('0.0.0');
 
       const versionedSettings: VersionedClaudeSettings = {
         version: '1.0.0',
-        hooks: {}
+        hooks: {},
       };
 
       expect(detectSettingsVersion(versionedSettings)).toBe('1.0.0');
@@ -340,15 +341,15 @@ describe('Configuration Validation and Management', () => {
     it('should identify when migration is needed', () => {
       const legacySettings: ClaudeSettings = {
         hooks: {
-          PostToolUse: []
-        }
+          PostToolUse: [],
+        },
       };
 
       expect(needsMigration(legacySettings)).toBe(true);
 
       const currentSettings: VersionedClaudeSettings = {
         version: '1.0.0',
-        hooks: {}
+        hooks: {},
       };
 
       expect(needsMigration(currentSettings)).toBe(false);
@@ -364,37 +365,37 @@ describe('Configuration Validation and Management', () => {
                 {
                   type: 'command',
                   command: 'prettier --write .',
-                  timeout: 30000
-                }
-              ]
-            }
+                  timeout: 30000,
+                },
+              ],
+            },
           ],
           SessionStart: [
             {
               hooks: [
                 {
                   type: 'command',
-                  command: 'git status'
-                }
-              ]
-            }
-          ]
-        }
+                  command: 'git status',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       const migrationResult = migrateSettings(legacySettings, '1.0.0', 'project');
-      
+
       expect(migrationResult.success).toBe(true);
       expect(migrationResult.migratedSettings).toBeDefined();
       expect(migrationResult.appliedMigrations).toContain('1.0.0');
-      
+
       const migrated = migrationResult.migratedSettings!;
       expect(migrated.version).toBe('1.0.0');
       expect(migrated.$schema).toBeDefined();
       expect(migrated.meta?.source).toBe('project');
       expect(migrated.meta?.migrations).toBeDefined();
       expect(migrated.meta!.migrations!.length).toBeGreaterThan(0);
-      
+
       // Verify hooks were preserved
       expect(migrated.hooks?.PostToolUse).toHaveLength(1);
       expect(migrated.hooks?.SessionStart).toHaveLength(1);
@@ -406,14 +407,14 @@ describe('Configuration Validation and Management', () => {
           PreToolUse: [
             {
               matcher: 'Bash',
-              hooks: [{ type: 'command', command: 'validate.sh' }]
-            }
-          ]
-        }
+              hooks: [{ type: 'command', command: 'validate.sh' }],
+            },
+          ],
+        },
       };
 
       const converted = convertLegacySettings(legacySettings, 'global');
-      
+
       expect(converted.version).toBe('1.0.0');
       expect(converted.meta?.source).toBe('global');
       expect(converted.hooks?.PreToolUse).toHaveLength(1);
@@ -424,7 +425,7 @@ describe('Configuration Validation and Management', () => {
   describe('Version Tracking', () => {
     it('should create properly versioned settings', () => {
       const settings = createVersionedSettings('local');
-      
+
       expect(settings.version).toBe('1.0.0');
       expect(settings.$schema).toBeDefined();
       expect(settings.meta?.source).toBe('local');
@@ -437,7 +438,7 @@ describe('Configuration Validation and Management', () => {
     it('should get version information', () => {
       const legacySettings: ClaudeSettings = { hooks: {} };
       const versionInfo = getVersionInfo(legacySettings);
-      
+
       expect(versionInfo.current).toBe('0.0.0');
       expect(versionInfo.latest).toBe('1.0.0');
       expect(versionInfo.needsUpdate).toBe(true);
@@ -473,16 +474,16 @@ describe('Configuration Validation and Management', () => {
                 {
                   type: 'command',
                   command: 'prettier --write $CLAUDE_PROJECT_DIR',
-                  timeout: 30000
+                  timeout: 30000,
                 },
                 {
                   type: 'command',
-                  command: 'eslint --fix $CLAUDE_PROJECT_DIR'
-                }
-              ]
-            }
-          ]
-        }
+                  command: 'eslint --fix $CLAUDE_PROJECT_DIR',
+                },
+              ],
+            },
+          ],
+        },
       };
 
       writeFileSync(testFilePath, JSON.stringify(legacySettings, null, 2));
@@ -516,10 +517,10 @@ describe('Configuration Validation and Management', () => {
       expect(writeResult.success).toBe(true);
 
       // Try to update with invalid settings
-      const updateResult = atomicUpdateSettings(testFilePath, (settings) => {
+      const updateResult = atomicUpdateSettings(testFilePath, settings => {
         // Introduce invalid configuration
         (settings as any).hooks = {
-          InvalidEvent: 'not an array'
+          InvalidEvent: 'not an array',
         };
         return settings;
       });
@@ -535,7 +536,7 @@ describe('Configuration Validation and Management', () => {
 
     it('should maintain consistency across multiple operations', () => {
       let settings = createVersionedSettings('project');
-      
+
       // Write initial settings
       let result = atomicWriteSettings(testFilePath, settings);
       expect(result.success).toBe(true);
@@ -544,32 +545,34 @@ describe('Configuration Validation and Management', () => {
       const updates = [
         { event: 'PreToolUse' as const, matcher: 'Bash', command: 'validate.sh' },
         { event: 'PostToolUse' as const, matcher: 'Write', command: 'format.sh' },
-        { event: 'SessionStart' as const, matcher: undefined, command: 'init.sh' }
+        { event: 'SessionStart' as const, matcher: undefined, command: 'init.sh' },
       ];
 
       for (const update of updates) {
-        result = atomicUpdateSettings(testFilePath, (s) => {
+        result = atomicUpdateSettings(testFilePath, s => {
           if (!s.hooks) s.hooks = {};
           if (!s.hooks[update.event]) s.hooks[update.event] = [];
-          
+
           s.hooks[update.event]!.push({
             matcher: update.matcher,
-            hooks: [{
-              type: 'command',
-              command: update.command
-            }]
+            hooks: [
+              {
+                type: 'command',
+                command: update.command,
+              },
+            ],
           });
-          
+
           return trackSettingsChange(s, 'update', `Added ${update.event} hook`, [update.event]);
         });
-        
+
         expect(result.success).toBe(true);
       }
 
       // Verify final state
       const verifyResult = verifyFileIntegrity(testFilePath);
       expect(verifyResult.valid).toBe(true);
-      
+
       const final = verifyResult.settings!;
       expect(final.hooks?.PreToolUse).toHaveLength(1);
       expect(final.hooks?.PostToolUse).toHaveLength(1);

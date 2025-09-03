@@ -42,7 +42,7 @@ describe('HookConfiguration - Core Structure', () => {
 
     expectTypeOf(configWithoutMatcher.matcher).toEqualTypeOf<string | undefined>();
     expectTypeOf(configWithMatcher.matcher).toEqualTypeOf<string | undefined>();
-    
+
     expect(configWithoutMatcher.matcher).toBeUndefined();
     expect(configWithMatcher.matcher).toBe('specific-tool');
   });
