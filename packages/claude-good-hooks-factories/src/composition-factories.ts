@@ -42,7 +42,7 @@ export function createComposedHook(composition: HookComposition): HookPlugin {
     name: composition.name,
     description: composition.description,
     version: '1.0.0',
-    makeHook: (args: Record<string, any>) => {
+    makeHook: (args: Record<string, any>, _context: { settingsDirectoryPath: string }) => {
       const commands: HookCommand[] = [];
 
       for (const hook of sortedHooks) {
@@ -99,7 +99,7 @@ export function createHookChain(chain: HookChain): HookPlugin {
     name: chain.name,
     description: chain.description,
     version: '1.0.0',
-    makeHook: (args: Record<string, any>) => {
+    makeHook: (args: Record<string, any>, _context: { settingsDirectoryPath: string }) => {
       const shellScript = generateChainScript(chain, args);
 
       return {
@@ -151,7 +151,7 @@ export function createConditionalHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: (args: Record<string, any>) => {
+    makeHook: (args: Record<string, any>, _context: { settingsDirectoryPath: string }) => {
       const hookArgs = { ...options.args, ...args };
       const argString = Object.entries(hookArgs)
         .map(([key, value]) => `--${key}="${value}"`)
@@ -215,7 +215,7 @@ export function createParallelHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: (args: Record<string, any>) => {
+    makeHook: (args: Record<string, any>, _context: { settingsDirectoryPath: string }) => {
       const hookArgs = { ...options.args, ...args };
       const argString = Object.entries(hookArgs)
         .map(([key, value]) => `--${key}="${value}"`)
@@ -282,7 +282,7 @@ export function createRetryHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: (args: Record<string, any>) => {
+    makeHook: (args: Record<string, any>, _context: { settingsDirectoryPath: string }) => {
       const hookArgs = { ...options.args, ...args };
       const argString = Object.entries(hookArgs)
         .map(([key, value]) => `--${key}="${value}"`)

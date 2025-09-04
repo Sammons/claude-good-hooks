@@ -1,0 +1,140 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "exported": "2024-01-01T12:00:00Z",
+    "source": [
+      "project"
+    ],
+    "generator": "claude-good-hooks-smoke-tests",
+    "description": "Comprehensive test configuration for import/export functionality"
+  },
+  "settings": {
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "Write|Edit",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Pre-tool validation for Write/Edit operations\"",
+              "timeout": 30
+            }
+          ]
+        },
+        {
+          "matcher": "Bash",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Validating bash command before execution\""
+            }
+          ]
+        },
+        {
+          "matcher": ".*",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Universal pre-tool hook\"",
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "PostToolUse": [
+        {
+          "matcher": "Write",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"File written, running post-validation\""
+            }
+          ]
+        },
+        {
+          "matcher": "Edit|MultiEdit",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Files edited, checking formatting\"",
+              "timeout": 45
+            }
+          ]
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Processing user prompt, adding context\""
+            }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session started, initializing environment\"",
+              "timeout": 60
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude stopped, running cleanup tasks\""
+            }
+          ]
+        }
+      ],
+      "SubagentStop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Subagent task completed\"",
+              "timeout": 20
+            }
+          ]
+        }
+      ],
+      "SessionEnd": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session ended, final cleanup\""
+            }
+          ]
+        }
+      ],
+      "Notification": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude notification received\""
+            }
+          ]
+        }
+      ],
+      "PreCompact": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Before compacting conversation\"",
+              "timeout": 15
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

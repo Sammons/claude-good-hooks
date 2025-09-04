@@ -38,7 +38,7 @@ describe('ApplyCommand - argument parsing', () => {
         default: true,
       },
     },
-    makeHook: (args: Record<string, unknown>) => ({
+    makeHook: (args: Record<string, unknown>, _context: { settingsDirectoryPath: string }) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',
@@ -106,7 +106,7 @@ describe('ApplyCommand - argument parsing', () => {
           default: false,
         },
       },
-      makeHook: (args: Record<string, unknown>) => ({
+      makeHook: (args: Record<string, unknown>, _context: { settingsDirectoryPath: string }) => ({
         PreToolUse: [
           {
             hooks: [

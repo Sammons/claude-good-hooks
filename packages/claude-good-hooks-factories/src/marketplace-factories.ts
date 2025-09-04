@@ -591,7 +591,7 @@ async function performSecurityChecks(plugin: HookPlugin): Promise<
   const dangerousPatterns = [/rm\s+-rf/, /sudo/, /curl.*sh/, /wget.*sh/, /eval/];
 
   try {
-    const hooks = plugin.makeHook({});
+    const hooks = plugin.makeHook({}, { settingsDirectoryPath: '/tmp' });
     for (const [_eventType, configurations] of Object.entries(hooks)) {
       for (const config of configurations || []) {
         for (const hook of config.hooks || []) {
@@ -635,7 +635,7 @@ async function performExecutionTests(plugin: HookPlugin): Promise<
 
   try {
     // Test hook generation
-    const hooks = plugin.makeHook({});
+    const hooks = plugin.makeHook({}, { settingsDirectoryPath: '/tmp' });
 
     if (!hooks || typeof hooks !== 'object') {
       issues.push({
@@ -650,7 +650,7 @@ async function performExecutionTests(plugin: HookPlugin): Promise<
 
     for (const args of testArgs) {
       try {
-        const result = plugin.makeHook(args);
+        const result = plugin.makeHook(args, { settingsDirectoryPath: '/tmp' });
         if (!result) {
           issues.push({
             severity: 'warning',

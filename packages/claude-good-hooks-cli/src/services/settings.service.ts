@@ -61,10 +61,15 @@ export class SettingsService {
       settings.hooks[eventName] = [];
     }
 
-    // If hookConfig has a name, deduplicate by removing existing hooks with the same name
-    if (hookConfig.name) {
+    // If hookConfig has claudegoodhooks.name, deduplicate by removing existing hooks with the same name
+    // Also check for old format (top-level name) for backwards compatibility
+    const hookName = hookConfig.claudegoodhooks?.name || (hookConfig as any).name;
+    if (hookName) {
       settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        (existingConfig: HookConfiguration) => existingConfig.name !== hookConfig.name
+        (existingConfig: HookConfiguration) => {
+          const existingName = existingConfig.claudegoodhooks?.name || (existingConfig as any).name;
+          return existingName !== hookName;
+        }
       );
     }
 

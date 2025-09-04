@@ -45,8 +45,8 @@ export function createDebugHook(
   return {
     ...plugin,
     debug: debugConfig,
-    makeHook: (args: Record<string, any>) => {
-      const originalHooks = plugin.makeHook(args);
+    makeHook: (args: Record<string, any>, context: { settingsDirectoryPath: string }) => {
+      const originalHooks = plugin.makeHook(args, context);
       const debuggedHooks: any = {};
 
       // Wrap each hook configuration with debug instrumentation
@@ -91,7 +91,7 @@ export function createProfilingHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: () => ({
+    makeHook: (_args: Record<string, any>, _context: { settingsDirectoryPath: string }) => ({
       PreToolUse: [
         {
           hooks: [
@@ -208,7 +208,7 @@ export function createBreakpointHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: () => ({
+    makeHook: (_args: Record<string, any>, _context: { settingsDirectoryPath: string }) => ({
       PreToolUse: [
         {
           hooks: [
@@ -255,7 +255,7 @@ export function createErrorDiagnosisHook(options: {
     name: options.name,
     description: options.description,
     version: '1.0.0',
-    makeHook: () => ({
+    makeHook: (_args: Record<string, any>, _context: { settingsDirectoryPath: string }) => ({
       PostToolUse: [
         {
           hooks: [

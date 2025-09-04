@@ -61,7 +61,7 @@ describe('Module Exports', () => {
             required?: boolean;
           }
         >;
-        makeHook: (args: Record<string, any>) => any;
+        makeHook: (args: Record<string, any>, context: { settingsDirectoryPath: string }) => any;
       }>();
 
       const hookPlugin: TypesModule.HookPlugin = {

@@ -105,7 +105,7 @@ describe('HookPlugin Interface', () => {
       name: 'test-plugin',
       description: 'A test plugin',
       version: '1.0.0',
-      makeHook: (_args: Record<string, any>) => ({
+      makeHook: (_args: Record<string, any>, _context: { settingsDirectoryPath: string }) => ({
         PreToolUse: [
           {
             hooks: [

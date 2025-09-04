@@ -38,7 +38,7 @@ describe('ApplyCommand - successful hook application', () => {
         default: true,
       },
     },
-    makeHook: (args: Record<string, unknown>) => ({
+    makeHook: (args: Record<string, unknown>, _context: { settingsDirectoryPath: string }) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',

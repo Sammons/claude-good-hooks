@@ -10,8 +10,11 @@ export interface HookConfiguration {
   matcher?: string;
   hooks: HookCommand[];
   enabled?: boolean;
-  name?: string;
-  description?: string;
+  claudegoodhooks?: {
+    name: string;
+    description: string;
+    version: string;
+  };
 }
 
 export interface HookPlugin {
@@ -27,7 +30,7 @@ export interface HookPlugin {
       required?: boolean;
     }
   >;
-  makeHook: (args: Record<string, unknown>) => {
+  makeHook: (args: Record<string, unknown>, context: { settingsDirectoryPath: string }) => {
     PreToolUse?: HookConfiguration[];
     PostToolUse?: HookConfiguration[];
     UserPromptSubmit?: HookConfiguration[];
@@ -86,10 +89,15 @@ export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
     'hooks' in obj &&
     Array.isArray(obj.hooks) &&
     obj.hooks.every(isHookCommand) &&
-    (!('matcher' in obj) || typeof obj.matcher === 'string') &&
-    (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean') &&
-    (!('name' in obj) || typeof obj.name === 'string') &&
-    (!('description' in obj) || typeof obj.description === 'string')
+    (!('matcher' in obj) || typeof (obj as any).matcher === 'string') &&
+    (!('enabled' in obj) || (obj as any).enabled === undefined || typeof (obj as any).enabled === 'boolean') &&
+    (!('claudegoodhooks' in obj) || 
+      ((obj as any).claudegoodhooks && 
+       typeof (obj as any).claudegoodhooks === 'object' &&
+       (obj as any).claudegoodhooks !== null &&
+       'name' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.name === 'string' &&
+       'description' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.description === 'string' &&
+       'version' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.version === 'string'))
   );
 }
 

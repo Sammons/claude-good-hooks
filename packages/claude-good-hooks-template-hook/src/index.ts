@@ -61,7 +61,11 @@ const templateHook: HookPlugin = {
    * Generate hook configuration based on user-provided arguments.
    * Creates a simple, predictable hook structure for testing and usage.
    */
-  makeHook: (args: Record<string, unknown>): NonNullable<ClaudeSettings['hooks']> => {
+  makeHook: (args: Record<string, unknown>, context: { settingsDirectoryPath: string }): NonNullable<ClaudeSettings['hooks']> => {
+    // The context provides information about the settings environment
+    // context.settingsDirectoryPath - absolute path to the .claude directory where settings.json is located
+    // This can be used to access project-specific resources or create relative paths
+    
     // Validate and sanitize arguments with proper defaults
     const safeArgs = {
       verbose: Boolean(args.verbose ?? false),

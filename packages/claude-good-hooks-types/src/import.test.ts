@@ -29,7 +29,7 @@ describe('Package Import Tests', () => {
       description: string;
       version: string;
       customArgs?: Record<string, any>;
-      makeHook: (args: Record<string, any>) => any;
+      makeHook: (args: Record<string, any>, context: { settingsDirectoryPath: string }) => any;
     }>();
 
     expectTypeOf<Types.ClaudeSettings>().toEqualTypeOf<{

@@ -44,16 +44,20 @@ export class HookService {
     }
 
     const parsedArgs = this.parseHookArgs(args, plugin);
-    const hookConfiguration = plugin.makeHook(parsedArgs);
+    const settingsDirectoryPath = this.getSettingsDirectoryPath(scope);
+    const hookConfiguration = plugin.makeHook(parsedArgs, { settingsDirectoryPath });
 
     for (const [eventName, configs] of typedEntries(hookConfiguration)) {
       if (configs && Array.isArray(configs) && configs.length > 0) {
         for (const config of configs) {
-          // Add name and description to the hook configuration
+          // Add metadata to the claudegoodhooks property
           const enhancedConfig = {
             ...config,
-            name: `${hookName}/${plugin.name}`,
-            description: plugin.description
+            claudegoodhooks: {
+              name: `${hookName}/${plugin.name}`,
+              description: plugin.description,
+              version: plugin.version
+            }
           };
           
           // eventName is guaranteed to be a key of the hook configuration object
@@ -164,10 +168,19 @@ export class HookService {
       for (const [eventName, configs] of typedEntries(settings.hooks)) {
         if (configs && Array.isArray(configs)) {
           for (const config of configs) {
+            // Handle both new (claudegoodhooks) and old (top-level) formats for backwards compatibility
+            const name = config.claudegoodhooks?.name || 
+                        (config as any).name || 
+                        `${eventName}${config.matcher ? `:${config.matcher}` : ''}`;
+            const description = config.claudegoodhooks?.description || 
+                               (config as any).description || 
+                               `Configured ${eventName} hook`;
+            const version = config.claudegoodhooks?.version || 'n/a';
+            
             hooks.push({
-              name: config.name || `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,
-              description: config.description || `Configured ${eventName} hook`,
-              version: 'n/a',
+              name,
+              description,
+              version,
               source: isGlobal ? 'global' : 'local',
               installed: true,
               hookConfiguration: config,
@@ -214,5 +227,12 @@ export class HookService {
     }
 
     return hooks;
+  }
+
+  private getSettingsDirectoryPath(scope: SettingsScope): string {
+    const settingsPath = this.settingsService.getSettingsPath(scope);
+    // Get the directory containing the settings file (e.g., '/path/to/.claude')
+    const settingsDir = settingsPath.substring(0, settingsPath.lastIndexOf('/'));
+    return settingsDir;
   }
 }

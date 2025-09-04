@@ -89,9 +89,10 @@ export class ListHooksCommand {
   private formatHookConfiguration(config: HookConfiguration): string[] {
     const lines: string[] = [];
     
-    // Add description if it exists
-    if (config.description) {
-      lines.push(`  ${chalk.dim('Description:')} ${chalk.italic(config.description)}`);
+    // Add description if it exists - check both new and old formats for backwards compatibility
+    const description = config.claudegoodhooks?.description || (config as any).description;
+    if (description) {
+      lines.push(`  ${chalk.dim('Description:')} ${chalk.italic(description)}`);
     }
     
     if (config.matcher) {
@@ -112,8 +113,9 @@ export class ListHooksCommand {
       });
     }
     
-    // Add warning for hooks without a name field
-    if (!config.name) {
+    // Add warning for hooks without claudegoodhooks.name field (check old format too for backwards compatibility)
+    const hookName = config.claudegoodhooks?.name || (config as any).name;
+    if (!hookName) {
       lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('This hook is not managed, and cannot be modified through claude-good-hooks')}`);
     }
     
