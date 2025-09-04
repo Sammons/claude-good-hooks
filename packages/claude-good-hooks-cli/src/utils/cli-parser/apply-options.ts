@@ -31,6 +31,9 @@ export class ApplyOptions implements CommandOptionProcessor {
         } else if (arg === '--help') {
           options.help = true;
           i++;
+        } else if (arg === '--regenerate') {
+          options.regenerate = true;
+          i++;
         } else {
           // Pass through other options for hook-specific parsing
           remainingArgs.push(arg);

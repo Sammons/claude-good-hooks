@@ -14,13 +14,19 @@
         "claudegoodhooks": {
           "name": "@sammons/dirty-good-claude-hook/dirty",
           "description": "Shows git dirty status before user prompts",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "hookFactoryArguments": {
+            "staged": false,
+            "unstaged": false,
+            "filenames": false,
+            "diffs": false
+          }
         }
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Write", 
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
@@ -37,7 +43,7 @@
         "matcher": "Edit",
         "hooks": [
           {
-            "type": "command", 
+            "type": "command",
             "command": "echo 'outdated hook'"
           }
         ],

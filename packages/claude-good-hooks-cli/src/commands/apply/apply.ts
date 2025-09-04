@@ -3,20 +3,11 @@ import { HookService } from '../../services/hook.service.js';
 import { ProcessService } from '../../services/process.service.js';
 import type { SettingsScope } from '../../services/settings.service.js';
 import type { HelpInfo } from '../command-registry.js';
-
-interface ValidationResult {
-  valid: boolean;
-  errors?: string[];
-}
-
-interface ApplyOptions {
-  global?: boolean;
-  local?: boolean;
-  help?: boolean;
-  parent?: {
-    json?: boolean;
-  };
-}
+import type { ApplyOptions, ValidationResult } from './apply-types.js';
+import { showApplyHelp, getApplyHelpInfo } from './apply-command-help.js';
+import { showHookHelp } from './apply-hook-help.js';
+import { validateApplyCommand } from './apply-options.js';
+import { handleRegenerate } from './apply-regenerate.js';
 
 /**
  * Apply command - apply a hook to the configuration
@@ -47,77 +38,41 @@ export class ApplyCommand {
    * Validate command arguments
    */
   validate(args: string[], options: any): boolean | ValidationResult {
-    if (args.length === 0 && !options.help) {
-      return {
-        valid: false,
-        errors: ['Hook name is required']
-      };
-    }
-    return true;
+    return validateApplyCommand(args, options);
   }
 
   /**
    * Get help information for this command
    */
   getHelp(): HelpInfo {
-    return {
-      name: this.name,
-      description: this.description,
-      usage: 'claude-good-hooks apply [options] <hook-name> [args...]',
-      options: [
-        {
-          name: 'global',
-          description: 'Apply globally',
-          type: 'boolean'
-        },
-        {
-          name: 'project',
-          description: 'Apply to project (default)',
-          type: 'boolean'
-        },
-        {
-          name: 'local',
-          description: 'Apply locally (settings.local.json)',
-          type: 'boolean'
-        },
-        {
-          name: 'help',
-          description: 'Show hook-specific help',
-          type: 'boolean'
-        }
-      ],
-      arguments: [
-        {
-          name: 'hook-name',
-          description: 'Name of the hook to apply',
-          required: true
-        },
-        {
-          name: 'args',
-          description: 'Hook-specific arguments',
-          required: false,
-          variadic: true
-        }
-      ],
-      examples: [
-        'claude-good-hooks apply dirty',
-        'claude-good-hooks apply --global dirty',
-        'claude-good-hooks apply --help dirty',
-        'claude-good-hooks apply dirty --staged --filenames'
-      ]
-    };
+    return getApplyHelpInfo();
   }
 
   /**
    * Execute the apply command
    */
   async execute(args: string[], options: ApplyOptions): Promise<void> {
-    const { global, local, help } = options;
+    const { global, local, help, regenerate } = options;
     const isJson = options.parent?.json;
+
+    // Handle regenerate mode
+    if (regenerate) {
+      let scope: SettingsScope | undefined;
+      if (local) scope = 'local';
+      if (global) scope = 'global'; // Global takes precedence over local
+      
+      const hookName = args.length > 0 ? args[0] : undefined;
+      await handleRegenerate(this.hookService, this.processService, {
+        hookName,
+        scope,
+        isJson
+      });
+      return;
+    }
 
     if (args.length === 0) {
       if (help) {
-        this.showApplyHelp(isJson);
+        showApplyHelp(isJson);
         return;
       }
       if (isJson) {
@@ -147,7 +102,7 @@ export class ApplyCommand {
     if (global) scope = 'global'; // Global takes precedence over local
 
     if (help) {
-      await this.showHookHelp({
+      await showHookHelp(this.hookService, {
         hookName,
         global: scope === 'global',
         isJson: Boolean(isJson)
@@ -177,97 +132,4 @@ export class ApplyCommand {
     }
   }
 
-  private showApplyHelp(isJson?: boolean): void {
-    if (isJson) {
-      const helpData = this.getHelp();
-      console.log(JSON.stringify(helpData));
-      return;
-    }
-
-    console.log(chalk.bold('\nApply Command'));
-    console.log('Apply a hook to the configuration (globally, per-project, or locally)');
-    console.log('');
-    
-    console.log(chalk.bold('Usage:'));
-    console.log('  claude-good-hooks apply [options] <hook-name> [args...]');
-    console.log('');
-    
-    console.log(chalk.bold('Options:'));
-    console.log('  --global     Apply globally (~/.claude/settings.json)');
-    console.log('  --project    Apply to project (./.claude/settings.json) [default]');
-    console.log('  --local      Apply locally (./.claude/settings.local.json)');
-    console.log('  --help       Show help for the apply command or specific hook');
-    console.log('  --json       Output in JSON format');
-    console.log('');
-    
-    console.log(chalk.bold('Examples:'));
-    console.log('  claude-good-hooks apply dirty');
-    console.log('  claude-good-hooks apply --global dirty');
-    console.log('  claude-good-hooks apply --local dirty --staged');
-    console.log('  claude-good-hooks apply dirty --help');
-    console.log('');
-    
-    console.log(chalk.bold('Help:'));
-    console.log('  apply --help              Show this help message');
-    console.log('  apply <hook-name> --help  Show help for a specific hook');
-  }
-
-  private async showHookHelp(params: {
-    hookName: string;
-    global: boolean;
-    isJson: boolean;
-  }): Promise<void> {
-    const { hookName, global, isJson } = params;
-    const helpInfo = await this.hookService.getHookHelp(hookName, global);
-
-    if (!helpInfo) {
-      const message = `Hook '${hookName}' not found.`;
-      if (isJson) {
-        console.log(JSON.stringify({ success: false, error: message }));
-      } else {
-        console.error(message);
-      }
-      return;
-    }
-
-    if (isJson) {
-      console.log(JSON.stringify(helpInfo));
-      return;
-    }
-
-    console.log(chalk.bold(`\n${helpInfo.name} v${helpInfo.version}`));
-    console.log(helpInfo.description);
-    console.log('');
-    
-    const isValidArgDef = (argDef: unknown): argDef is {required?: boolean; default?: unknown; description: string;} => {
-      return typeof argDef === 'object' && argDef != null && 'description' in argDef
-    } 
-    
-    if (helpInfo.customArgs && Object.keys(helpInfo.customArgs).length > 0) {
-      console.log(chalk.bold('Options:'));
-      for (const [argName, argDef] of Object.entries(helpInfo.customArgs)) {
-        if (!isValidArgDef (argDef))  {
-          console.warn(`Skipping invalid argDef for argument ${argName}`)
-          continue;
-        }
-        const required = argDef.required ? ' (required)' : '';
-        const defaultVal = argDef.default !== undefined ? ` [default: ${argDef.default}]` : '';
-        console.log(`  --${argName}  ${argDef.description}${required}${defaultVal}`);
-      }
-      console.log('');
-    }
-
-    console.log(chalk.bold('Usage:'));
-    console.log(
-      `  claude-good-hooks apply --${helpInfo.name === 'dirty' ? 'project' : 'global'} ${hookName}`
-    );
-
-    if (helpInfo.customArgs && Object.keys(helpInfo.customArgs).length > 0) {
-      const exampleArgs = Object.keys(helpInfo.customArgs)
-        .slice(0, 2)
-        .map(arg => `--${arg}`)
-        .join(' ');
-      console.log(`  claude-good-hooks apply --project ${hookName} ${exampleArgs}`);
-    }
-  }
 }

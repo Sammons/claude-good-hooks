@@ -23,6 +23,23 @@ export interface HookHelpInfo {
   usage: string;
 }
 
+export interface RegenerateHookResult {
+  success: boolean;
+  hookName: string;
+  scope: SettingsScope;
+  eventName: string;
+  error?: string;
+  updated?: boolean;
+}
+
+export interface RegenerateAllHooksResult {
+  results: RegenerateHookResult[];
+  totalProcessed: number;
+  successCount: number;
+  skippedCount: number;
+  errorCount: number;
+}
+
 export class HookService {
   private moduleService = new ModuleService();
   private settingsService = new SettingsService();
@@ -228,6 +245,193 @@ export class HookService {
     }
 
     return hooks;
+  }
+
+  async regenerateHooks(
+    hookName?: string,
+    scope?: SettingsScope
+  ): Promise<RegenerateAllHooksResult> {
+    const results: RegenerateHookResult[] = [];
+    const scopesToProcess: SettingsScope[] = scope ? [scope] : ['global', 'project', 'local'];
+
+    for (const currentScope of scopesToProcess) {
+      const settings = this.settingsService.readSettings(currentScope);
+      if (!settings.hooks) continue;
+
+      for (const [eventName, configs] of typedEntries(settings.hooks)) {
+        if (!configs || !Array.isArray(configs)) continue;
+
+        for (const config of configs) {
+          const claudeGoodHooks = config.claudegoodhooks;
+          
+          // Skip if no claudegoodhooks metadata or missing required fields
+          if (!claudeGoodHooks || !claudeGoodHooks.name || !claudeGoodHooks.hookFactoryArguments) {
+            continue;
+          }
+
+          // If specific hook requested, check if this matches
+          if (hookName && claudeGoodHooks.name !== hookName) {
+            continue;
+          }
+
+          const result = await this.regenerateSingleHook(
+            claudeGoodHooks.name,
+            claudeGoodHooks.hookFactoryArguments,
+            currentScope,
+            eventName as keyof ClaudeSettings['hooks']
+          );
+
+          results.push(result);
+        }
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+    const skippedCount = results.filter(r => r.success && !r.updated).length;
+    const errorCount = results.filter(r => !r.success).length;
+
+    return {
+      results,
+      totalProcessed: results.length,
+      successCount,
+      skippedCount,
+      errorCount
+    };
+  }
+
+  private async regenerateSingleHook(
+    hookName: string,
+    savedArgs: Record<string, unknown>,
+    scope: SettingsScope,
+    eventName: keyof ClaudeSettings['hooks']
+  ): Promise<RegenerateHookResult> {
+    try {
+      // Extract module name from the hook name
+      const moduleName = this.moduleService.extractModuleNameFromHookName(hookName);
+      const isGlobal = scope === 'global';
+
+      // Check if the module is still installed
+      if (!this.moduleService.isModuleInstalled(moduleName, isGlobal)) {
+        return {
+          success: false,
+          hookName,
+          scope,
+          eventName,
+          error: `Module ${moduleName} is not installed ${isGlobal ? 'globally' : 'locally'}`
+        };
+      }
+
+      // Load the plugin
+      const plugin = await this.moduleService.loadHookPlugin(moduleName, isGlobal);
+      if (!plugin) {
+        return {
+          success: false,
+          hookName,
+          scope,
+          eventName,
+          error: `Failed to load plugin from module ${moduleName}`
+        };
+      }
+
+      // Parse the saved arguments using the current plugin definition
+      const parsedArgs = this.parseHookArgsFromSaved(savedArgs, plugin);
+      const settingsDirectoryPath = this.getSettingsDirectoryPath(scope);
+      
+      // Generate the new hook configuration
+      const hookConfiguration = plugin.makeHook(parsedArgs, { settingsDirectoryPath });
+
+      // Check if this event type exists in the new configuration
+      const newConfigs = hookConfiguration[eventName];
+      if (!newConfigs || !Array.isArray(newConfigs) || newConfigs.length === 0) {
+        return {
+          success: false,
+          hookName,
+          scope,
+          eventName,
+          error: `Hook ${hookName} no longer provides configuration for event ${eventName}`
+        };
+      }
+
+      // Add the updated hook configurations
+      for (const newConfig of newConfigs) {
+        const enhancedConfig = {
+          ...newConfig,
+          claudegoodhooks: {
+            name: hookName,
+            description: plugin.description,
+            version: plugin.version,
+            hookFactoryArguments: parsedArgs
+          }
+        };
+
+        this.settingsService.addHookToSettings(scope, eventName, enhancedConfig);
+      }
+
+      return {
+        success: true,
+        hookName,
+        scope,
+        eventName,
+        updated: true
+      };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        hookName,
+        scope,
+        eventName,
+        error: `Unexpected error: ${String(error)}`
+      };
+    }
+  }
+
+  private parseHookArgsFromSaved(
+    savedArgs: Record<string, unknown>,
+    plugin: HookPlugin
+  ): ParsedHookArgs {
+    const parsed: ParsedHookArgs = {};
+
+    if (!plugin.customArgs) {
+      return parsed;
+    }
+
+    // Start with saved arguments
+    for (const [argName, value] of Object.entries(savedArgs)) {
+      if (argName in plugin.customArgs) {
+        const argDef = plugin.customArgs[argName];
+        
+        // Validate and convert the saved value based on current plugin definition
+        if (argDef.type === 'boolean' && typeof value === 'boolean') {
+          parsed[argName] = value;
+        } else if (argDef.type === 'number' && typeof value === 'number') {
+          parsed[argName] = value;
+        } else if (argDef.type === 'string' && typeof value === 'string') {
+          parsed[argName] = value;
+        } else if (value !== null && value !== undefined) {
+          // Try to convert the value to the expected type
+          if (argDef.type === 'number') {
+            const numValue = Number(value);
+            if (!isNaN(numValue)) {
+              parsed[argName] = numValue;
+            }
+          } else if (argDef.type === 'boolean') {
+            parsed[argName] = Boolean(value);
+          } else {
+            parsed[argName] = String(value);
+          }
+        }
+      }
+    }
+
+    // Add default values for any missing arguments
+    for (const [argName, argDef] of Object.entries(plugin.customArgs)) {
+      if (!(argName in parsed) && argDef.default !== undefined) {
+        const defaultValue = argDef.default as HookArgValue;
+        parsed[argName] = defaultValue;
+      }
+    }
+
+    return parsed;
   }
 
   private getSettingsDirectoryPath(scope: SettingsScope): string {
