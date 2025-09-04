@@ -107,6 +107,11 @@ export class ListHooksCommand {
       });
     }
     
+    // Add warning for hooks without a name field
+    if (!config.name) {
+      lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('This hook is not managed, and cannot be modified through claude-good-hooks')}`);
+    }
+    
     return lines;
   }
 

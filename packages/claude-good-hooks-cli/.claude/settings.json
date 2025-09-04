@@ -1,7 +1,21 @@
 {
   "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
   "version": "1.0.0",
-  "hooks": {},
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git status --short",
+            "timeout": 10000
+          }
+        ],
+        "name": "@sammons/dirty-good-claude-hook/dirty",
+        "description": "Shows git dirty status before user prompts"
+      }
+    ]
+  },
   "meta": {
     "createdAt": "2025-09-04T02:50:19.693Z",
     "updatedAt": "2025-09-04T02:50:19.694Z",
