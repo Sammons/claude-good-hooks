@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
+import { ModuleService } from '../../services/module.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
 
@@ -26,9 +27,11 @@ export class ListHooksCommand {
   description = 'List available hooks';
 
   private hookService: HookService;
+  private moduleService: ModuleService;
 
-  constructor(hookService?: HookService) {
+  constructor(hookService?: HookService, moduleService?: ModuleService) {
     this.hookService = hookService || new HookService();
+    this.moduleService = moduleService || new ModuleService();
   }
 
   /**
@@ -86,7 +89,7 @@ export class ListHooksCommand {
   /**
    * Format hook configuration for display
    */
-  private formatHookConfiguration(config: HookConfiguration): string[] {
+  private formatHookConfiguration(config: HookConfiguration, scope: 'global' | 'project'): string[] {
     const lines: string[] = [];
     
     // Add description if it exists - check both new and old formats for backwards compatibility
@@ -113,9 +116,28 @@ export class ListHooksCommand {
       });
     }
     
-    // Add warning for hooks without claudegoodhooks.name field (check old format too for backwards compatibility)
+    // Check for module warnings if this is a managed hook
     const hookName = config.claudegoodhooks?.name || (config as any).name;
-    if (!hookName) {
+    if (hookName) {
+      const moduleName = this.moduleService.extractModuleNameFromHookName(hookName);
+      const isGlobal = scope === 'global';
+      
+      // Check if module is installed
+      const isModuleInstalled = this.moduleService.isModuleInstalled(moduleName, isGlobal);
+      
+      if (!isModuleInstalled) {
+        lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
+      } else {
+        // Check version mismatch
+        const hookVersion = config.claudegoodhooks?.version || (config as any).version;
+        const moduleVersion = this.moduleService.getModuleVersion(moduleName, isGlobal);
+        
+        if (hookVersion && moduleVersion && hookVersion !== moduleVersion) {
+          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Update available: Module version')} ${chalk.green(moduleVersion)} ${chalk.dim('is available (hook uses')} ${chalk.yellow(hookVersion)}${chalk.dim(')')}`);
+        }
+      }
+    } else {
+      // Add warning for hooks without claudegoodhooks.name field (check old format too for backwards compatibility)
       lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('This hook is not managed, and cannot be modified through claude-good-hooks')}`);
     }
     
@@ -190,7 +212,7 @@ export class ListHooksCommand {
         
         // Show hook configuration details if available
         if (hook.hookConfiguration) {
-          const configLines = this.formatHookConfiguration(hook.hookConfiguration);
+          const configLines = this.formatHookConfiguration(hook.hookConfiguration, scope);
           if (configLines.length > 0) {
             configLines.forEach(line => console.log(line));
           } else {

@@ -188,4 +188,44 @@ export class ModuleService {
       this.fileSystem.writeFile(configPath, JSON.stringify(config, null, 2));
     }
   }
+
+  /**
+   * Get the installed version of a module
+   */
+  getModuleVersion(moduleName: string, global: boolean = false): string | null {
+    try {
+      let packageJsonPath: string;
+
+      if (global) {
+        const packageManager = this.detectPackageManager();
+        const command = packageManager === 'pnpm' ? 'pnpm root -g' : 'npm root -g';
+        const globalPath = this.process.execSync(command).trim();
+        packageJsonPath = this.fileSystem.join(globalPath, moduleName, 'package.json');
+      } else {
+        packageJsonPath = this.fileSystem.join(this.fileSystem.cwd(), 'node_modules', moduleName, 'package.json');
+      }
+
+      if (!this.fileSystem.exists(packageJsonPath)) {
+        return null;
+      }
+
+      const packageJson = JSON.parse(this.fileSystem.readFile(packageJsonPath, 'utf-8'));
+      return packageJson.version || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Extract module name from claudegoodhooks.name
+   * Example: "@sammons/dirty-good-claude-hook/dirty" -> "@sammons/dirty-good-claude-hook"
+   */
+  extractModuleNameFromHookName(hookName: string): string {
+    const lastSlashIndex = hookName.lastIndexOf('/');
+    if (lastSlashIndex === -1) {
+      // No slash found, return the whole name
+      return hookName;
+    }
+    return hookName.substring(0, lastSlashIndex);
+  }
 }
