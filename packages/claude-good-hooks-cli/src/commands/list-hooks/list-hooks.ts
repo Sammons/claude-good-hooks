@@ -89,7 +89,7 @@ export class ListHooksCommand {
   /**
    * Format hook configuration for display
    */
-  private formatHookConfiguration(config: HookConfiguration, scope: 'global' | 'project'): string[] {
+  private async formatHookConfiguration(config: HookConfiguration, scope: 'global' | 'project'): Promise<string[]> {
     const lines: string[] = [];
     
     // Add description if it exists - check both new and old formats for backwards compatibility
@@ -128,6 +128,12 @@ export class ListHooksCommand {
       if (!isModuleInstalled) {
         lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
       } else {
+        // Check if plugin is exported from the module
+        const isPluginExported = await this.moduleService.isPluginExported(moduleName, isGlobal);
+        if (!isPluginExported) {
+          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Plugin not found in module: The hook may have been removed or renamed')}`);
+        }
+        
         // Check version mismatch
         const hookVersion = config.claudegoodhooks?.version || (config as any).version;
         const moduleVersion = this.moduleService.getModuleVersion(moduleName, isGlobal);
@@ -135,6 +141,12 @@ export class ListHooksCommand {
         if (hookVersion && moduleVersion && hookVersion !== moduleVersion) {
           lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Update available: Module version')} ${chalk.green(moduleVersion)} ${chalk.dim('is available (hook uses')} ${chalk.yellow(hookVersion)}${chalk.dim(')')}`);
         }
+      }
+      
+      // Check for missing hookFactoryArguments
+      const hookFactoryArguments = config.claudegoodhooks?.hookFactoryArguments;
+      if (!hookFactoryArguments) {
+        lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Cannot regenerate: Missing hookFactoryArguments (applied with older version)')}`);
       }
     } else {
       // Add warning for hooks without claudegoodhooks.name field (check old format too for backwards compatibility)
@@ -212,7 +224,7 @@ export class ListHooksCommand {
         
         // Show hook configuration details if available
         if (hook.hookConfiguration) {
-          const configLines = this.formatHookConfiguration(hook.hookConfiguration, scope);
+          const configLines = await this.formatHookConfiguration(hook.hookConfiguration, scope);
           if (configLines.length > 0) {
             configLines.forEach(line => console.log(line));
           } else {

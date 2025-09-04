@@ -228,4 +228,28 @@ export class ModuleService {
     }
     return hookName.substring(0, lastSlashIndex);
   }
+
+  /**
+   * Check if a plugin is exported from a module
+   * Returns true if the module has a HookPlugin export, false otherwise
+   */
+  async isPluginExported(moduleName: string, global: boolean = false): Promise<boolean> {
+    try {
+      let modulePath: string;
+
+      if (global) {
+        const packageManager = this.detectPackageManager();
+        const command = packageManager === 'pnpm' ? 'pnpm root -g' : 'npm root -g';
+        const globalPath = this.process.execSync(command).trim();
+        modulePath = this.fileSystem.join(globalPath, moduleName);
+      } else {
+        modulePath = moduleName;
+      }
+
+      const module = await import(modulePath);
+      return !!(module.HookPlugin || module.default);
+    } catch {
+      return false;
+    }
+  }
 }
