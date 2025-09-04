@@ -144,6 +144,37 @@ describe('listHooks - Installed Hooks', () => {
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Configured PostToolUse hook'));
     });
 
+    it('should display hook descriptions when they exist', async () => {
+      const settingsWithDescriptions: ClaudeSettings = {
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: 'Write|Edit',
+              description: 'Shows git dirty status before user prompts',
+              hooks: [{ type: 'command', command: 'git status --short' }],
+            },
+          ],
+          PostToolUse: [
+            {
+              description: 'Validates code formatting after edits',
+              hooks: [{ type: 'command', command: 'npm run format' }],
+            },
+          ],
+        },
+      };
+
+      mockGetInstalledHookModules.mockReturnValue([]);
+      mockReadSettings.mockReturnValue(settingsWithDescriptions);
+
+      const command = new ListHooksCommand();
+      await command.execute([], { installed: true, parent: {} });
+
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Description: Shows git dirty status before user prompts'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Description: Validates code formatting after edits'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Matcher: Write|Edit'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Type: command'));
+    });
+
     it('should handle hooks without matchers in settings', async () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue({

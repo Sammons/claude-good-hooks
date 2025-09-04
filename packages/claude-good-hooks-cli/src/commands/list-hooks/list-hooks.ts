@@ -89,6 +89,11 @@ export class ListHooksCommand {
   private formatHookConfiguration(config: HookConfiguration): string[] {
     const lines: string[] = [];
     
+    // Add description if it exists
+    if (config.description) {
+      lines.push(`  ${chalk.dim('Description:')} ${chalk.italic(config.description)}`);
+    }
+    
     if (config.matcher) {
       lines.push(`  ${chalk.dim('Matcher:')} ${chalk.cyan(config.matcher)}`);
     }
