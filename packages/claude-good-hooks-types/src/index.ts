@@ -10,6 +10,8 @@ export interface HookConfiguration {
   matcher?: string;
   hooks: HookCommand[];
   enabled?: boolean;
+  name?: string;
+  description?: string;
 }
 
 export interface HookPlugin {
@@ -85,7 +87,9 @@ export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
     Array.isArray(obj.hooks) &&
     obj.hooks.every(isHookCommand) &&
     (!('matcher' in obj) || typeof obj.matcher === 'string') &&
-    (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean')
+    (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean') &&
+    (!('name' in obj) || typeof obj.name === 'string') &&
+    (!('description' in obj) || typeof obj.description === 'string')
   );
 }
 

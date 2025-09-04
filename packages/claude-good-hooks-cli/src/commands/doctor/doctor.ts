@@ -5,15 +5,26 @@ import { join } from 'path';
 import { homedir } from 'os';
 import type { HelpInfo } from '../command-registry.js';
 
+interface ValidationResult {
+  valid: boolean;
+  errors?: string[];
+}
+
 interface DoctorOptions {
+  help?: boolean;
   parent?: {
     json?: boolean;
   };
 }
 
+/**
+ * Doctor command - run system health checks
+ */
 export class DoctorCommand {
   name = 'doctor';
-  description = 'Run system diagnostics and check configuration';
+  description = 'Run system health checks and diagnostics';
+
+  constructor() {}
 
   /**
    * Check if this command handles the given input
@@ -23,23 +34,30 @@ export class DoctorCommand {
   }
 
   /**
+   * Validate command arguments
+   */
+  validate(_args: string[], _options: any): boolean | ValidationResult {
+    // Doctor command doesn't require any arguments
+    return true;
+  }
+
+  /**
    * Get help information for this command
    */
   getHelp(): HelpInfo {
     return {
       name: this.name,
       description: this.description,
-      usage: 'claude-good-hooks doctor [options]',
+      usage: 'claude-good-hooks doctor',
       options: [
         {
-          name: 'json',
-          description: 'Output in JSON format',
+          name: 'help',
+          description: 'Show help for this command',
           type: 'boolean'
         }
       ],
       examples: [
-        'claude-good-hooks doctor',
-        'claude-good-hooks doctor --json'
+        'claude-good-hooks doctor'
       ]
     };
   }
@@ -48,6 +66,28 @@ export class DoctorCommand {
    * Execute the doctor command
    */
   async execute(_args: string[], options: DoctorOptions): Promise<void> {
+    if (options.help) {
+      const help = this.getHelp();
+      console.log(`${help.name} - ${help.description}\n`);
+      console.log('USAGE');
+      console.log(`  claude-good-hooks ${help.name}\n`);
+      if (help.options && help.options.length > 0) {
+        console.log('OPTIONS');
+        help.options.forEach(option => {
+          const shortFlag = option.short ? `-${option.short}, ` : '';
+          console.log(`  ${shortFlag}--${option.name}${' '.repeat(Math.max(1, 20 - option.name.length))}${option.description}`);
+        });
+        console.log('');
+      }
+      if (help.examples && help.examples.length > 0) {
+        console.log('EXAMPLES');
+        help.examples.forEach(example => {
+          console.log(`  ${example}`);
+        });
+      }
+      return;
+    }
+
     const isJson = options.parent?.json;
     const checks: Array<{ name: string; status: boolean; message?: string }> = [];
 

@@ -1,9 +1,9 @@
 import { parseArgs } from 'node:util';
 import { CommandOptionProcessor, CommandOptionResult } from './types.js';
 
-export class ListHooksOptions implements CommandOptionProcessor {
+export class UpdateOptions implements CommandOptionProcessor {
   match(command: string): boolean {
-    return command === 'list-hooks';
+    return command === 'update';
   }
 
   process(args: string[]): CommandOptionResult {
@@ -11,10 +11,8 @@ export class ListHooksOptions implements CommandOptionProcessor {
       const parsed = parseArgs({
         args,
         options: {
-          installed: { type: 'boolean' },
-          project: { type: 'boolean' },
-          global: { type: 'boolean' },
           help: { type: 'boolean' },
+          json: { type: 'boolean' },
         },
         allowPositionals: false,
         strict: false

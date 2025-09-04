@@ -15,6 +15,7 @@ export class InitOptions implements CommandOptionProcessor {
           scope: { type: 'string' },
           template: { type: 'string' },
           yes: { type: 'boolean' },
+          help: { type: 'boolean' },
         },
         allowPositionals: false,
         strict: false

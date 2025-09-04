@@ -49,12 +49,19 @@ export class HookService {
     for (const [eventName, configs] of typedEntries(hookConfiguration)) {
       if (configs && Array.isArray(configs) && configs.length > 0) {
         for (const config of configs) {
+          // Add name and description to the hook configuration
+          const enhancedConfig = {
+            ...config,
+            name: `${hookName}/${plugin.name}`,
+            description: plugin.description
+          };
+          
           // eventName is guaranteed to be a key of the hook configuration object
           // which matches the structure of ClaudeSettings['hooks']
           this.settingsService.addHookToSettings(
             scope,
             eventName as keyof ClaudeSettings['hooks'],
-            config
+            enhancedConfig
           );
         }
       }
@@ -158,8 +165,8 @@ export class HookService {
         if (configs && Array.isArray(configs)) {
           for (const config of configs) {
             hooks.push({
-              name: `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,
-              description: `Configured ${eventName} hook`,
+              name: config.name || `${eventName}${config.matcher ? `:${config.matcher}` : ''}`,
+              description: config.description || `Configured ${eventName} hook`,
               version: 'n/a',
               source: isGlobal ? 'global' : 'local',
               installed: true,

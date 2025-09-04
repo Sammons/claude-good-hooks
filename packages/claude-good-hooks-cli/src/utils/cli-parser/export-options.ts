@@ -16,6 +16,7 @@ export class ExportOptions implements CommandOptionProcessor {
           format: { type: 'string' },
           minify: { type: 'boolean' },
           'include-metadata': { type: 'boolean' },
+          help: { type: 'boolean' },
         },
         allowPositionals: false,
         strict: false

@@ -16,6 +16,8 @@ export class ValidateOptions implements CommandOptionProcessor {
           'check-paths': { type: 'boolean' },
           verbose: { type: 'boolean' },
           fix: { type: 'boolean' },
+          migrate: { type: 'boolean' },
+          help: { type: 'boolean' },
         },
         allowPositionals: false,
         strict: false

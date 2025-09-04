@@ -1,17 +1,17 @@
 // Import command classes
-import { HelpCommand } from './help/help.command.js';
-import { InitCommand } from './init/init.command.js';
-import { VersionCommand } from './version/version.command.js';
-import { ApplyCommand } from './apply/apply.command.js';
-import { ListHooksCommand } from './list-hooks/list-hooks.command.js';
-import { RemoteCommand } from './remote/remote.command.js';
-import { ValidateCommand } from './validate/validate.command.js';
-import { UpdateCommand } from './update/update.command.js';
-import { DoctorCommand } from './doctor/doctor.command.js';
-import { ExportCommand } from './export/export.command.js';
-import { ImportCommand } from './import/import.command.js';
-import { DebugCommand } from './debug/debug.command.js';
-import { PerformanceCommand } from './performance/performance.command.js';
+import { HelpCommand } from './help/help.js';
+import { InitCommand } from './init/init.js';
+import { VersionCommand } from './version/version.js';
+import { ApplyCommand } from './apply/apply.js';
+import { ListHooksCommand } from './list-hooks/list-hooks.js';
+import { RemoteCommand } from './remote/remote.js';
+import { ValidateCommand } from './validate/validate.js';
+import { UpdateCommand } from './update/update.js';
+import { DoctorCommand } from './doctor/doctor.js';
+import { ExportCommand } from './export/export.js';
+import { ImportCommand } from './import/import.js';
+import { DebugCommand } from './debug/debug.js';
+import { PerformanceCommand } from './performance/performance.js';
 
 // Help information structure
 export interface HelpInfo {

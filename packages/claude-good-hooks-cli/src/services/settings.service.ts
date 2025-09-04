@@ -61,6 +61,13 @@ export class SettingsService {
       settings.hooks[eventName] = [];
     }
 
+    // If hookConfig has a name, deduplicate by removing existing hooks with the same name
+    if (hookConfig.name) {
+      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
+        (existingConfig: HookConfiguration) => existingConfig.name !== hookConfig.name
+      );
+    }
+
     settings.hooks[eventName]!.push(hookConfig);
     this.writeSettings(scope, settings);
   }

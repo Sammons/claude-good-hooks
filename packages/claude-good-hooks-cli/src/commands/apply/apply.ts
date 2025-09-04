@@ -116,6 +116,10 @@ export class ApplyCommand {
     const isJson = options.parent?.json;
 
     if (args.length === 0) {
+      if (help) {
+        this.showApplyHelp(isJson);
+        return;
+      }
       if (isJson) {
         console.log(JSON.stringify({ success: false, error: 'Hook name is required' }));
       } else {
@@ -171,6 +175,41 @@ export class ApplyCommand {
         console.log(chalk.dim(`  With arguments: ${JSON.stringify(result.args)}`));
       }
     }
+  }
+
+  private showApplyHelp(isJson?: boolean): void {
+    if (isJson) {
+      const helpData = this.getHelp();
+      console.log(JSON.stringify(helpData));
+      return;
+    }
+
+    console.log(chalk.bold('\nApply Command'));
+    console.log('Apply a hook to the configuration (globally, per-project, or locally)');
+    console.log('');
+    
+    console.log(chalk.bold('Usage:'));
+    console.log('  claude-good-hooks apply [options] <hook-name> [args...]');
+    console.log('');
+    
+    console.log(chalk.bold('Options:'));
+    console.log('  --global     Apply globally (~/.claude/settings.json)');
+    console.log('  --project    Apply to project (./.claude/settings.json) [default]');
+    console.log('  --local      Apply locally (./.claude/settings.local.json)');
+    console.log('  --help       Show help for the apply command or specific hook');
+    console.log('  --json       Output in JSON format');
+    console.log('');
+    
+    console.log(chalk.bold('Examples:'));
+    console.log('  claude-good-hooks apply dirty');
+    console.log('  claude-good-hooks apply --global dirty');
+    console.log('  claude-good-hooks apply --local dirty --staged');
+    console.log('  claude-good-hooks apply dirty --help');
+    console.log('');
+    
+    console.log(chalk.bold('Help:'));
+    console.log('  apply --help              Show this help message');
+    console.log('  apply <hook-name> --help  Show help for a specific hook');
   }
 
   private async showHookHelp(params: {

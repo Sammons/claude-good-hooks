@@ -14,6 +14,7 @@ export class RemoteOptions implements CommandOptionProcessor {
           add: { type: 'string' },
           remove: { type: 'string' },
           json: { type: 'boolean' },
+          help: { type: 'boolean' },
         },
         allowPositionals: false,
         strict: false

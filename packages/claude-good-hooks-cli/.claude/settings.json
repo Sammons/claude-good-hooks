@@ -1,3 +1,29 @@
 {
-  "hooks": {}
+  "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+  "version": "1.0.0",
+  "hooks": {},
+  "meta": {
+    "createdAt": "2025-09-04T02:50:19.693Z",
+    "updatedAt": "2025-09-04T02:50:19.694Z",
+    "source": "project",
+    "migrations": [
+      {
+        "version": "1.0.0",
+        "appliedAt": "2025-09-04T02:50:19.693Z",
+        "description": "Converted from legacy settings format",
+        "changes": [
+          "Added versioning and metadata",
+          "Applied schema validation"
+        ]
+      },
+      {
+        "version": "1.0.0",
+        "appliedAt": "2025-09-04T02:50:19.694Z",
+        "description": "Convert legacy unversioned settings to versioned format with metadata",
+        "changes": [
+          "Migrated to version 1.0.0"
+        ]
+      }
+    ]
+  }
 }

@@ -34,6 +34,9 @@ export class ImportOptions implements CommandOptionProcessor {
         } else if (arg === '--yes') {
           options.yes = true;
           i++;
+        } else if (arg === '--help') {
+          options.help = true;
+          i++;
         } else {
           // Skip unknown options
           i++;

@@ -1,20 +1,29 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
 import type { HelpInfo } from '../command-registry.js';
-import type { HookConfiguration, HookCommand } from '@sammons/claude-good-hooks-types';
+import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
+
+interface ValidationResult {
+  valid: boolean;
+  errors?: string[];
+}
 
 interface ListHooksOptions {
   installed?: boolean;
   global?: boolean;
   json?: boolean;
+  help?: boolean;
   parent?: {
     json?: boolean;
   };
 }
 
+/**
+ * ListHooks command - list available or installed hooks
+ */
 export class ListHooksCommand {
   name = 'list-hooks';
-  description = 'List available and installed hooks';
+  description = 'List available hooks';
 
   private hookService: HookService;
 
@@ -26,7 +35,14 @@ export class ListHooksCommand {
    * Check if this command handles the given input
    */
   match(command: string): boolean {
-    return command === 'list-hooks';
+    return command === 'list-hooks' || command === 'list';
+  }
+
+  /**
+   * Validate command arguments
+   */
+  validate(args: string[], options: any): boolean | ValidationResult {
+    return true;
   }
 
   /**
@@ -44,8 +60,13 @@ export class ListHooksCommand {
           type: 'boolean'
         },
         {
+          name: 'project',
+          description: 'Show project-level hooks (default)',
+          type: 'boolean'
+        },
+        {
           name: 'global',
-          description: 'List global hooks (default: project)',
+          description: 'Show global hooks',
           type: 'boolean'
         },
         {
@@ -57,7 +78,7 @@ export class ListHooksCommand {
       examples: [
         'claude-good-hooks list-hooks',
         'claude-good-hooks list-hooks --installed',
-        'claude-good-hooks list-hooks --global --json'
+        'claude-good-hooks list-hooks --global'
       ]
     };
   }
@@ -69,27 +90,21 @@ export class ListHooksCommand {
     const lines: string[] = [];
     
     if (config.matcher) {
-      lines.push(`  Matcher: ${chalk.cyan(config.matcher)}`);
+      lines.push(`  ${chalk.dim('Matcher:')} ${chalk.cyan(config.matcher)}`);
     }
     
     if (config.hooks && config.hooks.length > 0) {
-      if (config.hooks.length === 1) {
-        const hook = config.hooks[0];
-        lines.push(`  Type: ${chalk.green(hook.type)}`);
-        lines.push(`  Command: ${chalk.yellow(hook.command)}`);
+      config.hooks.forEach((hook, index) => {
+        const prefix = config.hooks!.length > 1 ? `  ${chalk.dim(`[${index + 1}]`)} ` : '  ';
+        lines.push(`${prefix}${chalk.dim('Type:')} ${chalk.green(hook.type)}`);
+        lines.push(`${prefix}${chalk.dim('Command:')} ${chalk.yellow(hook.command)}`);
         if (hook.timeout) {
-          lines.push(`  Timeout: ${chalk.magenta(hook.timeout + 's')}`);
+          lines.push(`${prefix}${chalk.dim('Timeout:')} ${chalk.magenta(hook.timeout + 's')}`);
         }
-      } else {
-        lines.push(`  Commands: ${chalk.green(config.hooks.length + ' hooks')}`);
-        config.hooks.forEach((hook, index) => {
-          lines.push(`    ${index + 1}. Type: ${chalk.green(hook.type)}`);
-          lines.push(`       Command: ${chalk.yellow(hook.command)}`);
-          if (hook.timeout) {
-            lines.push(`       Timeout: ${chalk.magenta(hook.timeout + 's')}`);
-          }
-        });
-      }
+        if (config.hooks!.length > 1 && index < config.hooks!.length - 1) {
+          lines.push(''); // Add spacing between multiple hooks
+        }
+      });
     }
     
     return lines;
@@ -99,14 +114,51 @@ export class ListHooksCommand {
    * Execute the list-hooks command
    */
   async execute(args: string[], options: ListHooksOptions): Promise<void> {
-    const { installed, global } = options;
     const json = options.json || options.parent?.json;
+    
+    // Handle help flag
+    if (options.help) {
+      if (json) {
+        const helpInfo = this.getHelp();
+        console.log(JSON.stringify(helpInfo, null, 2));
+      } else {
+        const helpInfo = this.getHelp();
+        console.log(chalk.bold(helpInfo.name) + ' - ' + helpInfo.description + '\n');
+        
+        console.log(chalk.bold('USAGE'));
+        console.log('  ' + helpInfo.usage + '\n');
+        
+        if (helpInfo.options && helpInfo.options.length > 0) {
+          console.log(chalk.bold('OPTIONS'));
+          for (const option of helpInfo.options) {
+            const optionName = `--${option.name}`;
+            const typeInfo = option.type === 'string' ? ' <value>' : '';
+            const padding = ' '.repeat(Math.max(0, 20 - optionName.length - typeInfo.length));
+            console.log(`  ${optionName}${typeInfo}${padding}${option.description}`);
+          }
+          console.log('');
+        }
+        
+        if (helpInfo.examples && helpInfo.examples.length > 0) {
+          console.log(chalk.bold('EXAMPLES'));
+          for (const example of helpInfo.examples) {
+            console.log(`  ${example}`);
+          }
+          console.log('');
+        }
+      }
+      return;
+    }
+
+    const { installed, global } = options;
     const scope = global ? 'global' : 'project';
+    const hookService = new HookService();
+
     let hooks;
     if (installed) {
-      hooks = await this.hookService.listInstalledHooks(scope);
+      hooks = await hookService.listInstalledHooks(scope);
     } else {
-      hooks = await this.hookService.listAvailableHooks(global);
+      hooks = await hookService.listAvailableHooks(global);
     }
 
     if (json) {
@@ -124,25 +176,20 @@ export class ListHooksCommand {
         const version = hook.version === 'n/a' ? '' : ` v${hook.version}`;
         console.log(`${status} ${chalk.bold(hook.name)}${version}`);
         
-        // Debug: check if hookConfiguration exists
-        // console.log('DEBUG: hookConfiguration:', JSON.stringify(hook.hookConfiguration, null, 2));
-        
         // Show hook configuration details if available
         if (hook.hookConfiguration) {
           const configLines = this.formatHookConfiguration(hook.hookConfiguration);
           if (configLines.length > 0) {
             configLines.forEach(line => console.log(line));
           } else {
-            // Fallback to description if no config details
             console.log(`  ${hook.description}`);
           }
         } else {
-          // Show description for plugins without configuration
           console.log(`  ${hook.description}`);
         }
         
         if (hook.packageName) {
-          console.log(`  Package: ${chalk.dim(hook.packageName)}`);
+          console.log(`  ${chalk.dim('Package:')} ${chalk.dim(hook.packageName)}`);
         }
         console.log('');
       }
