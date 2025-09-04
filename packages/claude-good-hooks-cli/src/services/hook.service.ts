@@ -56,7 +56,8 @@ export class HookService {
             claudegoodhooks: {
               name: `${hookName}/${plugin.name}`,
               description: plugin.description,
-              version: plugin.version
+              version: plugin.version,
+              hookFactoryArguments: parsedArgs
             }
           };
           

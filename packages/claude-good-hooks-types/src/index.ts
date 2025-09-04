@@ -14,6 +14,7 @@ export interface HookConfiguration {
     name: string;
     description: string;
     version: string;
+    hookFactoryArguments?: Record<string, unknown>;
   };
 }
 
@@ -97,7 +98,10 @@ export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
        (obj as any).claudegoodhooks !== null &&
        'name' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.name === 'string' &&
        'description' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.description === 'string' &&
-       'version' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.version === 'string'))
+       'version' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.version === 'string' &&
+       (!('hookFactoryArguments' in (obj as any).claudegoodhooks) || 
+        (typeof (obj as any).claudegoodhooks.hookFactoryArguments === 'object' && 
+         (obj as any).claudegoodhooks.hookFactoryArguments !== null))))
   );
 }
 
