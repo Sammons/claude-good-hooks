@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ApplyCommand } from './apply.js';
 import * as modules from '../../utils/modules.js';
 import * as settings from '../../utils/settings.js';
@@ -38,7 +38,7 @@ describe('applyCommand - JSON output format', () => {
         default: true,
       },
     },
-    makeHook: (args) => ({
+    makeHook: (args: Record<string, unknown>) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',
@@ -56,6 +56,10 @@ describe('applyCommand - JSON output format', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset spy call counts
+    consoleSpy.mockClear();
+    consoleErrorSpy.mockClear();
+    processExitSpy.mockClear();
   });
 
   afterEach(() => {

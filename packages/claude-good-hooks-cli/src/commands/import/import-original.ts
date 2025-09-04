@@ -1,13 +1,14 @@
 import { readFileSync, existsSync } from 'fs';
-import { extname, basename } from 'path';
+import { extname } from 'path';
 import { createInterface } from 'readline/promises';
 import chalk from 'chalk';
 import { readSettings, writeSettings } from '../../utils/settings.js';
 import { validateSettings, printValidationResults } from '../../utils/validator.js';
-import type { ClaudeSettings, isClaudeSettings } from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
+import { isClaudeSettings } from '@sammons/claude-good-hooks-types';
 
 interface ImportOptions {
-  source: string;
+  source?: string;
   scope?: 'project' | 'global' | 'local';
   merge?: boolean;
   force?: boolean;
@@ -80,10 +81,10 @@ export async function importCommand(source: string, options: ImportOptions = {})
     console.log(chalk.blue(`📦 Multi-scope configuration detected (${availableScopes.join(', ')})`));
     
     if (availableScopes.includes(scope)) {
-      targetSettings = multiScopeSettings[scope];
+      targetSettings = multiScopeSettings[scope]!;
       console.log(chalk.green(`✅ Using ${scope} configuration`));
     } else if (availableScopes.length === 1) {
-      targetSettings = multiScopeSettings[availableScopes[0]];
+      targetSettings = multiScopeSettings[availableScopes[0]!]!;
       console.log(chalk.blue(`📋 Using ${availableScopes[0]} configuration (only available scope)`));
     } else {
       console.error(chalk.red(`❌ Scope '${scope}' not found in configuration`));
@@ -317,9 +318,9 @@ function parseSimpleYaml(content: string): any {
         const value = valueParts.join(':').trim();
         
         if (value) {
-          json += `"${key.trim()}": ${JSON.stringify(value)},`;
+          json += `"${key?.trim()}": ${JSON.stringify(value)},`;
         } else {
-          json += `"${key.trim()}": {`;
+          json += `"${key?.trim()}": {`;
           depth++;
         }
       }
@@ -335,22 +336,22 @@ function parseSimpleYaml(content: string): any {
  * Merge two settings objects
  */
 function mergeSettings(existing: ClaudeSettings, imported: ClaudeSettings): ClaudeSettings {
-  const merged: ClaudeSettings = { hooks: {} };
+  const merged: ClaudeSettings = { hooks: {} as ClaudeSettings['hooks'] };
 
   // Start with existing hooks
   if (existing.hooks) {
     for (const [event, configs] of Object.entries(existing.hooks)) {
-      merged.hooks![event as keyof ClaudeSettings['hooks']] = [...configs];
+      (merged.hooks as any)[event] = [...configs];
     }
   }
 
   // Add imported hooks
   if (imported.hooks) {
     for (const [event, configs] of Object.entries(imported.hooks)) {
-      if (!merged.hooks![event as keyof ClaudeSettings['hooks']]) {
-        merged.hooks![event as keyof ClaudeSettings['hooks']] = [];
+      if (!(merged.hooks as any)[event]) {
+        (merged.hooks as any)[event] = [];
       }
-      merged.hooks![event as keyof ClaudeSettings['hooks']]!.push(...configs);
+      (merged.hooks as any)[event].push(...configs);
     }
   }
 
@@ -378,8 +379,8 @@ async function showImportPreview(finalSettings: ClaudeSettings, existingSettings
   if (finalSettings.hooks) {
     console.log(chalk.blue('\n   Events to be configured:'));
     for (const event of Object.keys(finalSettings.hooks)) {
-      const configs = finalSettings.hooks[event as keyof ClaudeSettings['hooks']]!;
-      const hookCount = configs.reduce((total, config) => total + config.hooks.length, 0);
+      const configs = (finalSettings.hooks as any)[event];
+      const hookCount = configs.reduce((total: number, config: any) => total + config.hooks.length, 0);
       console.log(chalk.gray(`     • ${event}: ${hookCount} hook(s)`));
     }
   }

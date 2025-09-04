@@ -38,10 +38,15 @@ describe('Debug Command', () => {
       mockExistsSync.mockReturnValue(false);
       
       // Import here to ensure mocks are applied
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
       
       // Simulate enabling debug for a hook
       process.argv = ['node', 'cli', 'debug', 'enable', 'test-hook', '--trace', '--profile'];
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
+      expect(debugCommand).toBeInstanceOf(DebugCommand);
       
       // The function should call writeFileSync to save the config
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -64,7 +69,12 @@ describe('Debug Command', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(JSON.stringify(mockConfig));
 
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
+      expect(debugCommand).toBeInstanceOf(DebugCommand);
       
       // Should be able to load and parse the configuration
       expect(mockReadFileSync).toHaveBeenCalledWith(
@@ -77,7 +87,12 @@ describe('Debug Command', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('invalid json');
 
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
+      expect(debugCommand).toBeInstanceOf(DebugCommand);
       
       // Should not throw an error and should start with empty config
       expect(() => {
@@ -100,7 +115,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'status'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display status information
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Debug Status'));
@@ -124,7 +143,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'status', '--json'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should output JSON format
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -143,7 +166,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'status'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display message about no hooks being debugged
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -161,7 +188,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'trace', '--output', '/custom/trace.log'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should save tracing configuration
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -183,7 +214,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'profile', '--output', '/custom/metrics.json'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should save profiling configuration
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -222,21 +257,25 @@ describe('Debug Command', () => {
       };
 
       mockExistsSync.mockImplementation((path) => {
-        if (path.includes('debug-configs.json')) return true;
-        if (path.includes('executions.json')) return true;
+        if (String(path).includes('debug-configs.json')) return true;
+        if (String(path).includes('executions.json')) return true;
         return false;
       });
 
       mockReadFileSync.mockImplementation((path) => {
-        if (path.includes('debug-configs.json')) return JSON.stringify(mockConfig);
-        if (path.includes('executions.json')) return JSON.stringify(mockExecutions);
+        if (String(path).includes('debug-configs.json')) return JSON.stringify(mockConfig);
+        if (String(path).includes('executions.json')) return JSON.stringify(mockExecutions);
         return '';
       });
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'report', 'summary'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should generate and display summary report
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Debug Summary Report'));
@@ -253,7 +292,7 @@ describe('Debug Command', () => {
       ].join('\n');
 
       mockExistsSync.mockImplementation((path) => {
-        return path.includes('metrics.json');
+        return String(path).includes('metrics.json');
       });
 
       mockReadFileSync.mockReturnValue(mockMetrics);
@@ -261,7 +300,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'report', 'performance'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should generate performance report
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Performance Report'));
@@ -275,7 +318,11 @@ describe('Debug Command', () => {
       mockExistsSync.mockReturnValue(false);
 
       process.argv = ['node', 'cli', 'debug', 'report', 'summary', '--output', '/test/report.txt'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should write report to specified file
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -295,7 +342,7 @@ describe('Debug Command', () => {
       ].join('\n');
 
       mockExistsSync.mockImplementation((path) => {
-        return path.includes('debug.log');
+        return String(path).includes('debug.log');
       });
 
       mockReadFileSync.mockReturnValue(mockLogContent);
@@ -303,7 +350,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'logs'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display log content
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Debug Logs'));
@@ -326,7 +377,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'logs', '--log-level', 'warn'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should only display warnings and errors (logs containing 'warn')
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Warning message'));
@@ -366,7 +421,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'analyze'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should list recent executions
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Recent Hook Executions'));
@@ -400,7 +459,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'analyze', 'exec-789'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display detailed analysis
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Hook Debug Report'));
@@ -416,7 +479,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', 'breakpoint', 'target-hook', 'file.endsWith(".ts")', '--interactive'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should save breakpoint configuration
       expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -440,7 +507,11 @@ describe('Debug Command', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       process.argv = ['node', 'cli', 'debug', '--help'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display comprehensive help
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Claude Good Hooks Debug Tool'));
@@ -459,7 +530,11 @@ describe('Debug Command', () => {
       const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
       process.argv = ['node', 'cli', 'debug', 'enable'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display error and exit
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Hook name is required'));
@@ -474,7 +549,11 @@ describe('Debug Command', () => {
       const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
       process.argv = ['node', 'cli', 'debug', 'unknown-command'];
-      const { debugCommand } = require('./debug.js');
+      const { DebugCommand } = require('./debug.js');
+      const debugCommand = new DebugCommand();
+      
+      // Verify debug command is properly instantiated
+      expect(debugCommand).toBeDefined();
 
       // Should display error about unknown subcommand
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown debug subcommand: unknown-command'));

@@ -72,6 +72,9 @@ importers:
         specifier: ^5.3.0
         version: 5.6.0
     devDependencies:
+      '@sammons/dirty-good-claude-hook':
+        specifier: workspace:*
+        version: link:../dirty-good-claude-hook
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.0

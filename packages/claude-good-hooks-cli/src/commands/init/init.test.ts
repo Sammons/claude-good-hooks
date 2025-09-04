@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { initCommand } from './init.js';
+import { InitCommand } from './init.js';
 import * as settings from '../../utils/settings.js';
 import * as projectDetector from '../../utils/project-detector.js';
 import * as fs from 'fs';
@@ -46,7 +46,8 @@ describe('initCommand', () => {
 
   describe('successful initialization', () => {
     it('should initialize with --yes flag (non-interactive)', async () => {
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       expect(mockMkdirSync).toHaveBeenCalledWith('/test/.claude', { recursive: true });
       expect(mockWriteSettings).toHaveBeenCalledWith('project', expect.objectContaining({
@@ -58,7 +59,8 @@ describe('initCommand', () => {
     it('should initialize with global scope', async () => {
       mockGetSettingsPath.mockReturnValue('/home/user/.claude/settings.json');
       
-      await initCommand({ scope: 'global', yes: true });
+      const command = new InitCommand();
+      await command.execute([], { scope: 'global', yes: true });
 
       expect(mockGetSettingsPath).toHaveBeenCalledWith('global');
       expect(mockWriteSettings).toHaveBeenCalledWith('global', expect.any(Object));
@@ -76,19 +78,21 @@ describe('initCommand', () => {
         packageManager: 'pnpm'
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
-      const settings = settingsCall[1];
-      expect(settings.hooks).toBeDefined();
-      expect(settings.hooks.PostToolUse).toBeDefined();
-      expect(settings.hooks.PostToolUse.length).toBeGreaterThan(0);
+      const settings = settingsCall?.[1];
+      expect(settings?.hooks).toBeDefined();
+      expect(settings?.hooks?.PostToolUse).toBeDefined();
+      expect(settings?.hooks?.PostToolUse?.length).toBeGreaterThan(0);
     });
 
     it('should create directory if it does not exist', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       expect(mockMkdirSync).toHaveBeenCalledWith('/test/.claude', { recursive: true });
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Created directory'));
@@ -97,7 +101,8 @@ describe('initCommand', () => {
     it('should not create directory if it already exists', async () => {
       mockExistsSync.mockReturnValue(true);
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       expect(mockMkdirSync).not.toHaveBeenCalled();
     });
@@ -110,7 +115,8 @@ describe('initCommand', () => {
         return false;
       });
 
-      await initCommand({});
+      const command = new InitCommand();
+      await command.execute([], {});
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Settings file already exists'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
@@ -122,7 +128,8 @@ describe('initCommand', () => {
         return false;
       });
 
-      await initCommand({ force: true, yes: true });
+      const command = new InitCommand();
+      await command.execute([], { force: true, yes: true });
 
       expect(mockWriteSettings).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Configuration saved'));
@@ -140,7 +147,8 @@ describe('initCommand', () => {
       };
       mockCreateInterface.mockReturnValue(mockReadline as any);
 
-      await initCommand({});
+      const command = new InitCommand();
+      await command.execute([], {});
 
       expect(mockReadline.question).toHaveBeenCalledTimes(3);
       expect(mockWriteSettings).toHaveBeenCalled();
@@ -157,7 +165,8 @@ describe('initCommand', () => {
       };
       mockCreateInterface.mockReturnValue(mockReadline as any);
 
-      await initCommand({});
+      const command = new InitCommand();
+      await command.execute([], {});
 
       expect(mockReadline.question).toHaveBeenCalledTimes(4);
       expect(mockWriteSettings).toHaveBeenCalled();
@@ -173,7 +182,8 @@ describe('initCommand', () => {
       };
       mockCreateInterface.mockReturnValue(mockReadline as any);
 
-      await initCommand({});
+      const command = new InitCommand();
+      await command.execute([], {});
 
       expect(mockReadline.question).toHaveBeenCalledTimes(3);
       expect(mockWriteSettings).not.toHaveBeenCalled();
@@ -193,7 +203,8 @@ describe('initCommand', () => {
         hasVitest: false
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];
@@ -217,7 +228,8 @@ describe('initCommand', () => {
         hasVitest: false
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];
@@ -241,7 +253,8 @@ describe('initCommand', () => {
         hasVitest: false
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];
@@ -268,7 +281,8 @@ describe('initCommand', () => {
         packageManager: 'npm'
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];
@@ -292,7 +306,8 @@ describe('initCommand', () => {
         packageManager: 'npm'
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];
@@ -316,7 +331,8 @@ describe('initCommand', () => {
         packageManager: 'npm'
       });
 
-      await initCommand({ yes: true });
+      const command = new InitCommand();
+      await command.execute([], { yes: true });
 
       const settingsCall = mockWriteSettings.mock.calls[0];
       const settings = settingsCall[1];

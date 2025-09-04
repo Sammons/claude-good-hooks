@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { doctorCommand } from './doctor.js';
+import { DoctorCommand } from './doctor.js';
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -44,7 +44,8 @@ describe('doctorCommand - failing system checks', () => {
       writable: true,
     });
 
-    await doctorCommand({ parent: {} });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: {} });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ claude-good-hooks in PATH'));
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -62,7 +63,8 @@ describe('doctorCommand - failing system checks', () => {
       writable: true,
     });
 
-    await doctorCommand({ parent: {} });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: {} });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ Node.js version'));
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('v18.15.0 (requires Node.js 20+)'));
@@ -71,7 +73,7 @@ describe('doctorCommand - failing system checks', () => {
   it('should detect missing Claude settings directory', async () => {
     mockExecSync.mockReturnValue('6.0.0' as any);
     mockExistsSync.mockImplementation((path) => {
-      if (path.includes('.claude')) {
+      if (String(path).includes('.claude')) {
         return false;
       }
       return true;
@@ -82,7 +84,8 @@ describe('doctorCommand - failing system checks', () => {
       writable: true,
     });
 
-    await doctorCommand({ parent: {} });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: {} });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ Claude settings directory'));
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Claude Code may not be installed'));
@@ -102,7 +105,8 @@ describe('doctorCommand - failing system checks', () => {
       writable: true,
     });
 
-    await doctorCommand({ parent: {} });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: {} });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ npm available'));
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('npm not found. Please install Node.js/npm'));

@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
 import { HelpInfo } from '../command-registry.js';
+import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
 
 interface ValidationResult {
   valid: boolean;
@@ -73,6 +74,33 @@ export class ListHooksCommand {
   }
 
   /**
+   * Format hook configuration for display
+   */
+  private formatHookConfiguration(config: HookConfiguration): string[] {
+    const lines: string[] = [];
+    
+    if (config.matcher) {
+      lines.push(`  ${chalk.dim('Matcher:')} ${chalk.cyan(config.matcher)}`);
+    }
+    
+    if (config.hooks && config.hooks.length > 0) {
+      config.hooks.forEach((hook, index) => {
+        const prefix = config.hooks!.length > 1 ? `  ${chalk.dim(`[${index + 1}]`)} ` : '  ';
+        lines.push(`${prefix}${chalk.dim('Type:')} ${chalk.green(hook.type)}`);
+        lines.push(`${prefix}${chalk.dim('Command:')} ${chalk.yellow(hook.command)}`);
+        if (hook.timeout) {
+          lines.push(`${prefix}${chalk.dim('Timeout:')} ${chalk.magenta(hook.timeout + 's')}`);
+        }
+        if (config.hooks!.length > 1 && index < config.hooks!.length - 1) {
+          lines.push(''); // Add spacing between multiple hooks
+        }
+      });
+    }
+    
+    return lines;
+  }
+
+  /**
    * Execute the list-hooks command
    */
   async execute(args: string[], options: ListHooksOptions): Promise<void> {
@@ -100,10 +128,23 @@ export class ListHooksCommand {
 
       for (const hook of hooks) {
         const status = hook.installed ? chalk.green('✓') : chalk.red('✗');
-        console.log(`${status} ${chalk.bold(hook.name)} v${hook.version}`);
-        console.log(`  ${hook.description}`);
+        const version = hook.version === 'n/a' ? '' : ` v${hook.version}`;
+        console.log(`${status} ${chalk.bold(hook.name)}${version}`);
+        
+        // Show hook configuration details if available
+        if (hook.hookConfiguration) {
+          const configLines = this.formatHookConfiguration(hook.hookConfiguration);
+          if (configLines.length > 0) {
+            configLines.forEach(line => console.log(line));
+          } else {
+            console.log(`  ${hook.description}`);
+          }
+        } else {
+          console.log(`  ${hook.description}`);
+        }
+        
         if (hook.packageName) {
-          console.log(`  Package: ${chalk.dim(hook.packageName)}`);
+          console.log(`  ${chalk.dim('Package:')} ${chalk.dim(hook.packageName)}`);
         }
         console.log('');
       }

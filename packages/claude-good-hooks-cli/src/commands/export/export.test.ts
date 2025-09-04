@@ -80,7 +80,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'all' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const exportedContent = JSON.parse(writeCall[1] as string);
+      const exportedContent = JSON.parse(writeCall?.[1] as string);
       
       expect(exportedContent.settings).toHaveProperty('project');
       expect(exportedContent.settings).toHaveProperty('global');
@@ -111,9 +111,9 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'project', format: 'yaml' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const content = writeCall[1] as string;
+      const content = writeCall?.[1] as string;
       
-      expect(writeCall[0]).toBe('claude-hooks-project-2024-01-01.yaml');
+      expect(writeCall?.[0]).toBe('claude-hooks-project-2024-01-01.yaml');
       expect(content).toContain('version: "1.0.0"');
       expect(content).toContain('settings:');
     });
@@ -127,9 +127,9 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'project', format: 'template' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const content = writeCall[1] as string;
+      const content = writeCall?.[1] as string;
       
-      expect(writeCall[0]).toBe('claude-hooks-project-2024-01-01.template');
+      expect(writeCall?.[0]).toBe('claude-hooks-project-2024-01-01.template');
       expect(content).toContain('# Claude Good Hooks Configuration Template');
       expect(content).toContain('# Usage:');
       expect(content).toContain('PreToolUse');
@@ -144,7 +144,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'project', minify: true });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const content = writeCall[1] as string;
+      const content = writeCall?.[1] as string;
       
       // Minified JSON should not contain newlines or extra spaces
       expect(content).not.toContain('\n  ');
@@ -159,7 +159,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'project', includeMetadata: false });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const exportedContent = JSON.parse(writeCall[1] as string);
+      const exportedContent = JSON.parse(writeCall?.[1] as string);
       
       expect(exportedContent.metadata).toBeDefined(); // Metadata is always included
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Use --include-metadata'));
@@ -278,7 +278,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'all' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const exportedContent = JSON.parse(writeCall[1] as string);
+      const exportedContent = JSON.parse(writeCall?.[1] as string);
       
       expect(exportedContent.settings).toHaveProperty('project');
       expect(exportedContent.settings).not.toHaveProperty('global');
@@ -315,7 +315,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'project', format: 'template' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const content = writeCall[1] as string;
+      const content = writeCall?.[1] as string;
       
       expect(content).toContain('# Before Claude uses tools');
       expect(content).toContain('# When Claude starts a session');
@@ -334,7 +334,7 @@ describe('exportCommand', () => {
       await exportCommand({ scope: 'all', format: 'template' });
 
       const writeCall = mockWriteFileSync.mock.calls[0];
-      const content = writeCall[1] as string;
+      const content = writeCall?.[1] as string;
       
       expect(content).toContain('# PROJECT SETTINGS');
       expect(content).toContain('# GLOBAL SETTINGS');

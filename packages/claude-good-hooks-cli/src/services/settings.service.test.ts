@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
+import { describe, it, expect } from 'vitest';
 import { SettingsService } from './settings.service.js';
 
 // Since the test would require significant rewriting to mock the FileSystemService properly,

@@ -3,7 +3,7 @@ import { validateCommand } from './validate.js';
 import * as settings from '../../utils/settings.js';
 import * as validator from '../../utils/validator.js';
 import * as fs from 'fs';
-import type { ClaudeSettings, ValidationResult } from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings, SchemaValidationResult } from '@sammons/claude-good-hooks-types';
 
 // Mock dependencies
 vi.mock('../../utils/settings.js');
@@ -15,7 +15,7 @@ const mockGetSettingsPath = vi.mocked(settings.getSettingsPath);
 const mockValidateSettings = vi.mocked(validator.validateSettings);
 const mockTestCommand = vi.mocked(validator.testCommand);
 const mockValidateCommandPaths = vi.mocked(validator.validateCommandPaths);
-const mockPrintValidationResults = vi.mocked(validator.printValidationResults);
+const mockPrintSchemaValidationResults = vi.mocked(validator.printSchemaValidationResults);
 const mockExistsSync = vi.mocked(fs.existsSync);
 
 // Mock console methods
@@ -45,14 +45,14 @@ describe('validateCommand', () => {
     }
   };
 
-  const mockValidResult: ValidationResult = {
+  const mockValidResult: SchemaValidationResult = {
     valid: true,
     errors: [],
     warnings: [],
     suggestions: []
   };
 
-  const mockInvalidResult: ValidationResult = {
+  const mockInvalidResult: SchemaValidationResult = {
     valid: false,
     errors: [{
       type: 'syntax',
@@ -150,7 +150,7 @@ describe('validateCommand', () => {
     });
 
     it('should handle command test failures', async () => {
-      const testFailResult: ValidationResult = {
+      const testFailResult: SchemaValidationResult = {
         valid: false,
         errors: [{
           type: 'syntax',
@@ -184,7 +184,7 @@ describe('validateCommand', () => {
 
       await validateCommand({ scope: 'project', verbose: true });
 
-      expect(mockPrintValidationResults).toHaveBeenCalledWith(
+      expect(mockPrintSchemaValidationResults).toHaveBeenCalledWith(
         expect.objectContaining({ valid: false }),
         true
       );
@@ -201,7 +201,7 @@ describe('validateCommand', () => {
 
   describe('validation with warnings', () => {
     it('should pass validation but show warnings', async () => {
-      const warningResult: ValidationResult = {
+      const warningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{
@@ -223,7 +223,7 @@ describe('validateCommand', () => {
 
   describe('recommendations', () => {
     it('should provide security recommendations for security warnings', async () => {
-      const securityWarningResult: ValidationResult = {
+      const securityWarningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{
@@ -241,7 +241,7 @@ describe('validateCommand', () => {
     });
 
     it('should provide performance recommendations for performance warnings', async () => {
-      const performanceWarningResult: ValidationResult = {
+      const performanceWarningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{
@@ -259,7 +259,7 @@ describe('validateCommand', () => {
     });
 
     it('should provide best practice recommendations', async () => {
-      const bestPracticeWarningResult: ValidationResult = {
+      const bestPracticeWarningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{
@@ -277,7 +277,7 @@ describe('validateCommand', () => {
     });
 
     it('should provide compatibility recommendations', async () => {
-      const compatibilityWarningResult: ValidationResult = {
+      const compatibilityWarningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{
@@ -295,7 +295,7 @@ describe('validateCommand', () => {
     });
 
     it('should show suggestions in verbose mode', async () => {
-      const suggestionResult: ValidationResult = {
+      const suggestionResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [],
@@ -321,7 +321,7 @@ describe('validateCommand', () => {
     it('should handle invalid settings structure', async () => {
       mockReadSettings.mockReturnValue({} as ClaudeSettings);
       
-      const invalidResult: ValidationResult = {
+      const invalidResult: SchemaValidationResult = {
         valid: false,
         errors: [{
           type: 'structure',

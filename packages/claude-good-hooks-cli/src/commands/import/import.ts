@@ -1,5 +1,5 @@
 import { readFileSync, existsSync } from 'fs';
-import { extname, basename } from 'path';
+import { extname } from 'path';
 import { createInterface } from 'readline';
 import chalk from 'chalk';
 import { readSettings, writeSettings } from '../../utils/settings.js';
@@ -84,7 +84,7 @@ export async function importCommand(source: string, options: ImportOptions = {})
       targetSettings = multiScopeSettings[scope];
       console.log(chalk.green(`✅ Using ${scope} configuration`));
     } else if (availableScopes.length === 1) {
-      targetSettings = multiScopeSettings[availableScopes[0]];
+      targetSettings = multiScopeSettings[availableScopes[0]!];
       console.log(chalk.blue(`📋 Using ${availableScopes[0]} configuration (only available scope)`));
     } else {
       console.error(chalk.red(`❌ Scope '${scope}' not found in configuration`));

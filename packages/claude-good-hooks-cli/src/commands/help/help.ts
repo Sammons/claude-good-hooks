@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import type { Container } from '../dependency-injection/dependency-injection.js';
 
 interface HelpOptions {
   parent?: {
@@ -7,9 +6,8 @@ interface HelpOptions {
   };
 }
 
-export async function helpCommand(container: Container, options: HelpOptions): Promise<void> {
+export async function helpCommand(options: HelpOptions): Promise<void> {
   const isJson = options.parent?.json;
-  const console = container.consoleService;
 
   const helpText = `
 ${chalk.bold('claude-good-hooks')} - CLI for managing Claude Code hooks

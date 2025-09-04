@@ -1,5 +1,5 @@
 import { writeFileSync, existsSync } from 'fs';
-import { join, basename, extname } from 'path';
+import { basename, extname } from 'path';
 import chalk from 'chalk';
 import { readSettings } from '../../utils/settings.js';
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
@@ -50,7 +50,7 @@ export class ExportCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], options: any): boolean | ValidationResult {
     // Export command doesn't require arguments but validate options
     if (options.scope && !['project', 'global', 'local', 'all'].includes(options.scope)) {
       return {
@@ -121,7 +121,7 @@ export class ExportCommand {
   /**
    * Execute the export command
    */
-  async execute(args: string[], options: ExportOptions = {}): Promise<void> {
+  async execute(_args: string[], options: ExportOptions = {}): Promise<void> {
     const scope = options.scope || 'all';
     const format = options.format || 'json';
     const includeMetadata = options.includeMetadata !== false;
@@ -335,12 +335,12 @@ export class ExportCommand {
     
     const events = Object.keys(settings.hooks);
     events.forEach((event, eventIndex) => {
-      const configs = settings.hooks![event as keyof ClaudeSettings['hooks']]!;
+      const configs = settings.hooks![event as keyof ClaudeSettings['hooks']]! as any[];
       
       template += `    # ${eventDescriptions[event] || 'Event hook'}\n`;
       template += `    "${event}": [\n`;
       
-      configs.forEach((config, configIndex) => {
+      configs.forEach((config: any, configIndex: number) => {
         template += '      {\n';
         
         if (config.matcher) {
@@ -350,7 +350,7 @@ export class ExportCommand {
         
         template += '        "hooks": [\n';
         
-        config.hooks.forEach((hook, hookIndex) => {
+        config.hooks.forEach((hook: any, hookIndex: number) => {
           template += '          {\n';
           template += '            "type": "command",\n';
           

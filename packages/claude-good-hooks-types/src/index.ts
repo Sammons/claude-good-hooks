@@ -2,11 +2,14 @@ export interface HookCommand {
   type: 'command';
   command: string;
   timeout?: number;
+  enabled?: boolean;
+  continueOnError?: boolean;
 }
 
 export interface HookConfiguration {
   matcher?: string;
   hooks: HookCommand[];
+  enabled?: boolean;
 }
 
 export interface HookPlugin {
@@ -56,6 +59,7 @@ export interface HookMetadata {
   source: 'local' | 'global' | 'remote';
   packageName?: string;
   installed: boolean;
+  hookConfiguration?: HookConfiguration;
 }
 
 // Type guard functions for runtime validation
@@ -67,7 +71,9 @@ export function isHookCommand(obj: unknown): obj is HookCommand {
     obj.type === 'command' &&
     'command' in obj &&
     typeof obj.command === 'string' &&
-    (!('timeout' in obj) || obj.timeout === undefined || typeof obj.timeout === 'number')
+    (!('timeout' in obj) || obj.timeout === undefined || typeof obj.timeout === 'number') &&
+    (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean') &&
+    (!('continueOnError' in obj) || obj.continueOnError === undefined || typeof obj.continueOnError === 'boolean')
   );
 }
 
@@ -78,7 +84,8 @@ export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
     'hooks' in obj &&
     Array.isArray(obj.hooks) &&
     obj.hooks.every(isHookCommand) &&
-    (!('matcher' in obj) || typeof obj.matcher === 'string')
+    (!('matcher' in obj) || typeof obj.matcher === 'string') &&
+    (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean')
   );
 }
 
@@ -188,7 +195,8 @@ export function isHookMetadata(obj: unknown): obj is HookMetadata {
     ['local', 'global', 'remote'].includes(obj.source as string) &&
     'installed' in obj &&
     typeof obj.installed === 'boolean' &&
-    (!('packageName' in obj) || typeof obj.packageName === 'string')
+    (!('packageName' in obj) || typeof obj.packageName === 'string') &&
+    (!('hookConfiguration' in obj) || isHookConfiguration(obj.hookConfiguration))
   );
 }
 

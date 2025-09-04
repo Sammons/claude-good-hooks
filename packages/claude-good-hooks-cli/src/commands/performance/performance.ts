@@ -1,4 +1,4 @@
-import type { Container } from '../dependency-injection/dependency-injection.js';
+// Container dependency removed
 
 export interface PerformanceCommandOptions {
   output?: string;

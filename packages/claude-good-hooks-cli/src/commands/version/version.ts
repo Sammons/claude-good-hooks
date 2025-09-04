@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import type { Container } from '../dependency-injection/dependency-injection.js';
 
 interface VersionOptions {
   parent?: {

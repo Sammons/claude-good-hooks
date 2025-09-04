@@ -1,5 +1,5 @@
 import { readFileSync, existsSync } from 'fs';
-import { extname, basename } from 'path';
+import { extname } from 'path';
 import { createInterface } from 'readline';
 import chalk from 'chalk';
 import { readSettings, writeSettings } from '../../utils/settings.js';
@@ -192,10 +192,10 @@ export class ImportCommand {
       console.log(chalk.blue(`📦 Multi-scope configuration detected (${availableScopes.join(', ')})`));
       
       if (availableScopes.includes(scope)) {
-        targetSettings = multiScopeSettings[scope];
+        targetSettings = multiScopeSettings[scope]!;
         console.log(chalk.green(`✅ Using ${scope} configuration`));
       } else if (availableScopes.length === 1) {
-        targetSettings = multiScopeSettings[availableScopes[0]];
+        targetSettings = multiScopeSettings[availableScopes[0]!]!;
         console.log(chalk.blue(`📋 Using ${availableScopes[0]} configuration (only available scope)`));
       } else {
         console.error(chalk.red(`❌ Scope '${scope}' not found in configuration`));
@@ -298,8 +298,8 @@ export class ImportCommand {
         
         // Show statistics
         const totalHooks = finalSettings.hooks ? 
-          Object.values(finalSettings.hooks).reduce((total, configs) => {
-            return total + configs.reduce((configTotal, config) => configTotal + config.hooks.length, 0);
+          Object.values(finalSettings.hooks).reduce((total: number, configs: any) => {
+            return total + configs.reduce((configTotal: number, config: any) => configTotal + config.hooks.length, 0);
           }, 0) : 0;
 
         const totalEvents = finalSettings.hooks ? Object.keys(finalSettings.hooks).length : 0;
@@ -410,9 +410,9 @@ export class ImportCommand {
           const value = valueParts.join(':').trim();
           
           if (value) {
-            json += `"${key.trim()}": ${JSON.stringify(value)},`;
+            json += `"${key?.trim()}": ${JSON.stringify(value)},`;
           } else {
-            json += `"${key.trim()}": {`;
+            json += `"${key?.trim()}": {`;
           }
         }
       }
@@ -465,22 +465,22 @@ export class ImportCommand {
    * Merge two settings objects
    */
   private mergeSettings(existing: ClaudeSettings, imported: ClaudeSettings): ClaudeSettings {
-    const merged: ClaudeSettings = { hooks: {} };
+    const merged: ClaudeSettings = { hooks: {} as ClaudeSettings['hooks'] };
 
     // Start with existing hooks
     if (existing.hooks) {
       for (const [event, configs] of Object.entries(existing.hooks)) {
-        merged.hooks![event as keyof ClaudeSettings['hooks']] = [...configs];
+        (merged.hooks as any)[event] = [...configs];
       }
     }
 
     // Add imported hooks
     if (imported.hooks) {
       for (const [event, configs] of Object.entries(imported.hooks)) {
-        if (!merged.hooks![event as keyof ClaudeSettings['hooks']]) {
-          merged.hooks![event as keyof ClaudeSettings['hooks']] = [];
+        if (!(merged.hooks as any)[event]) {
+          (merged.hooks as any)[event] = [];
         }
-        merged.hooks![event as keyof ClaudeSettings['hooks']]!.push(...configs);
+        (merged.hooks as any)[event].push(...configs);
       }
     }
 
@@ -492,13 +492,13 @@ export class ImportCommand {
    */
   private async showImportPreview(finalSettings: ClaudeSettings, existingSettings: ClaudeSettings): Promise<void> {
     const existingHookCount = existingSettings.hooks ? 
-      Object.values(existingSettings.hooks).reduce((total, configs) => {
-        return total + configs.reduce((configTotal, config) => configTotal + config.hooks.length, 0);
+      Object.values(existingSettings.hooks).reduce((total: number, configs: any) => {
+        return total + configs.reduce((configTotal: number, config: any) => configTotal + config.hooks.length, 0);
       }, 0) : 0;
 
     const finalHookCount = finalSettings.hooks ? 
-      Object.values(finalSettings.hooks).reduce((total, configs) => {
-        return total + configs.reduce((configTotal, config) => configTotal + config.hooks.length, 0);
+      Object.values(finalSettings.hooks).reduce((total: number, configs: any) => {
+        return total + configs.reduce((configTotal: number, config: any) => configTotal + config.hooks.length, 0);
       }, 0) : 0;
 
     console.log(chalk.gray(`   Current hooks: ${existingHookCount}`));
@@ -508,8 +508,8 @@ export class ImportCommand {
     if (finalSettings.hooks) {
       console.log(chalk.blue('\n   Events to be configured:'));
       for (const event of Object.keys(finalSettings.hooks)) {
-        const configs = finalSettings.hooks[event as keyof ClaudeSettings['hooks']]!;
-        const hookCount = configs.reduce((total, config) => total + config.hooks.length, 0);
+        const configs = (finalSettings.hooks as any)[event];
+        const hookCount = configs.reduce((total: number, config: any) => total + config.hooks.length, 0);
         console.log(chalk.gray(`     • ${event}: ${hookCount} hook(s)`));
       }
     }

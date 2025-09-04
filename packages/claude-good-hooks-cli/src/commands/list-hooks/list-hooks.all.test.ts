@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { listHooks } from './list-hooks.js';
+import { ListHooksCommand } from './list-hooks.js';
 import * as settingsModule from '../../utils/settings.js';
 import * as modulesModule from '../../utils/modules.js';
 import type { HookPlugin, HookMetadata } from '@sammons/claude-good-hooks-types';
@@ -66,7 +66,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(sampleHookPlugin); // local-hook
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify both remote and local loading
       expect(mockGetRemoteHooks).toHaveBeenCalled();
@@ -94,7 +95,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(sampleHookPlugin); // installed loading
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify - should show as installed (✓)
       expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-good-claude-hook** v1.2.0');
@@ -107,7 +109,8 @@ describe('List Hooks Command - All Available', () => {
       mockLoadHookPlugin.mockResolvedValue(sampleHookPlugin);
 
       // Execute
-      await listHooks({ global: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { global: true, parent: {} });
 
       // Verify global scope
       expect(mockGetInstalledHookModules).toHaveBeenCalledWith(true);
@@ -127,7 +130,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(sampleHookPlugin); // local
 
       // Execute
-      await listHooks({ parent: { json: true } });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: { json: true } });
 
       // Verify JSON structure
       const jsonOutput = JSON.parse(consoleLogSpy.mock.calls[0][0]);
@@ -173,7 +177,8 @@ describe('List Hooks Command - All Available', () => {
       mockLoadHookPlugin.mockResolvedValue(longNameHook);
 
       // Execute - should not crash or break formatting
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify
       expect(consoleLogSpy).toHaveBeenCalledWith('✗ **a-very-long-hook-name-that-exceeds-normal-lengths** v1.0.0');
@@ -191,7 +196,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(sampleHookPlugin); // installed
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify - should show both entries
       const calls = consoleLogSpy.mock.calls.map(call => call[0]);
@@ -206,7 +212,8 @@ describe('List Hooks Command - All Available', () => {
       mockReadSettings.mockReturnValue({});
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify
       expect(consoleLogSpy).toHaveBeenCalledWith('⚠ No hooks found');
@@ -219,7 +226,8 @@ describe('List Hooks Command - All Available', () => {
       mockLoadHookPlugin.mockRejectedValue(new Error('Remote loading failed'));
 
       // Execute - should not crash
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify - should handle gracefully
       expect(consoleLogSpy).toHaveBeenCalledWith('⚠ No hooks found');
@@ -239,7 +247,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(null); // local-bad fails
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify - should show successful loads only
       expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-good-claude-hook** v1.2.0');
@@ -256,7 +265,8 @@ describe('List Hooks Command - All Available', () => {
       mockLoadHookPlugin.mockResolvedValue(sampleHookPlugin);
 
       // Execute - should not crash
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify - should still show local hooks
       expect(consoleLogSpy).toHaveBeenCalledWith('✓ **dirty-good-claude-hook** v1.2.0');
@@ -276,7 +286,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce({ ...sampleHookPlugin, name: 'local-hook' }); // local-only
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify source indicators
       expect(consoleLogSpy).toHaveBeenCalledWith('✗ **dirty-good-claude-hook** v1.2.0'); // Remote (not installed)
@@ -295,7 +306,8 @@ describe('List Hooks Command - All Available', () => {
         .mockResolvedValueOnce(sampleHookPlugin);
 
       // Execute
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Verify package info display
       expect(consoleLogSpy).toHaveBeenCalledWith('  Package: remote-package');

@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
 import type { HelpInfo } from '../command-registry.js';
+import type { HookConfiguration, HookCommand } from '@sammons/claude-good-hooks-types';
 
 interface ListHooksOptions {
   installed?: boolean;
@@ -62,6 +63,39 @@ export class ListHooksCommand {
   }
 
   /**
+   * Format hook configuration for display
+   */
+  private formatHookConfiguration(config: HookConfiguration): string[] {
+    const lines: string[] = [];
+    
+    if (config.matcher) {
+      lines.push(`  Matcher: ${chalk.cyan(config.matcher)}`);
+    }
+    
+    if (config.hooks && config.hooks.length > 0) {
+      if (config.hooks.length === 1) {
+        const hook = config.hooks[0];
+        lines.push(`  Type: ${chalk.green(hook.type)}`);
+        lines.push(`  Command: ${chalk.yellow(hook.command)}`);
+        if (hook.timeout) {
+          lines.push(`  Timeout: ${chalk.magenta(hook.timeout + 's')}`);
+        }
+      } else {
+        lines.push(`  Commands: ${chalk.green(config.hooks.length + ' hooks')}`);
+        config.hooks.forEach((hook, index) => {
+          lines.push(`    ${index + 1}. Type: ${chalk.green(hook.type)}`);
+          lines.push(`       Command: ${chalk.yellow(hook.command)}`);
+          if (hook.timeout) {
+            lines.push(`       Timeout: ${chalk.magenta(hook.timeout + 's')}`);
+          }
+        });
+      }
+    }
+    
+    return lines;
+  }
+
+  /**
    * Execute the list-hooks command
    */
   async execute(args: string[], options: ListHooksOptions): Promise<void> {
@@ -87,8 +121,26 @@ export class ListHooksCommand {
 
       for (const hook of hooks) {
         const status = hook.installed ? chalk.green('✓') : chalk.red('✗');
-        console.log(`${status} ${chalk.bold(hook.name)} v${hook.version}`);
-        console.log(`  ${hook.description}`);
+        const version = hook.version === 'n/a' ? '' : ` v${hook.version}`;
+        console.log(`${status} ${chalk.bold(hook.name)}${version}`);
+        
+        // Debug: check if hookConfiguration exists
+        // console.log('DEBUG: hookConfiguration:', JSON.stringify(hook.hookConfiguration, null, 2));
+        
+        // Show hook configuration details if available
+        if (hook.hookConfiguration) {
+          const configLines = this.formatHookConfiguration(hook.hookConfiguration);
+          if (configLines.length > 0) {
+            configLines.forEach(line => console.log(line));
+          } else {
+            // Fallback to description if no config details
+            console.log(`  ${hook.description}`);
+          }
+        } else {
+          // Show description for plugins without configuration
+          console.log(`  ${hook.description}`);
+        }
+        
         if (hook.packageName) {
           console.log(`  Package: ${chalk.dim(hook.packageName)}`);
         }

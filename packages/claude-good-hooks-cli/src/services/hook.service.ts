@@ -93,7 +93,9 @@ export class HookService {
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-
+      if (arg == null) {
+        throw new Error("Unexpectedly nullish arg, this is a bug")
+      }
       if (arg.startsWith('--')) {
         const argName = arg.slice(2);
         const argDef = plugin.customArgs[argName];
@@ -161,6 +163,7 @@ export class HookService {
               version: 'n/a',
               source: isGlobal ? 'global' : 'local',
               installed: true,
+              hookConfiguration: config,
             });
           }
         }

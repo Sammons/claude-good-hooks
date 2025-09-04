@@ -1,5 +1,6 @@
 import { homedir } from 'os';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { 

@@ -38,7 +38,7 @@ describe('ApplyCommand - argument parsing', () => {
         default: true,
       },
     },
-    makeHook: (args) => ({
+    makeHook: (args: Record<string, unknown>) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',
@@ -56,6 +56,10 @@ describe('ApplyCommand - argument parsing', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset spy call counts
+    consoleSpy.mockClear();
+    consoleErrorSpy.mockClear();
+    processExitSpy.mockClear();
   });
 
   it('should parse string arguments correctly', async () => {
@@ -102,7 +106,7 @@ describe('ApplyCommand - argument parsing', () => {
           default: false,
         },
       },
-      makeHook: (args) => ({
+      makeHook: (args: Record<string, unknown>) => ({
         PreToolUse: [
           {
             hooks: [

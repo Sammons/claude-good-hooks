@@ -4,7 +4,7 @@ import * as settings from '../../utils/settings.js';
 import * as validator from '../../utils/validator.js';
 import * as fs from 'fs';
 import { createInterface } from 'readline/promises';
-import type { ClaudeSettings, ValidationResult } from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings, SchemaValidationResult } from '@sammons/claude-good-hooks-types';
 
 // Mock dependencies
 vi.mock('../../utils/settings.js');
@@ -18,7 +18,7 @@ global.fetch = vi.fn();
 const mockReadSettings = vi.mocked(settings.readSettings);
 const mockWriteSettings = vi.mocked(settings.writeSettings);
 const mockValidateSettings = vi.mocked(validator.validateSettings);
-const mockPrintValidationResults = vi.mocked(validator.printValidationResults);
+const mockPrintSchemaValidationResults = vi.mocked(validator.printValidationResults);
 const mockExistsSync = vi.mocked(fs.existsSync);
 const mockReadFileSync = vi.mocked(fs.readFileSync);
 const mockCreateInterface = vi.mocked(createInterface);
@@ -73,11 +73,9 @@ describe('importCommand', () => {
     }
   };
 
-  const mockValidResult: ValidationResult = {
+  const mockValidResult: SchemaValidationResult = {
     valid: true,
-    errors: [],
-    warnings: [],
-    suggestions: []
+    errors: []
   };
 
   beforeEach(() => {
@@ -204,10 +202,10 @@ describe('importCommand', () => {
       await importCommand('/path/to/config.json', { merge: true, yes: true });
 
       const mergedCall = mockWriteSettings.mock.calls[0];
-      const mergedSettings = mergedCall[1];
+      const mergedSettings = mergedCall?.[1];
       
-      expect(mergedSettings.hooks.PreToolUse).toBeDefined();
-      expect(mergedSettings.hooks.PostToolUse).toBeDefined();
+      expect(mergedSettings?.hooks?.PreToolUse).toBeDefined();
+      expect(mergedSettings?.hooks?.PostToolUse).toBeDefined();
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Merging with existing configuration'));
     });
 
@@ -306,33 +304,29 @@ describe('importCommand', () => {
 
   describe('validation errors', () => {
     it('should handle validation errors and exit', async () => {
-      const invalidResult: ValidationResult = {
+      const invalidResult: SchemaValidationResult = {
         valid: false,
         errors: [{
-          type: 'syntax',
+          path: '/hooks',
           message: 'Invalid command syntax'
-        }],
-        warnings: [],
-        suggestions: []
+        }]
       };
       mockValidateSettings.mockReturnValue(invalidResult);
 
       await importCommand('/path/to/config.json', { yes: true });
 
-      expect(mockPrintValidationResults).toHaveBeenCalledWith(invalidResult, true);
+      expect(mockPrintSchemaValidationResults).toHaveBeenCalledWith(invalidResult, true);
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Import cancelled due to validation errors'));
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it('should continue with --force flag despite validation errors', async () => {
-      const invalidResult: ValidationResult = {
+      const invalidResult: SchemaValidationResult = {
         valid: false,
         errors: [{
-          type: 'syntax',
+          path: '/hooks',
           message: 'Invalid command syntax'
-        }],
-        warnings: [],
-        suggestions: []
+        }]
       };
       mockValidateSettings.mockReturnValue(invalidResult);
 
@@ -343,7 +337,7 @@ describe('importCommand', () => {
     });
 
     it('should show validation warnings', async () => {
-      const warningResult: ValidationResult = {
+      const warningResult: SchemaValidationResult = {
         valid: true,
         errors: [],
         warnings: [{

@@ -36,7 +36,7 @@ export class DoctorCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], _options: any): boolean | ValidationResult {
     // Doctor command doesn't require any arguments
     return true;
   }
@@ -65,7 +65,7 @@ export class DoctorCommand {
   /**
    * Execute the doctor command
    */
-  async execute(args: string[], options: DoctorOptions): Promise<void> {
+  async execute(_args: string[], options: DoctorOptions): Promise<void> {
     const isJson = options.parent?.json;
     const checks: Array<{ name: string; status: boolean; message?: string }> = [];
 
@@ -84,7 +84,7 @@ export class DoctorCommand {
 
     // Check Node.js version
     const nodeVersion = process.version;
-    const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
+    const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]!);
     const nodeOk = majorVersion >= 20;
     checks.push({
       name: 'Node.js version',

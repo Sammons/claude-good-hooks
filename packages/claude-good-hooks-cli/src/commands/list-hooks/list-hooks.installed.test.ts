@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { listHooks } from './list-hooks.js';
+import { ListHooksCommand } from './list-hooks.js';
 import * as settingsModule from '../../utils/settings.js';
 import * as modulesModule from '../../utils/modules.js';
 import type { HookPlugin, HookMetadata, ClaudeSettings } from '@sammons/claude-good-hooks-types';
@@ -60,7 +60,8 @@ describe('listHooks - Installed Hooks', () => {
         } as HookPlugin);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(mockGetInstalledHookModules).toHaveBeenCalledWith(undefined);
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('local-formatter', undefined);
@@ -77,7 +78,8 @@ describe('listHooks - Installed Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockGlobalPlugin);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, global: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, global: true, parent: {} });
 
       expect(mockGetInstalledHookModules).toHaveBeenCalledWith(true);
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('global-linter', true);
@@ -93,7 +95,8 @@ describe('listHooks - Installed Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockLocalPlugin);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         JSON.stringify(
@@ -118,7 +121,8 @@ describe('listHooks - Installed Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockLocalPlugin);
       mockReadSettings.mockReturnValue(mockSettingsWithHooks);
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('local-formatter v1.2.3'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('PreToolUse:Write|Edit'));
@@ -131,7 +135,8 @@ describe('listHooks - Installed Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue(mockSettingsWithHooks);
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ PreToolUse:Write|Edit'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Configured PreToolUse hook'));
@@ -151,7 +156,8 @@ describe('listHooks - Installed Hooks', () => {
         },
       });
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ SessionStart'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Configured SessionStart hook'));
@@ -161,7 +167,8 @@ describe('listHooks - Installed Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue(mockSettingsWithHooks);
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       const expectedHooks = [
         {
@@ -190,7 +197,8 @@ describe('listHooks - Installed Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(null);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('broken-plugin', undefined);
       // Should not crash and should show "No hooks found" since plugin loading failed
@@ -203,7 +211,8 @@ describe('listHooks - Installed Hooks', () => {
         throw new Error('Settings file corrupted');
       });
 
-      await expect(listHooks({ installed: true, parent: {} })).rejects.toThrow(
+      const command = new ListHooksCommand();
+      await expect(command.execute([], { installed: true, parent: {} })).rejects.toThrow(
         'Settings file corrupted'
       );
     });
@@ -214,7 +223,8 @@ describe('listHooks - Installed Hooks', () => {
       });
       mockReadSettings.mockReturnValue({});
 
-      await expect(listHooks({ installed: true, parent: {} })).rejects.toThrow('npm ls failed');
+      const command = new ListHooksCommand();
+      await expect(command.execute([], { installed: true, parent: {} })).rejects.toThrow('npm ls failed');
     });
   });
 
@@ -223,7 +233,8 @@ describe('listHooks - Installed Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No hooks found'));
     });
@@ -232,7 +243,8 @@ describe('listHooks - Installed Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify([], null, 2));
     });
@@ -241,7 +253,8 @@ describe('listHooks - Installed Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue([]);
       mockReadSettings.mockReturnValue({ hooks: {} });
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No hooks found'));
     });
@@ -265,7 +278,8 @@ describe('listHooks - Installed Hooks', () => {
         },
       });
 
-      await listHooks({ installed: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ PreToolUse:Write'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ PreToolUse:Edit'));
@@ -287,7 +301,8 @@ describe('listHooks - Installed Hooks', () => {
         },
       });
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output).toHaveLength(9);
@@ -313,7 +328,8 @@ describe('listHooks - Installed Hooks', () => {
       } as HookPlugin);
       mockReadSettings.mockReturnValue(mockSettingsWithHooks);
 
-      await listHooks({ installed: true, global: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, global: true, json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0].source).toBe('global');
@@ -330,7 +346,8 @@ describe('listHooks - Installed Hooks', () => {
       } as HookPlugin);
       mockReadSettings.mockReturnValue({});
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0].source).toBe('local');
@@ -347,7 +364,8 @@ describe('listHooks - Installed Hooks', () => {
       } as HookPlugin);
       mockReadSettings.mockReturnValue(mockSettingsWithHooks);
 
-      await listHooks({ installed: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { installed: true, json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output).toHaveLength(3); // 1 plugin + 2 configured hooks

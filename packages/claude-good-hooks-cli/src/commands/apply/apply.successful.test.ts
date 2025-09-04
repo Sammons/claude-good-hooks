@@ -1,10 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ApplyCommand } from './apply.js';
+import * as modules from '../../utils/modules.js';
+import * as settings from '../../utils/settings.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
-// Mock functions
-const mockLoadHookPlugin = vi.fn();
-const mockAddHookToSettings = vi.fn();
+// Mock dependencies
+vi.mock('../../utils/modules.js');
+vi.mock('../../utils/settings.js');
+
+const mockLoadHookPlugin = vi.mocked(modules.loadHookPlugin);
+const mockAddHookToSettings = vi.mocked(settings.addHookToSettings);
 
 // Mock console methods
 const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -33,7 +38,7 @@ describe('ApplyCommand - successful hook application', () => {
         default: true,
       },
     },
-    makeHook: (args) => ({
+    makeHook: (args: Record<string, unknown>) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',
@@ -51,6 +56,10 @@ describe('ApplyCommand - successful hook application', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset spy call counts
+    consoleSpy.mockClear();
+    consoleErrorSpy.mockClear();
+    processExitSpy.mockClear();
   });
 
   it('should apply a hook to project scope by default', async () => {

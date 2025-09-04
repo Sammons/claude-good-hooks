@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { doctorCommand } from './doctor.js';
+import { DoctorCommand } from './doctor.js';
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import { join } from 'path';
@@ -41,17 +41,19 @@ describe('doctorCommand - successful system checks', () => {
   });
 
   it('should display successful checks', async () => {
-    await doctorCommand({ parent: {} });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: {} });
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('System Check:'));
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('All checks passed!'));
   });
 
   it('should return JSON output when json flag is set', async () => {
-    await doctorCommand({ parent: { json: true } });
+    const command = new DoctorCommand();
+    await command.execute([], { parent: { json: true } });
 
     expect(consoleSpy).toHaveBeenCalledTimes(1);
-    const jsonOutput = JSON.parse(consoleSpy.mock.calls[0][0]);
+    const jsonOutput = JSON.parse(consoleSpy.mock.calls[0]?.[0] || '{}');
     
     expect(jsonOutput).toHaveProperty('checks');
     expect(Array.isArray(jsonOutput.checks)).toBe(true);

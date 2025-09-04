@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { HookService } from './hook.service.js';
 
 // Since the test would require significant rewriting to mock the ModuleService and SettingsService properly,

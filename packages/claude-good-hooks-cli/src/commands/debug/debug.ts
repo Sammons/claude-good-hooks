@@ -38,7 +38,7 @@ function createTracingHook(config: any) {
   return config;
 }
 
-function generateDebugReport(execution: any, options: any) {
+function generateDebugReport(execution: any, _options: any) {
   return `Debug report for ${execution.context?.hookName || 'unknown'}`;
 }
 
@@ -90,7 +90,7 @@ export class DebugCommand {
       'report', 'logs', 'analyze', 'breakpoint'
     ];
 
-    if (args.length > 0 && !validSubcommands.includes(args[0])) {
+    if (args.length > 0 && !validSubcommands.includes(args[0]!)) {
       return {
         valid: false,
         errors: [`Invalid debug subcommand: ${args[0]}. Valid subcommands: ${validSubcommands.join(', ')}`]
@@ -260,7 +260,7 @@ export class DebugCommand {
   /**
    * Disable debugging for hooks
    */
-  private async disableDebugging(args: string[], options: DebugOptions): Promise<void> {
+  private async disableDebugging(args: string[], _options: DebugOptions): Promise<void> {
     const hookName = args[1];
     
     if (!hookName) {

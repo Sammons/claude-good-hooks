@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { listHooks } from './list-hooks.js';
+import { ListHooksCommand } from './list-hooks.js';
 import * as modules from '../../utils/modules.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
@@ -45,7 +45,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockReturnValueOnce([]); // Second call for another-remote-hook
       mockGetInstalledHookModules.mockReturnValue(['local-hook']); // Global check
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(mockGetRemoteHooks).toHaveBeenCalled();
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('@org/remote-formatter', false);
@@ -65,7 +66,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockReturnValueOnce([]); // Second hook is not installed locally
       mockGetInstalledHookModules.mockReturnValue(['other-hook']); // Global installed hooks
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ remote-formatter'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ remote-formatter'));
@@ -76,7 +78,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockRemotePlugin);
       mockGetInstalledHookModules.mockReturnValue(['remote-hook']);
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(JSON.stringify([{
@@ -101,7 +104,8 @@ describe('listHooks - Remote Hooks', () => {
       } as HookPlugin);
       mockGetInstalledHookModules.mockReturnValue(['global-remote-hook']);
 
-      await listHooks({ global: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { global: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Available Hooks (global):'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ global-remote v3.0.0'));
@@ -112,7 +116,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockRemotePlugin);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ global: true, json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { global: true, json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0].source).toBe('global');
@@ -127,7 +132,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockResolvedValueOnce(mockRemotePlugin) // Remote hook
         .mockResolvedValueOnce(mockLocalPlugin); // Local hook
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('remote-hook', false);
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('local-hook', false);
@@ -152,7 +158,8 @@ describe('listHooks - Remote Hooks', () => {
           version: '2.0.0',
         } as HookPlugin);
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output).toHaveLength(2);
@@ -171,7 +178,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(null);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('broken-remote-hook', false);
       // Should not crash and should not display the broken hook
@@ -184,7 +192,8 @@ describe('listHooks - Remote Hooks', () => {
       });
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await expect(listHooks({ parent: {} })).rejects.toThrow(
+      const command = new ListHooksCommand();
+      await expect(command.execute([], { parent: {} })).rejects.toThrow(
         'Failed to read remote hooks config'
       );
     });
@@ -196,7 +205,8 @@ describe('listHooks - Remote Hooks', () => {
         throw new Error('npm ls failed');
       });
 
-      await expect(listHooks({ parent: {} })).rejects.toThrow('npm ls failed');
+      const command = new ListHooksCommand();
+      await expect(command.execute([], { parent: {} })).rejects.toThrow('npm ls failed');
     });
   });
 
@@ -205,7 +215,8 @@ describe('listHooks - Remote Hooks', () => {
       mockGetRemoteHooks.mockReturnValue([]);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No hooks found'));
     });
@@ -214,7 +225,8 @@ describe('listHooks - Remote Hooks', () => {
       mockGetRemoteHooks.mockReturnValue([]);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify([], null, 2));
     });
@@ -224,7 +236,8 @@ describe('listHooks - Remote Hooks', () => {
       mockGetInstalledHookModules.mockReturnValue(['local-hook']);
       mockLoadHookPlugin.mockResolvedValue(mockLocalPlugin);
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       // Should still show local hooks
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('local-linter'));
@@ -241,7 +254,8 @@ describe('listHooks - Remote Hooks', () => {
       } as HookPlugin);
       mockGetInstalledHookModules.mockReturnValue(['@scoped/remote-package']);
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0]).toEqual({
@@ -259,7 +273,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockRemotePlugin);
       mockGetInstalledHookModules.mockReturnValue([]); // Not installed
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0].installed).toBe(false);
@@ -295,7 +310,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockReturnValueOnce([]) // Second hook not installed
         .mockReturnValueOnce(['standalone-hook']); // Third hook installed
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ org1-hook v1.0.0'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ org2-hook v2.0.0'));
@@ -307,7 +323,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockRemotePlugin);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('hook@1.2.3', false);
       expect(mockLoadHookPlugin).toHaveBeenCalledWith('git+https://github.com/user/repo.git', false);
@@ -322,7 +339,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockReturnValueOnce(['test-hook']) // Local check - installed
         .mockReturnValueOnce([]); // Should not reach this for the same hook
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       const output = JSON.parse(consoleSpy.mock.calls[0][0]);
       expect(output[0].installed).toBe(true);
@@ -349,7 +367,8 @@ describe('listHooks - Remote Hooks', () => {
         .mockReturnValueOnce([]); // Second hook is not installed
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { parent: {} });
 
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✓ installed v1.0.0'));
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('✗ uninstalled v1.0.0'));
@@ -363,7 +382,8 @@ describe('listHooks - Remote Hooks', () => {
       mockLoadHookPlugin.mockResolvedValue(mockRemotePlugin);
       mockGetInstalledHookModules.mockReturnValue([]);
 
-      await listHooks({ json: true, parent: {} });
+      const command = new ListHooksCommand();
+    await command.execute([], { json: true, parent: {} });
 
       expect(mockLoadHookPlugin).toHaveBeenCalledTimes(50);
       expect(mockGetInstalledHookModules).toHaveBeenCalledTimes(50 + 1); // 50 for remote hooks + 1 for local

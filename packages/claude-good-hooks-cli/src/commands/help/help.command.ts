@@ -1,5 +1,6 @@
 import chalk from 'chalk';
-import { HelpInfo, CommandRegistry } from '../command-registry.js';
+import { CommandRegistry } from '../command-registry.js';
+import type { HelpInfo } from '../command-registry.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -31,7 +32,7 @@ export class HelpCommand {
   /**
    * Validate command arguments - help doesn't require any validation
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], _options: any): boolean | ValidationResult {
     return true;
   }
 
@@ -63,7 +64,7 @@ export class HelpCommand {
     if (args.length > 0) {
       // Show help for a specific command
       const command = args[0];
-      const helpInfo = commandRegistry.getCommandHelp(command);
+      const helpInfo = commandRegistry.getCommandHelp(command!);
 
       if (!helpInfo) {
         console.log(`No help available for command: ${command}`);

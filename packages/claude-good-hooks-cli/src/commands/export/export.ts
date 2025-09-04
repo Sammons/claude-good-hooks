@@ -1,5 +1,5 @@
 import { writeFileSync, existsSync } from 'fs';
-import { join, basename, extname } from 'path';
+import { basename, extname } from 'path';
 import chalk from 'chalk';
 import { readSettings } from '../../utils/settings.js';
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
@@ -241,12 +241,12 @@ function generateHooksTemplate(settings: ClaudeSettings): string {
   
   const events = Object.keys(settings.hooks);
   events.forEach((event, eventIndex) => {
-    const configs = settings.hooks![event as keyof ClaudeSettings['hooks']]!;
+    const configs = settings.hooks![event as keyof ClaudeSettings['hooks']]! as any[];
     
     template += `    # ${eventDescriptions[event] || 'Event hook'}\n`;
     template += `    "${event}": [\n`;
     
-    configs.forEach((config, configIndex) => {
+    configs.forEach((config: any, configIndex: number) => {
       template += '      {\n';
       
       if (config.matcher) {
@@ -256,7 +256,7 @@ function generateHooksTemplate(settings: ClaudeSettings): string {
       
       template += '        "hooks": [\n';
       
-      config.hooks.forEach((hook, hookIndex) => {
+      config.hooks.forEach((hook: any, hookIndex: number) => {
         template += '          {\n';
         template += '            "type": "command",\n';
         

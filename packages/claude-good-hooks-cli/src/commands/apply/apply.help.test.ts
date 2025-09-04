@@ -38,7 +38,7 @@ describe('ApplyCommand - help functionality', () => {
         default: true,
       },
     },
-    makeHook: (args) => ({
+    makeHook: (args: Record<string, unknown>) => ({
       PreToolUse: [
         {
           matcher: (args.pattern as string) || '*',
@@ -56,6 +56,10 @@ describe('ApplyCommand - help functionality', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset spy call counts
+    consoleSpy.mockClear();
+    consoleErrorSpy.mockClear();
+    processExitSpy.mockClear();
   });
 
   it('should display help information in human-readable format', async () => {

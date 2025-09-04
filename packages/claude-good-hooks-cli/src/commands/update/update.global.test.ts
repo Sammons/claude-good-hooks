@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { updateCommand } from './update.js';
 import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
