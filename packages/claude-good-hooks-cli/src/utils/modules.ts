@@ -1,12 +1,17 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { execSync } from 'child_process';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+import { detectPackageManager } from './detect-package-manager.js';
+import { PackageManagerHelper } from './package-manager-helper.js';
+import { ProcessService } from '../services/process.service.js';
 
-export function isModuleInstalled(moduleName: string, global: boolean = false): boolean {
+export async function isModuleInstalled(moduleName: string, global: boolean = false): Promise<boolean> {
   try {
     if (global) {
-      const globalPath = execSync('npm root -g', { encoding: 'utf-8' }).trim();
+      const packageManager = detectPackageManager();
+      const processService = new ProcessService();
+      const helper = new PackageManagerHelper(packageManager, processService);
+      const globalPath = await helper.getGlobalRoot();
       return existsSync(join(globalPath, moduleName));
     } else {
       const localPath = join(process.cwd(), 'node_modules', moduleName);
@@ -25,7 +30,10 @@ export async function loadHookPlugin(
     let modulePath: string;
 
     if (global) {
-      const globalPath = execSync('npm root -g', { encoding: 'utf-8' }).trim();
+      const packageManager = detectPackageManager();
+      const processService = new ProcessService();
+      const helper = new PackageManagerHelper(packageManager, processService);
+      const globalPath = await helper.getGlobalRoot();
       modulePath = join(globalPath, moduleName);
     } else {
       modulePath = moduleName;
@@ -39,11 +47,12 @@ export async function loadHookPlugin(
   }
 }
 
-export function getInstalledHookModules(global: boolean = false): string[] {
+export async function getInstalledHookModules(global: boolean = false): Promise<string[]> {
   try {
-    const command = global ? 'npm ls -g --json --depth=0' : 'npm ls --json --depth=0';
-    const output = execSync(command, { encoding: 'utf-8' });
-    const data = JSON.parse(output);
+    const packageManager = detectPackageManager();
+    const processService = new ProcessService();
+    const helper = new PackageManagerHelper(packageManager, processService);
+    const data = await helper.listModules({ depth: 0, global });
 
     const dependencies = data.dependencies || {};
     return Object.keys(dependencies).filter(
@@ -54,52 +63,3 @@ export function getInstalledHookModules(global: boolean = false): string[] {
   }
 }
 
-export function getRemoteHooks(): string[] {
-  try {
-    const configPath = join(process.cwd(), '.claude-good-hooks.json');
-    if (!existsSync(configPath)) {
-      return [];
-    }
-    const config = JSON.parse(readFileSync(configPath, 'utf-8'));
-    return config.remotes || [];
-  } catch {
-    return [];
-  }
-}
-
-interface RemoteConfig {
-  remotes?: string[];
-}
-
-export function addRemoteHook(moduleName: string): void {
-  const configPath = join(process.cwd(), '.claude-good-hooks.json');
-  let config: RemoteConfig = {};
-
-  if (existsSync(configPath)) {
-    config = JSON.parse(readFileSync(configPath, 'utf-8'));
-  }
-
-  if (!config.remotes) {
-    config.remotes = [];
-  }
-
-  if (!config.remotes.includes(moduleName)) {
-    config.remotes.push(moduleName);
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
-  }
-}
-
-export function removeRemoteHook(moduleName: string): void {
-  const configPath = join(process.cwd(), '.claude-good-hooks.json');
-
-  if (!existsSync(configPath)) {
-    return;
-  }
-
-  const config = JSON.parse(readFileSync(configPath, 'utf-8'));
-
-  if (config.remotes) {
-    config.remotes = config.remotes.filter((name: string) => name !== moduleName);
-    writeFileSync(configPath, JSON.stringify(config, null, 2));
-  }
-}

@@ -14,6 +14,8 @@ import { ProcessService } from '../../services/process.service.js';
 import type { InitSubCommand } from './init-types.js';
 import type { InitOptions } from './init-options.js';
 import type { ValidationResult } from '../common-validation-types.js';
+import { detectPackageManager } from '../../utils/detect-package-manager.js';
+import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 
 export class InitCreateCommand implements InitSubCommand {
   private settingsService: SettingsService;
@@ -112,7 +114,7 @@ export class InitCreateCommand implements InitSubCommand {
     }
 
     // Write settings to file
-    this.settingsService.writeSettings(scope, settings);
+    await this.settingsService.writeSettings(scope, settings);
     
     if (isJson) {
       const totalEvents = Object.keys(settings.hooks || {}).length;
@@ -144,8 +146,11 @@ export class InitCreateCommand implements InitSubCommand {
       console.log(chalk.gray(`   • Scope: ${scope}`));
 
       // Show next steps
+      const packageManager = detectPackageManager();
+      const helper = new PackageManagerHelper(packageManager);
+      const installCmd = helper.getInstallInstructions('<hook-package>', true);
       console.log(chalk.blue('\n🎉 Next Steps:'));
-      console.log(chalk.gray('   • Install hook dependencies: npm install -g <hook-package>'));
+      console.log(chalk.gray(`   • Install hook dependencies: ${installCmd}`));
       console.log(chalk.gray('   • Apply hooks: claude-good-hooks apply <hook-name>'));
       console.log(chalk.gray('   • List available hooks: claude-good-hooks list-hooks'));
       console.log(chalk.gray('   • Validate configuration: claude-good-hooks validate'));

@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import { CommandRegistry } from '../command-registry.js';
 import type { HelpInfo } from '../command-registry.js';
+import { detectPackageManager } from '../../utils/detect-package-manager.js';
+import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -121,7 +123,10 @@ export class HelpCommand {
     console.log(`  ${chalk.dim('# List all available hooks')}`);
     console.log(`  claude-good-hooks list-hooks`);
     console.log(`  ${chalk.dim('# Install and apply the dirty hook')}`);
-    console.log(`  npm install -g @sammons/dirty-good-claude-hook`);
+    const packageManager = detectPackageManager();
+    const helper = new PackageManagerHelper(packageManager);
+    const installCmd = helper.getInstallInstructions('@sammons/dirty-good-claude-hook', true);
+    console.log(`  ${installCmd}`);
     console.log(`  claude-good-hooks apply --global dirty`);
     console.log(`  ${chalk.dim('# Apply hook with custom arguments')}`);
     console.log(`  claude-good-hooks apply --project dirty --staged --filenames`);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { parseCliArgs, createOptionsWithParent } from './utils/cli-parser.js';
+import { parseCliArgs, createOptionsWithParent } from './helpers/cli-parser-helper.js';
 import { CommandRegistry } from './commands/command-registry.js';
 
 async function main(): Promise<void> {

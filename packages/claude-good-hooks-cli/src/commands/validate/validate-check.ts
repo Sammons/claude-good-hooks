@@ -4,11 +4,11 @@
 
 import { existsSync } from 'fs';
 import chalk from 'chalk';
-import { readSettings, getSettingsPath } from '../../utils/settings.js';
 import { validateSettings, testCommand, validateCommandPaths, printValidationResults } from '../../utils/validator.js';
-import { atomicReadFile, createVersionedSettings } from '@sammons/claude-good-hooks-settings';
+import { atomicReadFile, createVersionedSettings, isLegacySettings, ensureVersionedSettings } from '@sammons/claude-good-hooks-settings';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ProcessService } from '../../services/process.service.js';
+import { SettingsService } from '../../services/settings.service.js';
 import type { ValidateSubCommand } from './validate-types.js';
 import type { ValidateOptions } from './validate-options.js';
 import type { ValidationResult } from '../common-validation-types.js';
@@ -18,9 +18,11 @@ import type { ValidationResult as UtilsValidationResult } from '../../utils/vali
 
 export class ValidateCheckCommand implements ValidateSubCommand {
   private processService: ProcessService;
+  private settingsService: SettingsService;
 
   constructor(processService: ProcessService) {
     this.processService = processService;
+    this.settingsService = new SettingsService();
   }
 
   /**
@@ -55,9 +57,9 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     console.log(chalk.blue.bold('🔍 Claude Good Hooks Validation\n'));
     
     if (migrate) {
-      console.log(chalk.cyan('Migration enabled: Settings will be automatically migrated if needed\n'));
+      console.log(chalk.cyan('Conversion enabled: Legacy settings will be automatically converted if needed\n'));
     } else {
-      console.log(chalk.gray('Migration disabled: Settings will be validated as-is (use --migrate to enable migration)\n'));
+      console.log(chalk.gray('Conversion disabled: Settings will be validated as-is (use --migrate to enable conversion)\n'));
     }
 
     const scopes = scope === 'all' ? ['global', 'project', 'local'] as const : [scope as 'global' | 'project' | 'local'];
@@ -65,7 +67,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     const results: Array<{ scope: string; result: UtilsValidationResult; path: string }> = [];
 
     for (const currentScope of scopes) {
-      const settingsPath = getSettingsPath(currentScope);
+      const settingsPath = this.settingsService.getSettingsPath(currentScope);
       
       console.log(chalk.blue(`Validating ${currentScope} settings...`));
       console.log(chalk.gray(`Path: ${settingsPath}`));
@@ -75,7 +77,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
         continue;
       }
 
-      const settings = migrate ? readSettings(currentScope) : this.readSettingsWithoutMigration(currentScope);
+      const settings = migrate ? await this.settingsService.readSettings(currentScope) : await this.readSettingsWithoutConversion(currentScope);
       const result = validateSettings(settings, settingsPath);
 
       // Additional validations if requested
@@ -175,10 +177,11 @@ export class ValidateCheckCommand implements ValidateSubCommand {
   }
 
   /**
-   * Read settings without automatic migration (for validation purposes)
+   * Read settings without automatic conversion (for validation purposes)
+   * This allows us to validate legacy settings as-is when migrate flag is false
    */
-  private readSettingsWithoutMigration(scope: 'global' | 'project' | 'local'): VersionedClaudeSettings {
-    const path = getSettingsPath(scope);
+  private async readSettingsWithoutConversion(scope: 'global' | 'project' | 'local'): Promise<VersionedClaudeSettings> {
+    const path = this.settingsService.getSettingsPath(scope);
     
     // Use atomic read operation
     const readResult = atomicReadFile(path, { defaultValue: '{}' });
@@ -191,11 +194,19 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     try {
       const parsed = JSON.parse(readResult.content || '{}');
       
-      // Return parsed settings without migration
+      // If it's legacy format, just add minimal version info for validation
+      // but don't do full conversion
+      if (isLegacySettings(parsed)) {
+        return {
+          ...parsed,
+          version: '0.0.0', // Mark as legacy for validation
+          $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
+        } as VersionedClaudeSettings;
+      }
+      
+      // Ensure it has a version for validation
       if (!parsed.version) {
-        // Add version info if missing, but don't migrate
         parsed.version = '1.0.0';
-        parsed.lastModified = new Date().toISOString();
       }
       
       return parsed as VersionedClaudeSettings;

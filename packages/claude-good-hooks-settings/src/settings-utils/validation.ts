@@ -1,5 +1,10 @@
 /**
  * Configuration validation utilities using JSON Schema
+ * 
+ * These are standalone functions that can be imported individually:
+ * ```ts
+ * import { validateSettings, convertLegacySettings } from '@sammons/claude-good-hooks-settings/settings-utils/validation';
+ * ```
  */
 
 import Ajv from 'ajv';
@@ -9,8 +14,9 @@ import type {
   SchemaValidationError,
   SchemaValidationResult,
   VersionedClaudeSettings,
-} from './schemas/index.js';
-import { claudeSettingsSchema, CURRENT_SCHEMA_VERSION } from './schemas/index.js';
+} from '../schemas/index.js';
+import { claudeSettingsSchema, CURRENT_SCHEMA_VERSION } from '../schemas/index.js';
+import { isLegacySettings, convertLegacyToVersionedSettings, ensureVersionedSettings } from './migrations.js';
 
 // Initialize AJV with format support
 const ajv = new Ajv({
@@ -51,7 +57,7 @@ export function validateSettings(settings: unknown): SchemaValidationResult {
 }
 
 /**
- * Validates and normalizes settings, adding defaults and metadata
+ * Validates and normalizes settings, converting legacy format if needed
  */
 export function validateAndNormalizeSettings(
   settings: unknown,
@@ -61,47 +67,33 @@ export function validateAndNormalizeSettings(
   settings?: VersionedClaudeSettings;
   errors: SchemaValidationError[];
 } {
-  // First validate the raw settings
-  const validationResult = validateSettings(settings);
+  // Handle legacy settings conversion first
+  let normalizedSettings: VersionedClaudeSettings;
+  
+  try {
+    normalizedSettings = ensureVersionedSettings(settings, source);
+  } catch (error) {
+    return {
+      valid: false,
+      errors: [{
+        path: 'root',
+        message: `Failed to convert settings: ${(error as Error).message}`,
+        value: settings,
+      }],
+    };
+  }
+
+  // Now validate the versioned settings
+  const validationResult = validateSettings(normalizedSettings);
 
   if (!validationResult.valid) {
     return { valid: false, errors: validationResult.errors };
   }
 
-  const normalizedSettings = settings as VersionedClaudeSettings;
-
-  // Add schema reference if missing
-  if (!normalizedSettings.$schema) {
-    normalizedSettings.$schema =
-      'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json';
-  }
-
-  // Add version if missing
-  if (!normalizedSettings.version) {
-    normalizedSettings.version = CURRENT_SCHEMA_VERSION;
-  }
-
-  // Initialize metadata if missing
-  if (!normalizedSettings.meta) {
-    normalizedSettings.meta = {};
-  }
-
+  // Update modification time
   const now = new Date().toISOString();
-
-  // Set creation time if not exists
-  if (!normalizedSettings.meta.createdAt) {
-    normalizedSettings.meta.createdAt = now;
-  }
-
-  // Always update modification time
-  normalizedSettings.meta.updatedAt = now;
-
-  // Set source
-  normalizedSettings.meta.source = source;
-
-  // Initialize migrations array if missing
-  if (!normalizedSettings.meta.migrations) {
-    normalizedSettings.meta.migrations = [];
+  if (normalizedSettings.meta) {
+    normalizedSettings.meta.updatedAt = now;
   }
 
   return { valid: true, settings: normalizedSettings, errors: [] };
@@ -224,13 +216,13 @@ export function performCustomValidation(
  */
 export function validateSettingsComprehensive(
   settings: unknown,
-  source?: 'global' | 'project' | 'local'
+  source: 'global' | 'project' | 'local' = 'project'
 ): {
   valid: boolean;
   settings?: VersionedClaudeSettings;
   errors: SchemaValidationError[];
 } {
-  // First validate and normalize against schema
+  // First validate and normalize against schema (handles legacy conversion)
   const schemaResult = validateAndNormalizeSettings(settings, source);
 
   if (!schemaResult.valid || !schemaResult.settings) {
@@ -259,57 +251,11 @@ export function isValidatedSettings(settings: unknown): settings is VersionedCla
 
 /**
  * Converts legacy ClaudeSettings to versioned format
+ * @deprecated Use convertLegacyToVersionedSettings from migrations.js instead
  */
 export function convertLegacySettings(
   legacySettings: ClaudeSettings,
   source: 'global' | 'project' | 'local' = 'project'
 ): VersionedClaudeSettings {
-  const now = new Date().toISOString();
-
-  const versionedSettings: VersionedClaudeSettings = {
-    $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
-    version: CURRENT_SCHEMA_VERSION,
-    hooks: {},
-    meta: {
-      createdAt: now,
-      updatedAt: now,
-      source,
-      migrations: [
-        {
-          version: CURRENT_SCHEMA_VERSION,
-          appliedAt: now,
-          description: 'Converted from legacy settings format',
-          changes: ['Added versioning and metadata', 'Applied schema validation'],
-        },
-      ],
-    },
-  };
-
-  // Convert legacy hooks to versioned format
-  if (legacySettings.hooks) {
-    const hooks = (versionedSettings.hooks = {});
-
-    for (const [eventType, configurations] of Object.entries(legacySettings.hooks)) {
-      if (configurations && Array.isArray(configurations)) {
-        const mappedConfigs = configurations.map(config => {
-          const mappedConfig: any = {
-            enabled: true,
-            hooks: config.hooks.map((hook: any) => ({
-              type: hook.type as 'command',
-              command: hook.command,
-              timeout: hook.timeout,
-              enabled: true,
-            })),
-          };
-          if (config.matcher) {
-            mappedConfig.matcher = config.matcher;
-          }
-          return mappedConfig;
-        });
-        (hooks as any)[eventType] = mappedConfigs;
-      }
-    }
-  }
-
-  return versionedSettings;
+  return convertLegacyToVersionedSettings(legacySettings, source);
 }

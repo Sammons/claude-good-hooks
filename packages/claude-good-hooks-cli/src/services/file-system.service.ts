@@ -8,6 +8,13 @@ import {
   rmSync,
   watch,
 } from 'fs';
+import {
+  access,
+  readFile as readFileAsync,
+  writeFile as writeFileAsync,
+  mkdir as mkdirAsync,
+} from 'fs/promises';
+import { constants } from 'fs';
 import { homedir } from 'os';
 import { join, dirname } from 'path';
 
@@ -19,16 +26,37 @@ export class FileSystemService {
     return existsSync(path);
   }
 
+  async existsAsync(path: string): Promise<boolean> {
+    try {
+      await access(path, constants.F_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   readFile(path: string, encoding: BufferEncoding): string {
     return readFileSync(path, encoding);
+  }
+
+  async readFileAsync(path: string, encoding: BufferEncoding): Promise<string> {
+    return await readFileAsync(path, encoding);
   }
 
   writeFile(path: string, content: string, encoding?: BufferEncoding): void {
     writeFileSync(path, content, encoding ? { encoding } : undefined);
   }
 
+  async writeFileAsync(path: string, content: string, encoding?: BufferEncoding): Promise<void> {
+    await writeFileAsync(path, content, encoding ? { encoding } : undefined);
+  }
+
   mkdir(path: string, options?: { recursive?: boolean }): void {
     mkdirSync(path, options);
+  }
+
+  async mkdirAsync(path: string, options?: { recursive?: boolean }): Promise<void> {
+    await mkdirAsync(path, options);
   }
 
   dirname(path: string): string {

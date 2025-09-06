@@ -1,5 +1,10 @@
 /**
  * Atomic file operations for safe configuration management
+ * 
+ * These are standalone functions that can be imported individually:
+ * ```ts
+ * import { atomicWriteFile, atomicReadFile } from '@sammons/claude-good-hooks-settings/settings-utils/atomic-operations';
+ * ```
  */
 
 import {
@@ -13,7 +18,7 @@ import {
 } from 'fs';
 import { join, dirname, basename } from 'path';
 import { randomBytes } from 'crypto';
-import type { VersionedClaudeSettings } from './schemas/index.js';
+import type { VersionedClaudeSettings } from '../schemas/index.js';
 import { validateSettingsComprehensive } from './validation.js';
 
 export interface AtomicOperationOptions {

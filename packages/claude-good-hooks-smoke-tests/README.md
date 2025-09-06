@@ -77,21 +77,23 @@ pnpm run docker:test:file cli.help.smoke.test.ts
 pnpm run docker:shell
 ```
 
-### Local Environment
+### Standard Commands (Docker-Containerized)
 
 ```bash
-# Run all smoke tests
+# Run all smoke tests (uses Docker)
 pnpm test
 
-# Run tests in watch mode
+# Run tests in watch mode (uses Docker) 
 pnpm test:watch
 
-# Run with verbose output
+# Run with verbose output (uses Docker)
 pnpm run smoke
 
 # Build check (TypeScript compilation)
 pnpm build
 ```
+
+> ⚠️ **Important**: All test commands above automatically use Docker containers to prevent side effects on your host machine. The `_vitest:*` scripts in package.json are for internal container use only and should not be run directly on the host.
 
 ### Docker Commands (Advanced)
 

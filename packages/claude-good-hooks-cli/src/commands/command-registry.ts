@@ -4,15 +4,12 @@ import { InitCommand } from './init/init.js';
 import { VersionCommand } from './version/version.js';
 import { ApplyCommand } from './apply/apply.js';
 import { ListHooksCommand } from './list-hooks/list-hooks.js';
-import { RemoteCommand } from './remote/remote.js';
 import { ValidateCommand } from './validate/validate.js';
 import { UpdateCommand } from './update/update.js';
 import { DoctorCommand } from './doctor/doctor.js';
 import { ExportCommand } from './export/export.js';
 import { ImportCommand } from './import/import.js';
 import { RestoreCommand } from './restore/restore.js';
-import { DebugCommand } from './debug/debug.js';
-import { PerformanceCommand } from './performance/performance.js';
 
 // Import services needed by commands
 import { HookService } from '../services/hook.service.js';
@@ -77,15 +74,12 @@ export class CommandRegistry {
       new VersionCommand(),
       new ApplyCommand(this.hookService, this.processService),
       new ListHooksCommand(),
-      new RemoteCommand(),
       new ValidateCommand(this.processService),
       new UpdateCommand(),
       new DoctorCommand(),
       new ExportCommand(this.settingsService, this.fileSystemService, this.processService),
       new ImportCommand(this.settingsService, this.processService),
       new RestoreCommand(this.fileSystemService, this.processService),
-      new DebugCommand(this.consoleService, this.processService),
-      new PerformanceCommand(this.consoleService, this.processService),
     ];
   }
 

@@ -119,11 +119,11 @@ export class ImportFileCommand implements ImportSubCommand {
         }
       }
 
-      const existingSettings = this.settingsService.readSettings(scope);
+      const existingSettings = await this.settingsService.readSettings(scope);
       const finalSettings = this.getFinalSettings(existingSettings, targetSettings, merge, force, options);
 
       if (!dryRun) {
-        this.settingsService.writeSettings(scope, finalSettings);
+        await this.settingsService.writeSettings(scope, finalSettings);
       }
 
       console.log(JSON.stringify({
@@ -211,7 +211,7 @@ export class ImportFileCommand implements ImportSubCommand {
     }
 
     // Handle existing configuration
-    const existingSettings = this.settingsService.readSettings(scope);
+    const existingSettings = await this.settingsService.readSettings(scope);
     const finalSettings = await this.handleExistingSettings(
       existingSettings,
       targetSettings,
@@ -242,7 +242,7 @@ export class ImportFileCommand implements ImportSubCommand {
       console.log(chalk.blue('\n📥 Importing configuration...'));
       
       try {
-        this.settingsService.writeSettings(scope, finalSettings);
+        await this.settingsService.writeSettings(scope, finalSettings);
         console.log(chalk.green(`✅ Configuration imported successfully to ${scope} settings`));
         
         // Show statistics

@@ -5,9 +5,9 @@
 import { existsSync, readdirSync, statSync } from 'fs';
 import { join, dirname, basename } from 'path';
 import chalk from 'chalk';
-import { getSettingsPath } from '../../utils/settings.js';
 import { FileSystemService } from '../../services/file-system.service.js';
 import { ProcessService } from '../../services/process.service.js';
+import { SettingsService } from '../../services/settings.service.js';
 import { ImportCommand } from '../import/import.js';
 import type { RestoreSubCommand } from './restore-types.js';
 import type { RestoreOptions } from './restore-options.js';
@@ -16,6 +16,7 @@ import type { ValidationResult } from '../common-validation-types.js';
 export class RestoreLatestCommand implements RestoreSubCommand {
   private fileSystemService: FileSystemService;
   private processService: ProcessService;
+  private settingsService: SettingsService;
   private importCommand = new ImportCommand();
 
   constructor(
@@ -24,6 +25,7 @@ export class RestoreLatestCommand implements RestoreSubCommand {
   ) {
     this.fileSystemService = fileSystemService;
     this.processService = processService;
+    this.settingsService = new SettingsService();
   }
 
   /**
@@ -209,8 +211,8 @@ export class RestoreLatestCommand implements RestoreSubCommand {
 
     if (scope === 'project' || scope === 'local') {
       // Add project and local directories
-      const projectPath = getSettingsPath('project');
-      const localPath = getSettingsPath('local');
+      const projectPath = this.settingsService.getSettingsPath('project');
+      const localPath = this.settingsService.getSettingsPath('local');
       paths.push(dirname(projectPath));
       if (dirname(localPath) !== dirname(projectPath)) {
         paths.push(dirname(localPath));
@@ -219,13 +221,13 @@ export class RestoreLatestCommand implements RestoreSubCommand {
 
     if (scope === 'global') {
       // Add global directory
-      const globalPath = getSettingsPath('global');
+      const globalPath = this.settingsService.getSettingsPath('global');
       paths.push(dirname(globalPath));
     }
 
     // If specific scope not found, also check other locations
     if (scope === 'project') {
-      const globalPath = getSettingsPath('global');
+      const globalPath = this.settingsService.getSettingsPath('global');
       paths.push(dirname(globalPath));
     }
 

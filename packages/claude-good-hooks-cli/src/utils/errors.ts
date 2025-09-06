@@ -33,12 +33,7 @@ export enum ErrorCode {
   HOOK_DEPENDENCY_MISSING = 4003,
   HOOK_TEMPLATE_INVALID = 4004,
   
-  // Remote errors (5000-5999)
-  REMOTE_NOT_FOUND = 5000,
-  REMOTE_ACCESS_DENIED = 5001,
-  REMOTE_TIMEOUT = 5002,
-  REMOTE_INVALID_RESPONSE = 5003,
-  NETWORK_ERROR = 5004,
+  NETWORK_ERROR = 5000,
   
   // Validation errors (6000-6999)
   VALIDATION_FAILED = 6000,
@@ -103,7 +98,7 @@ export class EnhancedError extends Error {
   private getDefaultExitCode(): number {
     if (this.code >= 7000) return 3; // System errors
     if (this.code >= 6000) return 2; // Validation errors
-    if (this.code >= 5000) return 4; // Network/Remote errors
+    if (this.code >= 5000) return 4; // Network errors
     if (this.code >= 4000) return 5; // Hook errors
     if (this.code >= 3000) return 6; // Configuration errors
     if (this.code >= 2000) return 7; // File system errors
@@ -193,7 +188,7 @@ export const createError = {
         },
         {
           title: 'Install hook',
-          description: 'If this is a remote hook, ensure it\'s installed'
+          description: 'Ensure the hook module is installed locally or globally'
         }
       ]
     }

@@ -73,7 +73,7 @@ export class ExportFileCommand implements ExportSubCommand {
 
     for (const currentScope of scopes) {
       console.log(chalk.blue(`Reading ${currentScope} settings...`));
-      const settings = this.settingsService.readSettings(currentScope);
+      const settings = await this.settingsService.readSettings(currentScope);
       
       if (settings.hooks && Object.keys(settings.hooks).length > 0) {
         settingsData[currentScope] = settings;
@@ -170,7 +170,6 @@ export class ExportFileCommand implements ExportSubCommand {
       console.log(chalk.blue('\n🚀 Usage Instructions:'));
       console.log(chalk.gray(`   • Share this file with others: ${basename(outputPath)}`));
       console.log(chalk.gray(`   • Import on another system: claude-good-hooks import ${outputPath}`));
-      console.log(chalk.gray(`   • Upload to a URL for remote sharing`));
 
     } catch (error) {
       console.error(chalk.red(`❌ Export failed: ${error}`));

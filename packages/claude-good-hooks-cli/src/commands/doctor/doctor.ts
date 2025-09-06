@@ -4,6 +4,8 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import type { HelpInfo } from '../command-registry.js';
+import { detectPackageManager } from '../../utils/detect-package-manager.js';
+import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -96,11 +98,13 @@ export class DoctorCommand {
       execSync('which claude-good-hooks', { encoding: 'utf-8' });
       checks.push({ name: 'claude-good-hooks in PATH', status: true });
     } catch {
+      const packageManager = detectPackageManager();
+      const helper = new PackageManagerHelper(packageManager);
+      const installCmd = helper.getInstallInstructions('@sammons/claude-good-hooks', true);
       checks.push({
         name: 'claude-good-hooks in PATH',
         status: false,
-        message:
-          'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks',
+        message: `claude-good-hooks not found in PATH. Install globally with: ${installCmd}`,
       });
     }
 
@@ -141,15 +145,17 @@ export class DoctorCommand {
       message: projectSettingsExists ? 'Found' : 'Not found (will be created when needed)',
     });
 
-    // Check npm/pnpm
+    // Check package manager
+    const packageManager = detectPackageManager();
+    const helper = new PackageManagerHelper(packageManager);
     try {
-      execSync('npm --version', { encoding: 'utf-8' });
-      checks.push({ name: 'npm available', status: true });
+      await helper.getVersion();
+      checks.push({ name: `${packageManager} available`, status: true });
     } catch {
       checks.push({
-        name: 'npm available',
+        name: `${packageManager} available`,
         status: false,
-        message: 'npm not found. Please install Node.js/npm',
+        message: `${packageManager} not found. Please install Node.js and ${packageManager}`,
       });
     }
 

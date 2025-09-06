@@ -8,14 +8,11 @@
 // Re-export all schema types and utilities
 export * from './schemas/index.js';
 
-// Re-export validation functions
-export * from './validation.js';
+// Re-export all standalone utility functions
+export * from './settings-utils/index.js';
 
-// Re-export atomic file operations
-export * from './atomic-operations.js';
+// Re-export the core settings helper (renamed from SettingsService)
+export * from './settings-helper.js';
 
-// Re-export migration system
-export * from './migrations.js';
-
-// Re-export version tracking
-export * from './version-tracking.js';
+// Note: Backwards compatibility exports removed - use settings-utils imports
+// Files have been consolidated into settings-utils/ directory

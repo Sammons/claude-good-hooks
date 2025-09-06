@@ -1,103 +1,96 @@
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
+import { SettingsHelper as CoreSettingsHelper, SettingsScope } from '@sammons/claude-good-hooks-settings';
 import { FileSystemService } from './file-system.service.js';
 
-export type SettingsScope = 'global' | 'project' | 'local';
+// Re-export the SettingsScope type for backwards compatibility
+export type { SettingsScope };
 
+/**
+ * Adapter that wraps the FileSystemService to match the duck-typed interface
+ * expected by the core SettingsService from the settings package.
+ */
+class FileSystemAdapter {
+  constructor(private fs: FileSystemService) {}
+
+  async readFile(path: string, encoding?: string): Promise<string> {
+    return await this.fs.readFileAsync(path, (encoding as any) || 'utf-8');
+  }
+
+  async writeFile(path: string, content: string, encoding?: string): Promise<void> {
+    await this.fs.writeFileAsync(path, content, encoding as any);
+  }
+
+  async exists(path: string): Promise<boolean> {
+    return await this.fs.existsAsync(path);
+  }
+
+  async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
+    await this.fs.mkdirAsync(path, options);
+  }
+
+  dirname(path: string): string {
+    return this.fs.dirname(path);
+  }
+
+  join(...paths: string[]): string {
+    return this.fs.join(...paths);
+  }
+
+  homedir(): string {
+    return this.fs.homedir();
+  }
+
+  cwd(): string {
+    return this.fs.cwd();
+  }
+}
+
+/**
+ * Thin wrapper around the core SettingsHelper that provides backwards compatibility
+ * for existing CLI code while delegating all operations to the settings package.
+ */
 export class SettingsService {
-  private fileSystem = new FileSystemService();
+  private coreSettingsHelper: CoreSettingsHelper;
 
-  constructor() {}
+  constructor() {
+    const fileSystem = new FileSystemService();
+    const adapter = new FileSystemAdapter(fileSystem);
+    this.coreSettingsHelper = new CoreSettingsHelper(adapter);
+  }
 
   getSettingsPath(scope: SettingsScope): string {
-    switch (scope) {
-      case 'global':
-        return this.fileSystem.join(this.fileSystem.homedir(), '.claude', 'settings.json');
-      case 'project':
-        return this.fileSystem.join(this.fileSystem.cwd(), '.claude', 'settings.json');
-      case 'local':
-        return this.fileSystem.join(this.fileSystem.cwd(), '.claude', 'settings.local.json');
-    }
+    return this.coreSettingsHelper.getSettingsPath(scope);
   }
 
-  readSettings(scope: SettingsScope): ClaudeSettings {
-    const path = this.getSettingsPath(scope);
-
-    if (!this.fileSystem.exists(path)) {
-      return {};
-    }
-
-    try {
-      const content = this.fileSystem.readFile(path, 'utf-8');
-      return JSON.parse(content);
-    } catch (error: unknown) {
-      console.error(`Error reading ${scope} settings:`, String(error));
-      return {};
-    }
+  async readSettings(scope: SettingsScope): Promise<ClaudeSettings> {
+    return await this.coreSettingsHelper.readSettings(scope);
   }
 
-  writeSettings(scope: SettingsScope, settings: ClaudeSettings): void {
-    const path = this.getSettingsPath(scope);
-    const dir = this.fileSystem.dirname(path);
-
-    if (!this.fileSystem.exists(dir)) {
-      this.fileSystem.mkdir(dir, { recursive: true });
-    }
-
-    this.fileSystem.writeFile(path, JSON.stringify(settings, null, 2));
+  async writeSettings(scope: SettingsScope, settings: ClaudeSettings): Promise<void> {
+    return await this.coreSettingsHelper.writeSettings(scope, settings);
   }
 
-  addHookToSettings(
+  async addHookToSettings(
     scope: SettingsScope,
     eventName: keyof Required<ClaudeSettings>['hooks'],
     hookConfig: HookConfiguration
-  ): void {
-    const settings = this.readSettings(scope);
-
-    if (!settings.hooks) {
-      settings.hooks = {};
-    }
-
-    if (!settings.hooks[eventName]) {
-      settings.hooks[eventName] = [];
-    }
-
-    // If hookConfig has claudegoodhooks.name, deduplicate by removing existing hooks with the same name
-    // Also check for old format (top-level name) for backwards compatibility
-    const hookName = hookConfig.claudegoodhooks?.name || (hookConfig as any).name;
-    if (hookName) {
-      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        (existingConfig: HookConfiguration) => {
-          const existingName = existingConfig.claudegoodhooks?.name || (existingConfig as any).name;
-          return existingName !== hookName;
-        }
-      );
-    }
-
-    settings.hooks[eventName]!.push(hookConfig);
-    this.writeSettings(scope, settings);
+  ): Promise<void> {
+    return await this.coreSettingsHelper.addHookToSettings(scope, eventName, hookConfig);
   }
 
-  removeHookFromSettings(
+  async removeHookFromSettings(
     scope: SettingsScope,
     eventName: keyof Required<ClaudeSettings>['hooks'],
     matcher?: string
-  ): void {
-    const settings = this.readSettings(scope);
+  ): Promise<void> {
+    return await this.coreSettingsHelper.removeHookFromSettings(scope, eventName, matcher);
+  }
 
-    if (!settings.hooks || !settings.hooks[eventName]) {
-      return;
-    }
+  async importSettings(scope: SettingsScope, externalSettings: ClaudeSettings): Promise<void> {
+    return await this.coreSettingsHelper.importSettings(scope, externalSettings);
+  }
 
-    if (matcher) {
-      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        (config: HookConfiguration) => config.matcher !== matcher
-      );
-    } else {
-      settings.hooks[eventName] = settings.hooks[eventName]!.filter(
-        (config: HookConfiguration) => config.matcher !== undefined
-      );
-    }
-
-    this.writeSettings(scope, settings);
+  async exportSettings(scope: SettingsScope): Promise<ClaudeSettings> {
+    return await this.coreSettingsHelper.exportSettings(scope);
   }
 }

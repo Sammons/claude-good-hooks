@@ -11,7 +11,6 @@ import { NoColorOption } from './cli-parser/no-color-option.js';
 
 // Command option processors
 import { ListHooksOptions } from './cli-parser/list-hooks-options.js';
-import { RemoteOptions } from './cli-parser/remote-options.js';
 import { ApplyOptions } from './cli-parser/apply-options.js';
 import { InitOptions } from './cli-parser/init-options.js';
 import { ValidateOptions } from './cli-parser/validate-options.js';
@@ -168,7 +167,6 @@ export class CLIParser {
 
   private commandOptions: CommandOptionProcessor[] = [
     new ListHooksOptions(),
-    new RemoteOptions(),
     new ApplyOptions(),
     new InitOptions(),
     new ValidateOptions(),

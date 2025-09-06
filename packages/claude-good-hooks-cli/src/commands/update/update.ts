@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
+import { detectPackageManager } from '../../utils/detect-package-manager.js';
+import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -78,6 +80,8 @@ export class UpdateCommand {
     }
 
     const processService = new ProcessService();
+    const packageManager = detectPackageManager();
+    const helper = new PackageManagerHelper(packageManager, processService);
 
     try {
       // For simplicity in this refactor, we'll use a basic update approach
@@ -89,33 +93,39 @@ export class UpdateCommand {
       }
 
       // Try global update first, then local if it fails
-      let updateCommand = 'npm install -g @sammons/claude-good-hooks@latest';
       try {
-        processService.execSync(updateCommand);
+        const globalResult = await helper.update('@sammons/claude-good-hooks@latest', { global: true });
         
-        if (isJson) {
-          console.log(JSON.stringify({
-            success: true,
-            message: 'Successfully updated to latest version',
-            installationType: 'global'
-          }));
-        } else {
-          console.log(chalk.green('✓ Successfully updated to latest version (global)'));
-        }
-      } catch (globalError) {
-        // Try local update if global fails
-        updateCommand = 'npm install @sammons/claude-good-hooks@latest';
-        try {
-          processService.execSync(updateCommand);
-          
+        if (globalResult.success) {
           if (isJson) {
             console.log(JSON.stringify({
               success: true,
               message: 'Successfully updated to latest version',
-              installationType: 'local'
+              installationType: 'global'
             }));
           } else {
-            console.log(chalk.green('✓ Successfully updated to latest version (local)'));
+            console.log(chalk.green('✓ Successfully updated to latest version (global)'));
+          }
+        } else {
+          throw new Error(globalResult.error || 'Global update failed');
+        }
+      } catch (globalError) {
+        // Try local update if global fails
+        try {
+          const localResult = await helper.update('@sammons/claude-good-hooks@latest');
+          
+          if (localResult.success) {
+            if (isJson) {
+              console.log(JSON.stringify({
+                success: true,
+                message: 'Successfully updated to latest version',
+                installationType: 'local'
+              }));
+            } else {
+              console.log(chalk.green('✓ Successfully updated to latest version (local)'));
+            }
+          } else {
+            throw new Error(localResult.error || 'Local update failed');
           }
         } catch (localError) {
           throw globalError; // Prefer the global error message
@@ -131,7 +141,7 @@ export class UpdateCommand {
       } else if (errorMessage.includes('EACCES') || errorMessage.includes('permission denied')) {
         suggestion = 'Permission denied. Try running with sudo for global install or check file permissions.';
       } else if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('network')) {
-        suggestion = 'Network error. Check your internet connection and npm registry configuration.';
+        suggestion = 'Network error. Check your internet connection and registry configuration.';
       }
 
       if (isJson) {
@@ -147,8 +157,10 @@ export class UpdateCommand {
           console.error(chalk.cyan(`💡 Suggestion: ${suggestion}`));
         }
         
-        console.error(chalk.gray('Try running: npm install -g @sammons/claude-good-hooks@latest'));
-        console.error(chalk.gray('Or locally: npm install @sammons/claude-good-hooks@latest'));
+        const globalInstallCmd = helper.getInstallInstructions('@sammons/claude-good-hooks@latest', true);
+        const localInstallCmd = helper.getInstallInstructions('@sammons/claude-good-hooks@latest', false);
+        console.error(chalk.gray(`Try running: ${globalInstallCmd}`));
+        console.error(chalk.gray(`Or locally: ${localInstallCmd}`));
       }
       
       processService.exit(1);

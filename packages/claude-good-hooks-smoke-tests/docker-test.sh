@@ -118,7 +118,7 @@ exec_in_container() {
 run_tests() {
     local test_args="$*"
     if [ -z "$test_args" ]; then
-        test_args="pnpm run smoke"
+        test_args="pnpm run _smoke:internal"
     fi
     
     print_info "Running tests: $test_args"
@@ -128,7 +128,7 @@ run_tests() {
 # Function to run tests in watch mode
 run_tests_watch() {
     print_info "Running tests in watch mode..."
-    exec_in_container pnpm run test:watch
+    exec_in_container pnpm run _vitest:watch
 }
 
 # Function to run a specific test file
@@ -140,7 +140,7 @@ run_test_file() {
     fi
     
     print_info "Running specific test file: $test_file"
-    exec_in_container pnpm run test "$test_file"
+    exec_in_container pnpm run _vitest:direct "$test_file"
 }
 
 # Function to open shell in container
@@ -257,7 +257,7 @@ case "${1:-help}" in
         echo "  stop                     Stop the container"
         echo "  restart                  Restart the container"
         echo "  remove, rm               Remove the container"
-        echo "  test [args]              Run tests (default: pnpm run smoke)"
+        echo "  test [args]              Run tests (default: pnpm run _smoke:internal)"
         echo "  test:watch               Run tests in watch mode"
         echo "  test:file <file>         Run specific test file"
         echo "  shell, sh                Open shell in container"

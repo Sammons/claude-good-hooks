@@ -1,5 +1,7 @@
 import { FileSystemService } from './file-system.service.js';
 import { ProcessService } from './process.service.js';
+import { detectPackageManager } from '../utils/detect-package-manager.js';
+import { PackageManagerHelper } from '../helpers/package-manager-helper.js';
 
 export interface SystemCheck {
   name: string;
@@ -15,10 +17,14 @@ export interface DoctorReport {
 export class DoctorService {
   private fileSystem = new FileSystemService();
   private process = new ProcessService();
+  private packageManagerHelper: PackageManagerHelper;
 
-  constructor() {}
+  constructor() {
+    const packageManager = detectPackageManager();
+    this.packageManagerHelper = new PackageManagerHelper(packageManager, this.process);
+  }
 
-  runSystemCheck(): DoctorReport {
+  async runSystemCheck(): Promise<DoctorReport> {
     const checks: SystemCheck[] = [];
 
     // Check if claude-good-hooks is in PATH
@@ -26,11 +32,11 @@ export class DoctorService {
       this.process.execSync('which claude-good-hooks');
       checks.push({ name: 'claude-good-hooks in PATH', status: true });
     } catch {
+      const installCmd = this.packageManagerHelper.getInstallInstructions('@sammons/claude-good-hooks', true);
       checks.push({
         name: 'claude-good-hooks in PATH',
         status: false,
-        message:
-          'claude-good-hooks not found in PATH. Install globally with: npm install -g @sammons/claude-good-hooks',
+        message: `claude-good-hooks not found in PATH. Install globally with: ${installCmd}`,
       });
     }
 
@@ -73,15 +79,16 @@ export class DoctorService {
       message: projectSettingsExists ? 'Found' : 'Not found (will be created when needed)',
     });
 
-    // Check npm/pnpm
+    // Check package manager
+    const packageManager = detectPackageManager();
     try {
-      this.process.execSync('npm --version');
-      checks.push({ name: 'npm available', status: true });
+      await this.packageManagerHelper.getVersion();
+      checks.push({ name: `${packageManager} available`, status: true });
     } catch {
       checks.push({
-        name: 'npm available',
+        name: `${packageManager} available`,
         status: false,
-        message: 'npm not found. Please install Node.js/npm',
+        message: `${packageManager} not found. Please install Node.js and ${packageManager}`,
       });
     }
 

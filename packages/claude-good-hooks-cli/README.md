@@ -54,7 +54,6 @@ claude-good-hooks doctor
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `remote <action>` | Manage remote hook sources | `claude-good-hooks remote add npm` |
 | `update [hook-name]` | Update hooks to latest versions | `claude-good-hooks update` |
 | `init [template]` | Initialize hook configuration | `claude-good-hooks init basic` |
 | `validate [file]` | Validate hook configuration | `claude-good-hooks validate` |

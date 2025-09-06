@@ -123,7 +123,7 @@ export class ListHooksCommand {
       const isGlobal = scope === 'global';
       
       // Check if module is installed
-      const isModuleInstalled = this.moduleService.isModuleInstalled(moduleName, isGlobal);
+      const isModuleInstalled = await this.moduleService.isModuleInstalled(moduleName, isGlobal);
       
       if (!isModuleInstalled) {
         lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
@@ -136,7 +136,7 @@ export class ListHooksCommand {
         
         // Check version mismatch
         const hookVersion = config.claudegoodhooks?.version || (config as any).version;
-        const moduleVersion = this.moduleService.getModuleVersion(moduleName, isGlobal);
+        const moduleVersion = await this.moduleService.getModuleVersion(moduleName, isGlobal);
         
         if (hookVersion && moduleVersion && hookVersion !== moduleVersion) {
           lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Update available: Module version')} ${chalk.green(moduleVersion)} ${chalk.dim('is available (hook uses')} ${chalk.yellow(hookVersion)}${chalk.dim(')')}`);

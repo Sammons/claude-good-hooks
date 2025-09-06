@@ -72,7 +72,7 @@ export class ExportBackupCommand implements ExportSubCommand {
 
     for (const currentScope of scopes) {
       console.log(chalk.blue(`Reading ${currentScope} settings...`));
-      const settings = this.settingsService.readSettings(currentScope);
+      const settings = await this.settingsService.readSettings(currentScope);
       
       if (settings.hooks && Object.keys(settings.hooks).length > 0) {
         settingsData[currentScope] = settings;

@@ -80,7 +80,7 @@ export class HookService {
           
           // eventName is guaranteed to be a key of the hook configuration object
           // which matches the structure of ClaudeSettings['hooks']
-          this.settingsService.addHookToSettings(
+          await this.settingsService.addHookToSettings(
             scope,
             eventName as keyof ClaudeSettings['hooks'],
             enhancedConfig
@@ -165,23 +165,28 @@ export class HookService {
     const hooks: HookMetadata[] = [];
     const isGlobal = scope === 'global';
 
-    const installedModules = this.moduleService.getInstalledHookModules(isGlobal);
+    try {
+      const installedModules = await this.moduleService.getInstalledHookModules(isGlobal);
 
-    for (const moduleName of installedModules) {
-      const plugin = await this.moduleService.loadHookPlugin(moduleName, isGlobal);
-      if (plugin) {
-        hooks.push({
-          name: plugin.name,
-          description: plugin.description,
-          version: plugin.version,
-          source: isGlobal ? 'global' : 'local',
-          packageName: moduleName,
-          installed: true,
-        });
+      for (const moduleName of installedModules) {
+        const plugin = await this.moduleService.loadHookPlugin(moduleName, isGlobal);
+        if (plugin) {
+          hooks.push({
+            name: plugin.name,
+            description: plugin.description,
+            version: plugin.version,
+            source: isGlobal ? 'global' : 'local',
+            packageName: moduleName,
+            installed: true,
+          });
+        }
       }
+    } catch (error: unknown) {
+      // Log the error but continue to show configured hooks from settings
+      console.warn(`Warning: Could not list installed hook modules: ${String(error)}`);
     }
 
-    const settings = this.settingsService.readSettings(scope);
+    const settings = await this.settingsService.readSettings(scope);
     if (settings.hooks) {
       for (const [eventName, configs] of typedEntries(settings.hooks)) {
         if (configs && Array.isArray(configs)) {
@@ -214,34 +219,25 @@ export class HookService {
   async listAvailableHooks(global: boolean): Promise<HookMetadata[]> {
     const hooks: HookMetadata[] = [];
 
-    const remoteHooks = this.moduleService.getRemoteHooks();
-    for (const moduleName of remoteHooks) {
-      const plugin = await this.moduleService.loadHookPlugin(moduleName, false);
-      if (plugin) {
-        hooks.push({
-          name: plugin.name,
-          description: plugin.description,
-          version: plugin.version,
-          source: 'remote',
-          packageName: moduleName,
-          installed: this.moduleService.getInstalledHookModules(false).includes(moduleName),
-        });
-      }
-    }
 
-    const installedModules = this.moduleService.getInstalledHookModules(global);
-    for (const moduleName of installedModules) {
-      const plugin = await this.moduleService.loadHookPlugin(moduleName, global);
-      if (plugin) {
-        hooks.push({
-          name: plugin.name,
-          description: plugin.description,
-          version: plugin.version,
-          source: global ? 'global' : 'local',
-          packageName: moduleName,
-          installed: true,
+
+    try {
+      const installedModules = await this.moduleService.getInstalledHookModules(global);
+      for (const moduleName of installedModules) {
+        const plugin = await this.moduleService.loadHookPlugin(moduleName, global);
+        if (plugin) {
+          hooks.push({
+            name: plugin.name,
+            description: plugin.description,
+            version: plugin.version,
+            source: global ? 'global' : 'local',
+            packageName: moduleName,
+            installed: true,
         });
+        }
       }
+    } catch (error: unknown) {
+      console.warn(`Warning: Could not list installed hook modules (global: ${global}): ${String(error)}`);
     }
 
     return hooks;
@@ -255,7 +251,7 @@ export class HookService {
     const scopesToProcess: SettingsScope[] = scope ? [scope] : ['global', 'project', 'local'];
 
     for (const currentScope of scopesToProcess) {
-      const settings = this.settingsService.readSettings(currentScope);
+      const settings = await this.settingsService.readSettings(currentScope);
       if (!settings.hooks) continue;
 
       for (const [eventName, configs] of typedEntries(settings.hooks)) {
@@ -311,7 +307,7 @@ export class HookService {
       const isGlobal = scope === 'global';
 
       // Check if the module is still installed
-      if (!this.moduleService.isModuleInstalled(moduleName, isGlobal)) {
+      if (!(await this.moduleService.isModuleInstalled(moduleName, isGlobal))) {
         return {
           success: false,
           hookName,
@@ -364,7 +360,7 @@ export class HookService {
           }
         };
 
-        this.settingsService.addHookToSettings(scope, eventName, enhancedConfig);
+        await this.settingsService.addHookToSettings(scope, eventName, enhancedConfig);
       }
 
       return {
