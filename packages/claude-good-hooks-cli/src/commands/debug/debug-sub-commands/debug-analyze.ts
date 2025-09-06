@@ -5,6 +5,8 @@
 import { writeFileSync } from 'fs';
 import type { DebugSubCommand, DebugOptions, HookExecutionResult } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 // Mock factory function - in real implementation this would come from factories package
 function generateDebugReport(execution: HookExecutionResult, _options: { 
@@ -16,6 +18,10 @@ function generateDebugReport(execution: HookExecutionResult, _options: {
 }
 
 export class DebugAnalyzeCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'analyze';
   }
@@ -28,30 +34,30 @@ export class DebugAnalyzeCommand implements DebugSubCommand {
       const executions = DebugConfigurations.loadRecentExecutions();
       
       if (executions.length === 0) {
-        console.log('No recent hook executions found');
+        this.consoleService.log('No recent hook executions found');
         return;
       }
       
-      console.log('🔍 Recent Hook Executions:');
-      console.log('='.repeat(40));
+      this.consoleService.log('🔍 Recent Hook Executions:');
+      this.consoleService.log('='.repeat(40));
       
       executions.forEach((exec, index) => {
         const status = exec.success ? '✅' : '❌';
         const duration = exec.duration.toFixed(2);
-        console.log(`${index + 1}. ${status} ${exec.context.hookName} (${duration}ms)`);
-        console.log(`   ID: ${exec.context.executionId}`);
-        console.log(`   Time: ${exec.context.timestamp.toLocaleString()}`);
-        console.log();
+        this.consoleService.log(`${index + 1}. ${status} ${exec.context.hookName} (${duration}ms)`);
+        this.consoleService.log(`   ID: ${exec.context.executionId}`);
+        this.consoleService.log(`   Time: ${exec.context.timestamp.toLocaleString()}`);
+        this.consoleService.log();
       });
       
-      console.log('Use "claude-good-hooks debug analyze <execution-id>" for details');
+      this.consoleService.log('Use "claude-good-hooks debug analyze <execution-id>" for details');
     } else {
       // Analyze specific execution
       const execution = DebugConfigurations.findExecution(executionId);
       
       if (!execution) {
-        console.error(`Execution not found: ${executionId}`);
-        process.exit(1);
+        this.consoleService.error(`Execution not found: ${executionId}`);
+        this.processService.exit(1);
       }
       
       const report = generateDebugReport(execution, {
@@ -62,9 +68,9 @@ export class DebugAnalyzeCommand implements DebugSubCommand {
       
       if (options.output) {
         writeFileSync(options.output, report, 'utf8');
-        console.log(`✅ Analysis saved to: ${options.output}`);
+        this.consoleService.log(`✅ Analysis saved to: ${options.output}`);
       } else {
-        console.log(report);
+        this.consoleService.log(report);
       }
     }
   }

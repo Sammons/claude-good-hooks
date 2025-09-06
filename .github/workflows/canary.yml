@@ -191,13 +191,21 @@ jobs:
         if: ${{ !inputs.skip_tests }}
         run: pnpm run test:coverage
         
-      - name: Upload test coverage
+      - name: Store canary coverage data
         if: ${{ !inputs.skip_tests }}
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage/lcov.info
-          flags: canary
-          name: canary-coverage
+        run: |
+          echo "📊 Storing canary coverage data..."
+          
+          # Create canary artifacts directory
+          mkdir -p .github/canary-artifacts
+          
+          # Copy coverage data if available
+          if [ -f "coverage/lcov.info" ]; then
+            cp coverage/lcov.info .github/canary-artifacts/
+            echo "✅ Canary coverage data stored"
+          else
+            echo "⚠️ No canary coverage data found"
+          fi
           
       - name: Build packages
         run: pnpm run build

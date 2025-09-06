@@ -1,36 +1,27 @@
-import type { SettingsScope } from '../../services/settings.service.js';
+/**
+ * Type definitions for apply command sub-command pattern
+ */
 
-export interface ValidationResult {
-  valid: boolean;
-  errors?: string[];
-}
+import type { ApplyOptions } from './apply-options.js';
+import type { ValidationResult } from '../common-validation-types.js';
 
-export interface ApplyOptions {
-  global?: boolean;
-  local?: boolean;
-  help?: boolean;
-  regenerate?: boolean;
-  parent?: {
-    json?: boolean;
-  };
-}
-
-export interface ApplyHookResult {
-  success: boolean;
-  hook?: string;
-  scope?: string;
-  args?: Record<string, unknown>;
-  error?: string;
-}
-
-export interface ShowHookHelpParams {
-  hookName: string;
-  global: boolean;
-  isJson: boolean;
-}
-
-export interface HandleRegenerateParams {
-  hookName?: string;
-  scope?: SettingsScope;
-  isJson?: boolean;
+/**
+ * Interface for apply sub-command implementations
+ * Following the duck-typing pattern used in debug commands
+ */
+export interface ApplySubCommand {
+  /**
+   * Check if this sub-command handles the given arguments and options
+   */
+  match(args: string[], options: ApplyOptions): boolean;
+  
+  /**
+   * Validate the arguments and options for this sub-command
+   */
+  validate(args: string[], options: ApplyOptions): ValidationResult<any>;
+  
+  /**
+   * Execute this sub-command
+   */
+  execute(args: string[], options: ApplyOptions): Promise<void>;
 }

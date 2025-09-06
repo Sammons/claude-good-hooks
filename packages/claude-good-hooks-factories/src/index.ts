@@ -1,28 +1,18 @@
 /**
  * Claude Good Hooks Factories
  *
- * A collection of factory functions and utilities to simplify creating
- * Claude Code hooks with TypeScript support.
+ * Factory utilities to help hook authors create publishable npm modules
+ * that provide Claude Code hooks. This package is designed for developers
+ * who want to create and share hook modules via npm.
  */
 
-// Re-export types from the types package for convenience
+// Re-export core types for convenience
 export type {
   HookCommand,
   HookConfiguration,
   HookPlugin,
   ClaudeSettings,
   HookMetadata,
-  // Enhanced types for advanced features
-  HookVersion,
-  HookDependency,
-  HookComposition,
-  HookChain,
-  HookDebugConfig,
-  HookMarketplaceInfo,
-  EnhancedHookPlugin,
-  HookExecutionContext,
-  HookExecutionResult,
-  VersionCompatibility,
 } from '@sammons/claude-good-hooks-types';
 
 // Export type guards for runtime validation
@@ -32,287 +22,54 @@ export {
   isHookPlugin,
   isClaudeSettings,
   isHookMetadata,
-  // Enhanced type guards
-  isHookVersion,
-  isHookDependency,
-  isHookComposition,
-  isEnhancedHookPlugin,
-  isHookExecutionContext,
-  isHookExecutionResult,
 } from '@sammons/claude-good-hooks-types';
 
-// Core factory functions - the building blocks
+// Core factory functions - the essential building blocks
 export {
   createHookCommand,
   createHookConfiguration,
   createHookPlugin,
   createClaudeSettings,
+  type HookCommandOptions,
+  type HookConfigOptions,
+  type HookPluginOptions,
 } from './core-factories.js';
 
-// Convenience factory functions - simplified hook creation
+// Pattern helper functions - common hook patterns made easy
 export {
-  createSimpleHook,
   createFileWatcherHook,
-  createConditionalHook,
-  createMultiStepHook,
-  createDebouncedHook,
-  type HookEventType,
-} from './convenience-factories.js';
-
-// Utility factory functions - common development workflows
-export {
+  createLinterHook,
+  createTestRunnerHook,
   createNotificationHook,
-  createGitAutoCommitHook,
-  createLintingHook,
-  createTestingHook,
-  createBuildHook,
-  createFileBackupHook,
-  createDevServerRestartHook,
-  createDocumentationHook,
-} from './utility-factories.js';
-
-// Advanced composition and chaining factories
-export {
-  createComposedHook,
-  createHookChain,
-  createConditionalHook as createAdvancedConditionalHook,
-  createParallelHook,
-  createRetryHook,
-  combineSettings,
-} from './composition-factories.js';
-
-// Version management factories
-export {
-  parseVersion,
-  formatVersion,
-  compareVersions,
-  checkCompatibility,
-  enhanceHookWithVersion,
-  validateDependencies,
-  generateDeprecationWarning,
-  createMigrationGuide,
-  incrementVersion,
-} from './version-factories.js';
-
-// Debug and profiling factories
-export {
-  createDebugHook,
-  createProfilingHook,
-  createTracingHook,
-  createBreakpointHook,
-  createErrorDiagnosisHook,
-  generateDebugReport,
-  createHookLogger,
-} from './debug-factories.js';
-
-// Marketplace integration factories
-export {
-  createMarketplaceClient,
-  createHookVerifier,
-  createPopularityTracker,
-  createRecommendationEngine,
-  type MarketplaceSearchCriteria,
-  type MarketplaceSearchResult,
-  type MarketplaceHookInfo,
-  type HookRating,
-  type PublishingInfo,
-} from './marketplace-factories.js';
-
-// Import types for internal use
-import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import type { HookEventType } from './convenience-factories.js';
-
-/**
- * Factory function options for common configurations
- */
-export interface FactoryOptions {
-  /** Timeout in seconds for hook commands */
-  timeout?: number;
-  /** Tool matcher pattern */
-  matcher?: string;
-  /** Hook event type */
-  eventType?: HookEventType;
-}
-
-/**
- * Creates a comprehensive development workflow hook that combines
- * linting, testing, and building
- *
- * @param options - Configuration options
- * @returns Claude settings with full development workflow
- *
- * @example
- * ```typescript
- * import { createDevWorkflowHook } from '@sammons/claude-good-hooks-factories';
- *
- * const devHook = createDevWorkflowHook({
- *   lintCommand: 'eslint .',
- *   testCommand: 'npm test',
- *   buildCommand: 'npm run build'
- * });
- * ```
- */
-export function createDevWorkflowHook(options: {
-  lintCommand?: string;
-  testCommand?: string;
-  buildCommand?: string;
-  matcher?: string;
-  autoFix?: boolean;
-}): ClaudeSettings {
-  const {
-    lintCommand = 'npm run lint',
-    testCommand = 'npm test',
-    buildCommand = 'npm run build',
-    matcher = 'Write|Edit',
-    autoFix = false,
-  } = options;
-
-  const commands: string[] = [];
-
-  if (autoFix) {
-    commands.push(`${lintCommand} --fix || ${lintCommand}`);
-  } else {
-    commands.push(lintCommand);
-  }
-
-  commands.push(testCommand);
-  commands.push(buildCommand);
-
-  return {
-    hooks: {
-      PostToolUse: [
-        {
-          matcher,
-          hooks: commands.map(cmd => ({
-            type: 'command' as const,
-            command: cmd,
-          })),
-        },
-      ],
-    },
-  };
-}
-
-/**
- * Quick start function that creates a basic hook setup for new projects
- *
- * @param projectType - Type of project (react, node, etc.)
- * @returns Claude settings with sensible defaults for the project type
- *
- * @example
- * ```typescript
- * import { quickStartHooks } from '@sammons/claude-good-hooks-factories';
- *
- * const hooks = quickStartHooks('react');
- * ```
- */
-export function quickStartHooks(
-  projectType: 'react' | 'node' | 'typescript' | 'generic' = 'generic'
-): ClaudeSettings {
-  const commonHooks = {
-    SessionStart: [
-      {
-        hooks: [
-          {
-            type: 'command' as const,
-            command: 'echo "Claude session started in $(pwd)"',
-          },
-        ],
-      },
-    ],
-    SessionEnd: [
-      {
-        hooks: [
-          {
-            type: 'command' as const,
-            command: 'echo "Claude session ended"',
-          },
-        ],
-      },
-    ],
-  };
-
-  switch (projectType) {
-    case 'react':
-      return {
-        hooks: {
-          ...commonHooks,
-          PostToolUse: [
-            {
-              matcher: 'Write|Edit',
-              hooks: [
-                {
-                  type: 'command',
-                  command: 'npm run lint && npm test && npm run build',
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-    case 'node':
-      return {
-        hooks: {
-          ...commonHooks,
-          PostToolUse: [
-            {
-              matcher: 'Write|Edit',
-              hooks: [
-                {
-                  type: 'command',
-                  command: 'npm run lint && npm test',
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-    case 'typescript':
-      return {
-        hooks: {
-          ...commonHooks,
-          PostToolUse: [
-            {
-              matcher: 'Write|Edit',
-              hooks: [
-                {
-                  type: 'command',
-                  command: 'npm run type-check && npm run lint',
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-    default:
-      return {
-        hooks: commonHooks,
-      };
-  }
-}
-
-// Import for default export
-import { createHookCommand, createHookConfiguration, createHookPlugin } from './core-factories.js';
-
-import {
-  createSimpleHook,
-  createFileWatcherHook,
   createConditionalHook,
-} from './convenience-factories.js';
+  createArgumentSchema,
+  type HookEventType,
+  type FileWatcherConfig,
+  type LinterConfig,
+  type TestRunnerConfig,
+  type NotificationConfig,
+} from './pattern-helpers.js';
+
+// Import functions for default export
+import { createHookPlugin, createHookCommand, createHookConfiguration } from './core-factories.js';
+import { 
+  createFileWatcherHook, 
+  createLinterHook, 
+  createTestRunnerHook,
+  createNotificationHook,
+  createConditionalHook,
+  createArgumentSchema 
+} from './pattern-helpers.js';
 
 // Default export for convenience
-const factories = {
+export default {
+  createHookPlugin,
   createHookCommand,
   createHookConfiguration,
-  createHookPlugin,
-  createSimpleHook,
   createFileWatcherHook,
+  createLinterHook,
+  createTestRunnerHook,
+  createNotificationHook,
   createConditionalHook,
-  createDevWorkflowHook,
-  quickStartHooks,
+  createArgumentSchema,
 };
-
-export default factories;

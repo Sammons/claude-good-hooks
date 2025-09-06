@@ -4,8 +4,15 @@
 
 import type { DebugSubCommand, DebugOptions, HookDebugConfig } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 export class EnableDebuggingCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
+
   match(subcommand: string): boolean {
     return subcommand === 'enable';
   }
@@ -13,8 +20,8 @@ export class EnableDebuggingCommand implements DebugSubCommand {
   async execute(args: string[], options: DebugOptions): Promise<void> {
     const hookName = args[1];
     if (!hookName) {
-      console.error('Error: Hook name is required for debug enable');
-      process.exit(1);
+      this.consoleService.error('Error: Hook name is required for debug enable');
+      this.processService.exit(1);
     }
 
     const debugConfig: HookDebugConfig = {
@@ -29,17 +36,17 @@ export class EnableDebuggingCommand implements DebugSubCommand {
       // Save debug configuration
       DebugConfigurations.saveDebugConfig(hookName, debugConfig);
       
-      console.log(`✅ Debug enabled for hook: ${hookName}`);
-      console.log(`   Tracing: ${debugConfig.tracing ? 'enabled' : 'disabled'}`);
-      console.log(`   Profiling: ${debugConfig.profiling ? 'enabled' : 'disabled'}`);
-      console.log(`   Log Level: ${debugConfig.logLevel}`);
+      this.consoleService.log(`✅ Debug enabled for hook: ${hookName}`);
+      this.consoleService.log(`   Tracing: ${debugConfig.tracing ? 'enabled' : 'disabled'}`);
+      this.consoleService.log(`   Profiling: ${debugConfig.profiling ? 'enabled' : 'disabled'}`);
+      this.consoleService.log(`   Log Level: ${debugConfig.logLevel}`);
       
       if (debugConfig.outputFile) {
-        console.log(`   Output File: ${debugConfig.outputFile}`);
+        this.consoleService.log(`   Output File: ${debugConfig.outputFile}`);
       }
     } catch (error) {
-      console.error(`Failed to enable debugging: ${error}`);
-      process.exit(1);
+      this.consoleService.error(`Failed to enable debugging: ${error}`);
+      this.processService.exit(1);
     }
   }
 }

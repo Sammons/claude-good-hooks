@@ -6,8 +6,14 @@ import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import type { DebugSubCommand, DebugOptions, DebugMetrics } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 export class DebugReportCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'report';
   }
@@ -16,7 +22,7 @@ export class DebugReportCommand implements DebugSubCommand {
     const reportType = args[1] || 'summary';
     const outputFile = options.output || join(process.cwd(), '.claude/debug-report.txt');
     
-    console.log(`📊 Generating ${reportType} report...`);
+    this.consoleService.log(`📊 Generating ${reportType} report...`);
     
     try {
       let report: string;
@@ -40,13 +46,13 @@ export class DebugReportCommand implements DebugSubCommand {
       
       if (options.output) {
         writeFileSync(outputFile, report, 'utf8');
-        console.log(`✅ Report saved to: ${outputFile}`);
+        this.consoleService.log(`✅ Report saved to: ${outputFile}`);
       } else {
-        console.log('\n' + report);
+        this.consoleService.log('\n' + report);
       }
     } catch (error) {
-      console.error(`Failed to generate report: ${error}`);
-      process.exit(1);
+      this.consoleService.error(`Failed to generate report: ${error}`);
+      this.processService.exit(1);
     }
   }
 

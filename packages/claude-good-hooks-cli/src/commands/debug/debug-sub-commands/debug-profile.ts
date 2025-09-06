@@ -5,6 +5,8 @@
 import { join } from 'path';
 import type { DebugSubCommand, DebugOptions, ProfilingHookConfig } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 // Mock factory function - in real implementation this would come from factories package
 function createProfilingHook(config: ProfilingHookConfig): ProfilingHookConfig {
@@ -12,6 +14,10 @@ function createProfilingHook(config: ProfilingHookConfig): ProfilingHookConfig {
 }
 
 export class DebugProfileCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'profile';
   }
@@ -19,8 +25,8 @@ export class DebugProfileCommand implements DebugSubCommand {
   async execute(_args: string[], options: DebugOptions): Promise<void> {
     const metricsFile = options.output || join(process.cwd(), '.claude/metrics.json');
     
-    console.log(`⚡ Profiling enabled`);
-    console.log(`   Metrics file: ${metricsFile}`);
+    this.consoleService.log(`⚡ Profiling enabled`);
+    this.consoleService.log(`   Metrics file: ${metricsFile}`);
     
     // Create profiling hook configuration
     const profilingHook = createProfilingHook({
@@ -34,7 +40,7 @@ export class DebugProfileCommand implements DebugSubCommand {
     // Save profiling configuration
     DebugConfigurations.saveProfilingConfig(profilingHook);
     
-    console.log('✅ Profiling hook configured');
-    console.log('Use "claude-good-hooks apply debug-profiler" to activate');
+    this.consoleService.log('✅ Profiling hook configured');
+    this.consoleService.log('Use "claude-good-hooks apply debug-profiler" to activate');
   }
 }

@@ -25,14 +25,10 @@ const templateHook: HookPlugin = {
   name: 'template', // Change this to your hook's unique identifier
   description: 'A template hook for Claude Code',
   get version() {
-    try {
-      const packageJsonPath = resolve(__dirname, '../package.json');
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-      return packageJson.version;
-    } catch {
-      // Fallback to hardcoded version if package.json cannot be read
-      return '1.0.0';
-    }
+    // this approach needs cjs, change if you need mjs
+    const packageJsonPath = resolve(__dirname, '../package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    return packageJson.version;
   },
 
   /**

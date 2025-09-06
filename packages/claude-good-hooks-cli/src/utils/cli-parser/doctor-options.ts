@@ -1,4 +1,4 @@
-import { CommandOptionProcessor, CommandOptionResult } from './types.js';
+import type { CommandOptionProcessor, CommandOptionResult } from './types.js';
 
 export class DoctorOptions implements CommandOptionProcessor {
   match(command: string): boolean {

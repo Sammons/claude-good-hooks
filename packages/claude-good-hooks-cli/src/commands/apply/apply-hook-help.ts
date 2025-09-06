@@ -1,6 +1,14 @@
 import chalk from 'chalk';
-import type { HookService } from '../../services/hook.service.js';
-import type { ShowHookHelpParams } from './apply-types.js';
+import { HookService } from '../../services/hook.service.js';
+import type { ApplySubCommand } from './apply-types.js';
+import type { ApplyOptions } from './apply-options.js';
+import type { ValidationResult } from '../common-validation-types.js';
+
+export interface ShowHookHelpParams {
+  hookName: string;
+  global: boolean;
+  isJson: boolean;
+}
 
 export async function showHookHelp(
   hookService: HookService,
@@ -57,5 +65,65 @@ export async function showHookHelp(
       .map(arg => `--${arg}`)
       .join(' ');
     console.log(`  claude-good-hooks apply --project ${hookName} ${exampleArgs}`);
+  }
+}
+
+/**
+ * Hook help sub-command implementation
+ */
+export class HookHelpCommand implements ApplySubCommand {
+  private hookService: HookService;
+
+  constructor(hookService: HookService) {
+    this.hookService = hookService;
+  }
+
+  /**
+   * Check if this sub-command handles the given arguments and options
+   */
+  match(args: string[], options: ApplyOptions): boolean {
+    // Match when help flag is set and hook name is provided
+    return Boolean(options.help) && args.length > 0;
+  }
+
+  /**
+   * Validate the arguments and options for this sub-command
+   */
+  validate(args: string[], options: ApplyOptions): ValidationResult<ApplyOptions> {
+    if (args.length === 0) {
+      return {
+        valid: false,
+        errors: ['Hook name is required for hook-specific help']
+      };
+    }
+
+    return {
+      valid: true,
+      result: options
+    };
+  }
+
+  /**
+   * Execute the hook help command
+   */
+  async execute(args: [string, ...string[]], options: ApplyOptions): Promise<void> {
+    const hookName = args[0];
+    const scope = this.getScope(options);
+    const isJson = Boolean(options.parent?.json);
+
+    await showHookHelp(this.hookService, {
+      hookName,
+      global: scope === 'global',
+      isJson
+    });
+  }
+
+  /**
+   * Determine scope from options
+   */
+  private getScope(options: ApplyOptions): 'global' | 'local' | 'project' {
+    if (options.global) return 'global';
+    if (options.local) return 'local';
+    return 'project';
   }
 }

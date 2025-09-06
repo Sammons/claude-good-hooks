@@ -1,4 +1,4 @@
-import { GlobalOptionProcessor, OptionResult } from './types.js';
+import type { GlobalOptionProcessor, OptionResult } from './types.js';
 
 export class VerboseOption implements GlobalOptionProcessor {
   match(arg: string): boolean {

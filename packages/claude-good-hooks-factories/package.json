@@ -1,7 +1,7 @@
 {
   "name": "@sammons/claude-good-hooks-factories",
   "version": "1.0.0",
-  "description": "Helper functions and factories to simplify creating Claude Good Hooks",
+  "description": "Factory utilities for hook authors to create publishable npm modules that provide Claude Code hooks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -17,7 +17,9 @@
     "claude",
     "hooks",
     "factories",
-    "builders",
+    "authors",
+    "npm",
+    "modules",
     "utilities"
   ],
   "author": "Sammons Software LLC",

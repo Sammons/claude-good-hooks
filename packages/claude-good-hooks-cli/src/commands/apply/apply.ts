@@ -1,16 +1,22 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
 import { ProcessService } from '../../services/process.service.js';
-import type { SettingsScope } from '../../services/settings.service.js';
 import type { HelpInfo } from '../command-registry.js';
-import type { ApplyOptions, ValidationResult } from './apply-types.js';
-import { showApplyHelp, getApplyHelpInfo } from './apply-command-help.js';
-import { showHookHelp } from './apply-hook-help.js';
+import type { ApplyOptions } from './apply-options.js';
 import { validateApplyCommand } from './apply-options.js';
-import { handleRegenerate } from './apply-regenerate.js';
+import { getApplyHelpInfo } from './apply-command-help.js';
+import type { ValidationResult } from '../common-validation-types.js';
+import type { ApplySubCommand } from './apply-types.js';
+
+// Import all sub-command implementations
+import { ApplyRegenerateCommand } from './apply-regenerate.js';
+import { ApplyHelpCommand } from './apply-help.js';
+import { HookHelpCommand } from './apply-hook-help.js';
+import { ApplyHookCommand } from './apply-hook.js';
 
 /**
  * Apply command - apply a hook to the configuration
+ * Uses polymorphic pattern for sub-command handling
  */
 export class ApplyCommand {
   name = 'apply';
@@ -19,12 +25,24 @@ export class ApplyCommand {
   private hookService: HookService;
   private processService: ProcessService;
 
+  // Polymorphic sub-command handlers - no switch statements needed
+  private subCommands: ApplySubCommand[];
+
   constructor(
-    hookService?: HookService,
-    processService?: ProcessService
+    hookService: HookService,
+    processService: ProcessService
   ) {
-    this.hookService = hookService || new HookService();
-    this.processService = processService || new ProcessService();
+    this.hookService = hookService;
+    this.processService = processService;
+    
+    // Initialize sub-commands with shared services
+    // Order matters - more specific matches should come first
+    this.subCommands = [
+      new ApplyRegenerateCommand(this.hookService, this.processService),
+      new HookHelpCommand(this.hookService),
+      new ApplyHelpCommand(),
+      new ApplyHookCommand(this.hookService, this.processService),
+    ];
   }
 
   /**
@@ -35,10 +53,29 @@ export class ApplyCommand {
   }
 
   /**
-   * Validate command arguments
+   * Validate command arguments using polymorphic sub-command pattern
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
-    return validateApplyCommand(args, options);
+  validate(args: string[], options: unknown): ValidationResult<ApplyOptions> {
+    // First validate the basic command structure
+    const basicValidation = validateApplyCommand(args, options);
+    if (!basicValidation.valid) {
+      return basicValidation;
+    }
+
+    const applyOptions = basicValidation.result;
+
+    // Find matching sub-command and delegate validation
+    const subCommand = this.subCommands.find(cmd => cmd.match(args, applyOptions));
+    
+    if (!subCommand) {
+      return {
+        valid: false,
+        errors: ['No matching sub-command found for the provided arguments and options']
+      };
+    }
+
+    // Delegate validation to the matched sub-command
+    return subCommand.validate(args, applyOptions);
   }
 
   /**
@@ -49,87 +86,29 @@ export class ApplyCommand {
   }
 
   /**
-   * Execute the apply command
+   * Execute the apply command using polymorphic sub-command pattern
    */
   async execute(args: string[], options: ApplyOptions): Promise<void> {
-    const { global, local, help, regenerate } = options;
-    const isJson = options.parent?.json;
-
-    // Handle regenerate mode
-    if (regenerate) {
-      let scope: SettingsScope | undefined;
-      if (local) scope = 'local';
-      if (global) scope = 'global'; // Global takes precedence over local
-      
-      const hookName = args.length > 0 ? args[0] : undefined;
-      await handleRegenerate(this.hookService, this.processService, {
-        hookName,
-        scope,
-        isJson
-      });
-      return;
-    }
-
-    if (args.length === 0) {
-      if (help) {
-        showApplyHelp(isJson);
-        return;
-      }
-      if (isJson) {
-        console.log(JSON.stringify({ success: false, error: 'Hook name is required' }));
-      } else {
-        console.error(chalk.red('Hook name is required'));
-      }
-      this.processService.exit(1);
-      return;
-    }
-
-    const hookName = args[0];
-    if (!hookName) {
-      if (isJson) {
-        console.log(JSON.stringify({ success: false, error: 'Hook name is required' }));
-      } else {
-        console.error(chalk.red('Hook name is required'));
-      }
-      this.processService.exit(1);
-      return;
-    }
+    // Find matching sub-command using polymorphic pattern
+    const subCommand = this.subCommands.find(cmd => cmd.match(args, options));
     
-    const hookArgs = args.slice(1);
-
-    let scope: SettingsScope = 'project';
-    if (local) scope = 'local';
-    if (global) scope = 'global'; // Global takes precedence over local
-
-    if (help) {
-      await showHookHelp(this.hookService, {
-        hookName,
-        global: scope === 'global',
-        isJson: Boolean(isJson)
-      });
-      return;
-    }
-
-    const result = await this.hookService.applyHook(hookName, hookArgs, scope);
-
-    if (!result.success) {
+    if (!subCommand) {
+      // shouldn't be possible because validation should have been run by the consumer first
+      const isJson = options.parent?.json;
       if (isJson) {
-        console.log(JSON.stringify({ success: false, error: result.error }));
+        console.log(JSON.stringify({ 
+          success: false, 
+          error: 'No matching sub-command found for the provided arguments and options' 
+        }));
       } else {
-        console.error(chalk.red(result.error || 'Unknown error'));
+        console.error(chalk.red('Error: No matching sub-command found'));
       }
       this.processService.exit(1);
       return;
     }
 
-    if (isJson) {
-      console.log(JSON.stringify(result));
-    } else {
-      console.log(chalk.green(`✓ Applied hook '${result.hook}' to ${result.scope} settings`));
-      if (result.args && Object.keys(result.args).length > 0) {
-        console.log(chalk.dim(`  With arguments: ${JSON.stringify(result.args)}`));
-      }
-    }
+    // Execute the matched sub-command
+    await subCommand.execute(args, options);
   }
 
 }

@@ -261,7 +261,13 @@ export class InteractivePrompts {
           return;
         }
 
-        resolve(validChoices[index].value);
+        const choice = validChoices[index];
+        if (choice) {
+          resolve(choice.value);
+        } else {
+          console.log(chalk.red('✗ Invalid selection'));
+          this.select(options).then(resolve);
+        }
       });
     });
   }
@@ -311,7 +317,7 @@ export class InteractivePrompts {
       process.stdin.resume();
       process.stdin.setEncoding('utf8');
 
-      const onKeypress = (str: string, key: { name: string; ctrl?: boolean }) => {
+      const onKeypress = (_str: string, key: { name: string; ctrl?: boolean }) => {
         switch (key.name) {
           case 'up':
             currentIndex = Math.max(0, currentIndex - 1);
@@ -334,7 +340,10 @@ export class InteractivePrompts {
             process.stdin.pause();
             process.stdin.removeListener('keypress', onKeypress);
             
-            const selectedValues = Array.from(selected).map(index => validChoices[index].value);
+            const selectedValues = Array.from(selected).map(index => {
+              const choice = validChoices[index];
+              return choice ? choice.value : undefined;
+            }).filter((value): value is string => value !== undefined);
             resolve(selectedValues);
             break;
           case 'c':
@@ -346,7 +355,6 @@ export class InteractivePrompts {
         }
       };
 
-      // @ts-expect-error - keypress event typing
       process.stdin.on('keypress', onKeypress);
       
       // Enable keypress events

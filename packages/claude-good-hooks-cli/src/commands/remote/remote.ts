@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { ModuleService } from '../../services/module.service.js';
 import { ProcessService } from '../../services/process.service.js';
-import { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-registry.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -37,7 +37,7 @@ export class RemoteCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], _options: any): boolean | ValidationResult {
     return true;
   }
 
@@ -77,7 +77,7 @@ export class RemoteCommand {
   /**
    * Execute the remote command
    */
-  async execute(args: string[], options: RemoteOptions): Promise<void> {
+  async execute(_args: string[], options: RemoteOptions): Promise<void> {
     const { add, remove, json, help } = options;
     const isJson = options.parent?.json || json;
 

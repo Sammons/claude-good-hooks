@@ -5,8 +5,14 @@
 import { readFileSync, existsSync } from 'fs';
 import type { DebugSubCommand, DebugOptions } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 export class DebugLogsCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'logs';
   }
@@ -15,12 +21,12 @@ export class DebugLogsCommand implements DebugSubCommand {
     const logFile = options.output || DebugConfigurations.findLatestLogFile();
     
     if (!logFile || !existsSync(logFile)) {
-      console.log('No debug logs found');
+      this.consoleService.log('No debug logs found');
       return;
     }
     
-    console.log(`📋 Debug Logs from: ${logFile}`);
-    console.log('='.repeat(50));
+    this.consoleService.log(`📋 Debug Logs from: ${logFile}`);
+    this.consoleService.log('='.repeat(50));
     
     try {
       const logs = readFileSync(logFile, 'utf8');
@@ -34,15 +40,15 @@ export class DebugLogsCommand implements DebugSubCommand {
       
       // Show last 50 lines by default
       const recentLines = filteredLines.slice(-50);
-      console.log(recentLines.join('\n'));
+      this.consoleService.log(recentLines.join('\n'));
       
       if (filteredLines.length > 50) {
-        console.log(`\n... (${filteredLines.length - 50} more lines)`);
-        console.log('Use --output to specify a different log file');
+        this.consoleService.log(`\n... (${filteredLines.length - 50} more lines)`);
+        this.consoleService.log('Use --output to specify a different log file');
       }
     } catch (error) {
-      console.error(`Failed to read log file: ${error}`);
-      process.exit(1);
+      this.consoleService.error(`Failed to read log file: ${error}`);
+      this.processService.exit(1);
     }
   }
 }

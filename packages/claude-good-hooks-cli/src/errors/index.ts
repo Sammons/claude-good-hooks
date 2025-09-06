@@ -13,16 +13,16 @@ export { PermissionError } from './permission-error.js';
 export { CommandError } from './command-error.js';
 export { InternalError } from './internal-error.js';
 
-// Import for type definitions
-import type { CLIError } from './cli-error.js';
-import type { ValidationError } from './validation-error.js';
-import type { ConfigError } from './config-error.js';
-import type { HookError } from './hook-error.js';
-import type { NetworkError } from './network-error.js';
-import type { FileSystemError } from './file-system-error.js';
-import type { PermissionError } from './permission-error.js';
-import type { CommandError } from './command-error.js';
-import type { InternalError } from './internal-error.js';
+// Import error classes for runtime usage
+import { CLIError } from './cli-error.js';
+import { ValidationError } from './validation-error.js';
+import { ConfigError } from './config-error.js';
+import { HookError } from './hook-error.js';
+import { NetworkError } from './network-error.js';
+import { FileSystemError } from './file-system-error.js';
+import { PermissionError } from './permission-error.js';
+import { CommandError } from './command-error.js';
+import { InternalError } from './internal-error.js';
 
 // Export common types and utilities
 export { CommonErrorAttributes, createCommonErrorAttributes } from './common.js';

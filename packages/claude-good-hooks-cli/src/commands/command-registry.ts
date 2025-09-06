@@ -10,8 +10,16 @@ import { UpdateCommand } from './update/update.js';
 import { DoctorCommand } from './doctor/doctor.js';
 import { ExportCommand } from './export/export.js';
 import { ImportCommand } from './import/import.js';
+import { RestoreCommand } from './restore/restore.js';
 import { DebugCommand } from './debug/debug.js';
 import { PerformanceCommand } from './performance/performance.js';
+
+// Import services needed by commands
+import { HookService } from '../services/hook.service.js';
+import { ProcessService } from '../services/process.service.js';
+import { SettingsService } from '../services/settings.service.js';
+import { FileSystemService } from '../services/file-system.service.js';
+import { ConsoleService } from '../services/console.service.js';
 
 // Help information structure
 export interface HelpInfo {
@@ -48,23 +56,36 @@ export interface CommandLike {
  */
 export class CommandRegistry {
   private commands: CommandLike[];
+  private hookService: HookService;
+  private processService: ProcessService;
+  private settingsService: SettingsService;
+  private fileSystemService: FileSystemService;
+  private consoleService: ConsoleService;
 
   constructor() {
+    // Initialize shared services
+    this.hookService = new HookService();
+    this.processService = new ProcessService();
+    this.settingsService = new SettingsService();
+    this.fileSystemService = new FileSystemService();
+    this.consoleService = new ConsoleService();
+    
     // Initialize all command instances
     this.commands = [
       new HelpCommand(),
-      new InitCommand(), 
+      new InitCommand(this.settingsService, this.processService), 
       new VersionCommand(),
-      new ApplyCommand(),
+      new ApplyCommand(this.hookService, this.processService),
       new ListHooksCommand(),
       new RemoteCommand(),
-      new ValidateCommand(),
+      new ValidateCommand(this.processService),
       new UpdateCommand(),
       new DoctorCommand(),
-      new ExportCommand(),
-      new ImportCommand(),
-      new DebugCommand(),
-      new PerformanceCommand(),
+      new ExportCommand(this.settingsService, this.fileSystemService, this.processService),
+      new ImportCommand(this.settingsService, this.processService),
+      new RestoreCommand(this.fileSystemService, this.processService),
+      new DebugCommand(this.consoleService, this.processService),
+      new PerformanceCommand(this.consoleService, this.processService),
     ];
   }
 

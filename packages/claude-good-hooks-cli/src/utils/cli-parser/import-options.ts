@@ -1,4 +1,4 @@
-import { CommandOptionProcessor, CommandOptionResult } from './types.js';
+import type { CommandOptionProcessor, CommandOptionResult } from './types.js';
 
 export class ImportOptions implements CommandOptionProcessor {
   match(command: string): boolean {
@@ -15,7 +15,7 @@ export class ImportOptions implements CommandOptionProcessor {
     while (i < args.length) {
       const arg = args[i];
       
-      if (arg.startsWith('--')) {
+      if (arg && arg.startsWith('--')) {
         if (arg === '--scope') {
           options.scope = args[i + 1];
           i += 2;
@@ -43,10 +43,10 @@ export class ImportOptions implements CommandOptionProcessor {
         }
       } else {
         if (!source) {
-          source = arg;
+          source = arg || '';
           i++;
         } else {
-          remainingArgs.push(arg);
+          if (arg) remainingArgs.push(arg);
           i++;
         }
       }

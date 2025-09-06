@@ -27,6 +27,7 @@
   },
   "references": [
     { "path": "./packages/claude-good-hooks-types" },
+    { "path": "./packages/claude-good-hooks-settings" },
     { "path": "./packages/claude-good-hooks-cli" },
     { "path": "./packages/claude-good-hooks-template-hook" },
     { "path": "./packages/claude-good-hooks-factories" },

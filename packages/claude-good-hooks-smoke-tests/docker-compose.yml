@@ -1,16 +1,17 @@
 version: '3.8'
 
 services:
+  # Primary service using docker exec pattern for better development iteration
   smoke-tests:
     build:
       context: ../../  # Build from the monorepo root
       dockerfile: ./packages/claude-good-hooks-smoke-tests/Dockerfile
     container_name: claude-good-hooks-smoke-tests
     volumes:
-      # Mount source code for development workflow
+      # Mount source code for live development workflow
       - ../../packages/claude-good-hooks-types:/app/packages/claude-good-hooks-types
       - ../../packages/claude-good-hooks-cli:/app/packages/claude-good-hooks-cli  
-      - ../../packages/claude-good-hooks-smoke-tests:/app/packages/claude-good-hooks-smoke-tests
+      - ./:/app/packages/claude-good-hooks-smoke-tests
       # Mount package files for dependency changes
       - ../../package.json:/app/package.json
       - ../../pnpm-workspace.yaml:/app/pnpm-workspace.yaml
@@ -18,31 +19,32 @@ services:
     working_dir: /app/packages/claude-good-hooks-smoke-tests
     environment:
       - NODE_ENV=test
-      - CI=true
-    # Override default command for different operations
-    command: pnpm run smoke
+      - CI=false
+    # Keep container running for docker exec usage
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
     
-  # Service for development with watch mode
-  smoke-tests-dev:
+  # Legacy service for CI/CD compatibility (one-shot test runs)
+  smoke-tests-ci:
     build:
       context: ../../
       dockerfile: ./packages/claude-good-hooks-smoke-tests/Dockerfile
-    container_name: claude-good-hooks-smoke-tests-dev
+    container_name: claude-good-hooks-smoke-tests-ci
     volumes:
       - ../../packages/claude-good-hooks-types:/app/packages/claude-good-hooks-types
       - ../../packages/claude-good-hooks-cli:/app/packages/claude-good-hooks-cli
-      - ../../packages/claude-good-hooks-smoke-tests:/app/packages/claude-good-hooks-smoke-tests
+      - ./:/app/packages/claude-good-hooks-smoke-tests
       - ../../package.json:/app/package.json
       - ../../pnpm-workspace.yaml:/app/pnpm-workspace.yaml
       - ../../pnpm-lock.yaml:/app/pnpm-lock.yaml
     working_dir: /app/packages/claude-good-hooks-smoke-tests
     environment:
       - NODE_ENV=test
-    command: pnpm test:watch
-    stdin_open: true
-    tty: true
+      - CI=true
+    command: pnpm run smoke
 
-  # Service for building only (useful for CI/testing the build)
+  # Service for building/compiling only
   smoke-tests-build:
     build:
       context: ../../
@@ -51,7 +53,7 @@ services:
     volumes:
       - ../../packages/claude-good-hooks-types:/app/packages/claude-good-hooks-types
       - ../../packages/claude-good-hooks-cli:/app/packages/claude-good-hooks-cli
-      - ../../packages/claude-good-hooks-smoke-tests:/app/packages/claude-good-hooks-smoke-tests
+      - ./:/app/packages/claude-good-hooks-smoke-tests
     working_dir: /app/packages/claude-good-hooks-smoke-tests
     environment:
       - NODE_ENV=test

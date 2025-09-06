@@ -1,4 +1,6 @@
 import type { HelpInfo } from '../command-registry.js';
+import type { ConsoleService } from '../../services/console.service.js';
+import type { ProcessService } from '../../services/process.service.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -28,7 +30,10 @@ export class PerformanceCommand {
   name = 'performance';
   description = 'Performance analysis and optimization command';
 
-  constructor() {}
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
 
   /**
    * Check if this command handles the given input
@@ -44,7 +49,7 @@ export class PerformanceCommand {
     // Performance command accepts optional subcommands
     const validSubcommands = ['cache', 'lazy'];
     
-    if (args.length > 0 && !validSubcommands.includes(args[0])) {
+    if (args.length > 0 && args[0] && !validSubcommands.includes(args[0])) {
       // If first arg is not a valid subcommand, treat as invalid
       return {
         valid: false,
@@ -194,81 +199,81 @@ export class PerformanceCommand {
    * Main performance analysis and optimization
    */
   private async runPerformanceAnalysis(options: PerformanceCommandOptions): Promise<void> {
-    console.log('🚀 Claude Good Hooks Performance Analysis\n');
+    this.consoleService.log('🚀 Claude Good Hooks Performance Analysis\n');
 
     // Since we don't have access to the full Container system in this refactored version,
     // we'll provide a simplified implementation that focuses on the core functionality
     // without the complex dependency injection system
 
     if (options.profile) {
-      console.log('📊 Performance profiling enabled...');
+      this.consoleService.log('📊 Performance profiling enabled...');
     }
 
     // Simulate cache analysis
     if (options.cache) {
-      console.log('💾 Cache Analysis:');
+      this.consoleService.log('💾 Cache Analysis:');
       // Simplified cache stats - in a real implementation this would use CacheService
-      console.log('  Cache analysis not fully implemented in refactored version');
-      console.log('  This would typically show cache hit rates, size, evictions, etc.');
-      console.log();
+      this.consoleService.log('  Cache analysis not fully implemented in refactored version');
+      this.consoleService.log('  This would typically show cache hit rates, size, evictions, etc.');
+      this.consoleService.log();
     }
 
     // Simulate lazy loading analysis
     if (options.lazy) {
-      console.log('⚡ Lazy Loading Analysis:');
+      this.consoleService.log('⚡ Lazy Loading Analysis:');
       // Simplified lazy loading stats - would use LazyLoadingService
-      console.log('  Lazy loading analysis not fully implemented in refactored version');
-      console.log('  This would show module loading stats, memory usage, efficiency, etc.');
-      console.log();
+      this.consoleService.log('  Lazy loading analysis not fully implemented in refactored version');
+      this.consoleService.log('  This would show module loading stats, memory usage, efficiency, etc.');
+      this.consoleService.log();
     }
 
     // Run benchmarks
     if (options.benchmark) {
-      console.log('🏁 Running Performance Benchmarks...\n');
+      this.consoleService.log('🏁 Running Performance Benchmarks...\n');
       
       // Simplified benchmark results
       const results = await this.runSimplifiedBenchmarks(options);
       
       // Display results
       if (options.format === 'table' || !options.format) {
-        console.log('\n📈 Benchmark Results:');
-        console.table(results);
+        this.consoleService.log('\n📈 Benchmark Results:');
+        console.table(results); // Keep console.table as it's a specific formatting function
       } else if (options.format === 'json') {
-        console.log(JSON.stringify(results, null, 2));
+        this.consoleService.log(JSON.stringify(results, null, 2));
       }
     }
 
     // Optimization recommendations
     if (options.optimize) {
-      console.log('🔧 Performance Optimization Recommendations:\n');
+      this.consoleService.log('🔧 Performance Optimization Recommendations:\n');
       
       const recommendations = await this.generateOptimizationRecommendations(options);
       
       for (const recommendation of recommendations) {
         const icon = recommendation.priority === 'high' ? '🔴' : 
                     recommendation.priority === 'medium' ? '🟡' : '🟢';
-        console.log(`${icon} ${recommendation.title}`);
-        console.log(`   ${recommendation.description}`);
+        this.consoleService.log(`${icon} ${recommendation.title}`);
+        this.consoleService.log(`   ${recommendation.description}`);
         if (recommendation.action) {
-          console.log(`   💡 Action: ${recommendation.action}`);
+          this.consoleService.log(`   💡 Action: ${recommendation.action}`);
         }
-        console.log();
+        this.consoleService.log();
       }
     }
 
     // Show general performance info
     if (!options.cache && !options.lazy && !options.benchmark && !options.optimize) {
-      console.log('📊 General Performance Information:');
-      console.log('  Use specific flags for detailed analysis:');
-      console.log('    --benchmark    Run performance benchmarks');
-      console.log('    --cache        Analyze cache performance');
-      console.log('    --lazy         Analyze lazy loading performance');
-      console.log('    --optimize     Show optimization recommendations');
-      console.log('    --profile      Enable detailed profiling');
+      this.consoleService.log('📊 General Performance Information:');
+      this.consoleService.log('  Use specific flags for detailed analysis:');
+      this.consoleService.log('    --benchmark    Run performance benchmarks');
+      this.consoleService.log('    --cache        Analyze cache performance');
+      this.consoleService.log('    --lazy         Analyze lazy loading performance');
+      this.consoleService.log('    --optimize     Show optimization recommendations');
+      this.consoleService.log('    --profile      Enable detailed profiling');
     }
 
     if (options.export) {
-      const exportData = {
+      const _exportData = {
         timestamp: new Date().toISOString(),
         analysisType: 'simplified-performance',
         note: 'This is a simplified performance analysis after refactoring'
@@ -276,43 +281,43 @@ export class PerformanceCommand {
       
       const outputPath = options.output || `performance-analysis-${Date.now()}.json`;
       // In the refactored version, we'd use a simpler file write approach
-      console.log(`\n📁 Performance data would be exported to: ${outputPath}`);
-      console.log('   (File export not fully implemented in refactored version)');
+      this.consoleService.log(`\n📁 Performance data would be exported to: ${outputPath}`);
+      this.consoleService.log('   (File export not fully implemented in refactored version)');
     }
   }
 
   /**
    * Handle cache-specific commands
    */
-  private async handleCacheCommand(args: string[], options: PerformanceCommandOptions): Promise<void> {
+  private async handleCacheCommand(args: string[], _options: PerformanceCommandOptions): Promise<void> {
     const action = args[0] || 'stats';
 
-    console.log('💾 Cache Management\n');
+    this.consoleService.log('💾 Cache Management\n');
 
     switch (action) {
       case 'stats':
-        console.log('Cache Statistics:');
-        console.log('  Cache stats not fully implemented in refactored version');
-        console.log('  This would show size, hit rate, hits, misses, evictions');
+        this.consoleService.log('Cache Statistics:');
+        this.consoleService.log('  Cache stats not fully implemented in refactored version');
+        this.consoleService.log('  This would show size, hit rate, hits, misses, evictions');
         break;
 
       case 'clear':
-        console.log('🗑️  Cache cleared (simulated)');
+        this.consoleService.log('🗑️  Cache cleared (simulated)');
         break;
 
       case 'warmup':
-        console.log('🔥 Warming up cache...');
-        console.log('✅ Cache warmup complete (simulated)');
+        this.consoleService.log('🔥 Warming up cache...');
+        this.consoleService.log('✅ Cache warmup complete (simulated)');
         break;
 
       case 'cleanup':
-        console.log('🧹 Cleaned up expired entries (simulated)');
+        this.consoleService.log('🧹 Cleaned up expired entries (simulated)');
         break;
 
       default:
-        console.error(`Unknown cache action: ${action}`);
-        console.error('Valid actions: stats, clear, warmup, cleanup');
-        process.exit(1);
+        this.consoleService.error(`Unknown cache action: ${action}`);
+        this.consoleService.error('Valid actions: stats, clear, warmup, cleanup');
+        this.processService.exit(1);
     }
   }
 
@@ -322,45 +327,45 @@ export class PerformanceCommand {
   private async handleLazyCommand(args: string[], options: PerformanceCommandOptions): Promise<void> {
     const action = args[0] || 'stats';
 
-    console.log('⚡ Lazy Loading Management\n');
+    this.consoleService.log('⚡ Lazy Loading Management\n');
 
     switch (action) {
       case 'stats':
-        console.log('Lazy Loading Statistics:');
-        console.log('  Lazy loading stats not fully implemented in refactored version');
-        console.log('  This would show total modules, loaded modules, memory usage, efficiency');
+        this.consoleService.log('Lazy Loading Statistics:');
+        this.consoleService.log('  Lazy loading stats not fully implemented in refactored version');
+        this.consoleService.log('  This would show total modules, loaded modules, memory usage, efficiency');
         break;
 
       case 'preload':
-        console.log('🔄 Preloading critical modules...');
-        console.log('✅ Preload complete (simulated)');
+        this.consoleService.log('🔄 Preloading critical modules...');
+        this.consoleService.log('✅ Preload complete (simulated)');
         break;
 
       case 'unload':
-        console.log('🗑️  Unloaded unused modules (simulated)');
+        this.consoleService.log('🗑️  Unloaded unused modules (simulated)');
         break;
 
       case 'strategy':
         if (options.lazy) {
-          console.log('📋 Set loading strategy to: lazy (simulated)');
+          this.consoleService.log('📋 Set loading strategy to: lazy (simulated)');
         } else if (options.parallel) {
-          console.log('📋 Set loading strategy to: preload (4 concurrent) (simulated)');
+          this.consoleService.log('📋 Set loading strategy to: preload (4 concurrent) (simulated)');
         } else {
-          console.log('📋 Available strategies: --lazy, --parallel');
+          this.consoleService.log('📋 Available strategies: --lazy, --parallel');
         }
         break;
 
       default:
-        console.error(`Unknown lazy loading action: ${action}`);
-        console.error('Valid actions: stats, preload, unload, strategy');
-        process.exit(1);
+        this.consoleService.error(`Unknown lazy loading action: ${action}`);
+        this.consoleService.error('Valid actions: stats, preload, unload, strategy');
+        this.processService.exit(1);
     }
   }
 
   /**
    * Run simplified benchmarks for the refactored version
    */
-  private async runSimplifiedBenchmarks(options: PerformanceCommandOptions): Promise<any[]> {
+  private async runSimplifiedBenchmarks(_options: PerformanceCommandOptions): Promise<any[]> {
     // Simulate some benchmark results
     return [
       {
@@ -390,7 +395,7 @@ export class PerformanceCommand {
   /**
    * Generate optimization recommendations
    */
-  private async generateOptimizationRecommendations(options: PerformanceCommandOptions): Promise<Array<{
+  private async generateOptimizationRecommendations(_options: PerformanceCommandOptions): Promise<Array<{
     title: string;
     description: string;
     priority: 'high' | 'medium' | 'low';

@@ -5,6 +5,8 @@
 import { join } from 'path';
 import type { DebugSubCommand, DebugOptions, TracingHookConfig } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 // Mock factory function - in real implementation this would come from factories package
 function createTracingHook(config: TracingHookConfig): TracingHookConfig {
@@ -12,6 +14,10 @@ function createTracingHook(config: TracingHookConfig): TracingHookConfig {
 }
 
 export class DebugTraceCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'trace';
   }
@@ -20,9 +26,9 @@ export class DebugTraceCommand implements DebugSubCommand {
     const traceLevel = options.logLevel === 'debug' ? 'verbose' : 'detailed';
     const traceFile = options.output || join(process.cwd(), '.claude/trace.log');
     
-    console.log(`🔍 Tracing enabled`);
-    console.log(`   Level: ${traceLevel}`);
-    console.log(`   Output: ${traceFile}`);
+    this.consoleService.log(`🔍 Tracing enabled`);
+    this.consoleService.log(`   Level: ${traceLevel}`);
+    this.consoleService.log(`   Output: ${traceFile}`);
     
     // Create trace hook configuration
     const tracingHook = createTracingHook({
@@ -36,7 +42,7 @@ export class DebugTraceCommand implements DebugSubCommand {
     // Save tracing configuration
     DebugConfigurations.saveTracingConfig(tracingHook);
     
-    console.log('✅ Tracing hook configured');
-    console.log('Use "claude-good-hooks apply debug-tracer" to activate');
+    this.consoleService.log('✅ Tracing hook configured');
+    this.consoleService.log('Use "claude-good-hooks apply debug-tracer" to activate');
   }
 }

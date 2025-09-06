@@ -1,8 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import dirtyHook from './index.js';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 
 describe('dirty-hook plugin', () => {
+  let tempDir: string;
+  let mockContext: { settingsDirectoryPath: string };
+
+  beforeEach(() => {
+    // Create a temporary directory for each test
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dirty-hook-test-'));
+    mockContext = { settingsDirectoryPath: tempDir };
+  });
+
+  afterEach(() => {
+    // Clean up temporary directory
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   describe('plugin metadata', () => {
     it('should have correct plugin structure', () => {
       expect(dirtyHook).toMatchObject({
@@ -45,256 +64,161 @@ describe('dirty-hook plugin', () => {
     });
   });
 
-  describe('default configuration scenarios', () => {
-    it('should return git status --short with no arguments', () => {
-      const result = dirtyHook.makeHook({});
-
-      expect(result).toEqual({
-        UserPromptSubmit: [
-          {
-            hooks: [
-              {
-                type: 'command',
-                command: 'git status --short',
-                timeout: 10000,
-              },
-            ],
-          },
-        ],
-      });
-    });
-
-    it('should return git status --short with all false arguments', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: false,
-        filenames: false,
-        diffs: false,
-      });
-
-      expect(result).toEqual({
-        UserPromptSubmit: [
-          {
-            hooks: [
-              {
-                type: 'command',
-                command: 'git status --short',
-                timeout: 10000,
-              },
-            ],
-          },
-        ],
-      });
-    });
-
-    it('should return git status --short when both staged and unstaged are true', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: true,
-      });
-
-      expect(result).toEqual({
-        UserPromptSubmit: [
-          {
-            hooks: [
-              {
-                type: 'command',
-                command: 'git status --short',
-                timeout: 10000,
-              },
-            ],
-          },
-        ],
-      });
-    });
-  });
-
-  describe('staged-only scenarios', () => {
-    it('should show staged changes only', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: false,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
-        'git diff --cached --name-status'
+  describe('context validation', () => {
+    it('should throw error if settingsDirectoryPath is not provided', () => {
+      expect(() => dirtyHook.makeHook({}, {} as any)).toThrow(
+        'settingsDirectoryPath is required but was not provided'
       );
     });
 
-    it('should show staged changes with filenames only', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: false,
-        filenames: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached --name-only');
-    });
-
-    it('should show staged changes with diffs', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: false,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
-    });
-
-    it('should prioritize diffs over filenames for staged changes', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: false,
-        filenames: true,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
+    it('should throw error if settingsDirectoryPath does not exist', () => {
+      const nonExistentPath = path.join(tempDir, 'non-existent');
+      expect(() => 
+        dirtyHook.makeHook({}, { settingsDirectoryPath: nonExistentPath })
+      ).toThrow(`Settings directory does not exist: ${nonExistentPath}`);
     });
   });
 
-  describe('unstaged-only scenarios', () => {
-    it('should show unstaged changes only', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --name-status');
+  describe('script file creation', () => {
+    it('should create scripts directory if it does not exist', () => {
+      dirtyHook.makeHook({}, mockContext);
+      
+      const scriptsDir = path.join(tempDir, 'scripts');
+      expect(fs.existsSync(scriptsDir)).toBe(true);
+      expect(fs.lstatSync(scriptsDir).isDirectory()).toBe(true);
     });
 
-    it('should show unstaged changes with filenames only', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: true,
-        filenames: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --name-only');
+    it('should create the script file with correct content', () => {
+      dirtyHook.makeHook({}, mockContext);
+      
+      const scriptPath = path.join(tempDir, 'scripts', 'dirty-good-claude-hook.js');
+      expect(fs.existsSync(scriptPath)).toBe(true);
+      
+      const content = fs.readFileSync(scriptPath, 'utf8');
+      expect(content).toContain('#!/usr/bin/env node');
+      expect(content).toContain('parseArgs');
+      expect(content).toContain('getGitCommand');
+      expect(content).toContain('execSync');
     });
 
-    it('should show unstaged changes with diffs', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: true,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff');
+    it('should make script file executable', () => {
+      dirtyHook.makeHook({}, mockContext);
+      
+      const scriptPath = path.join(tempDir, 'scripts', 'dirty-good-claude-hook.js');
+      const stats = fs.lstatSync(scriptPath);
+      // Check if the file has execute permissions
+      expect(stats.mode & parseInt('755', 8)).toBeTruthy();
     });
 
-    it('should prioritize diffs over filenames for unstaged changes', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: true,
-        filenames: true,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff');
+    it('should overwrite existing script file', () => {
+      // Create the scripts directory and file first
+      const scriptsDir = path.join(tempDir, 'scripts');
+      fs.mkdirSync(scriptsDir);
+      const scriptPath = path.join(scriptsDir, 'dirty-good-claude-hook.js');
+      fs.writeFileSync(scriptPath, 'old content');
+      
+      // Now call makeHook
+      dirtyHook.makeHook({}, mockContext);
+      
+      const content = fs.readFileSync(scriptPath, 'utf8');
+      expect(content).toContain('#!/usr/bin/env node');
+      expect(content).not.toContain('old content');
     });
   });
 
-  describe('filenames-only scenarios', () => {
-    it('should show filenames only with default status', () => {
-      const result = dirtyHook.makeHook({
-        filenames: true,
+  describe('command generation', () => {
+    it('should return script command with no arguments by default', () => {
+      const result = dirtyHook.makeHook({}, mockContext);
+      
+      expect(result).toEqual({
+        UserPromptSubmit: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js',
+                timeout: 10000,
+              },
+            ],
+          },
+        ],
       });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
     });
 
-    it('should show filenames only for both staged and unstaged', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: true,
-        filenames: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
+    it('should include --staged argument when staged is true', () => {
+      const result = dirtyHook.makeHook({ staged: true }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged'
+      );
     });
 
-    it('should handle filenames with explicit false unstaged', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
+    it('should include --unstaged argument when unstaged is true', () => {
+      const result = dirtyHook.makeHook({ unstaged: true }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --unstaged'
+      );
+    });
+
+    it('should include --filenames argument when filenames is true', () => {
+      const result = dirtyHook.makeHook({ filenames: true }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --filenames'
+      );
+    });
+
+    it('should include --diffs argument when diffs is true', () => {
+      const result = dirtyHook.makeHook({ diffs: true }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --diffs'
+      );
+    });
+
+    it('should combine multiple arguments', () => {
+      const result = dirtyHook.makeHook({ 
+        staged: true, 
+        filenames: true, 
+        diffs: true 
+      }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged --filenames --diffs'
+      );
+    });
+
+    it('should handle falsy values correctly', () => {
+      const result = dirtyHook.makeHook({ 
+        staged: false, 
         unstaged: false,
-        filenames: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
-    });
-  });
-
-  describe('diff scenarios', () => {
-    it('should show diffs with default behavior (all changes)', () => {
-      const result = dirtyHook.makeHook({
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
+        filenames: false,
+        diffs: false 
+      }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js'
+      );
     });
 
-    it('should show diffs for both staged and unstaged', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unstaged: true,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
-    });
-
-    it('should show diffs with explicit false flags', () => {
-      const result = dirtyHook.makeHook({
-        staged: false,
-        unstaged: false,
-        diffs: true,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff HEAD');
-    });
-  });
-
-  describe('complex argument combinations', () => {
-    it('should handle all arguments as strings (truthy values)', () => {
-      const result = dirtyHook.makeHook({
-        staged: 'true',
-        unstaged: 'false',
-        filenames: 'yes',
-        diffs: '',
-      });
-
-      // staged='true' (truthy), unstaged='false' (truthy), filenames='yes' (truthy), diffs='' (falsy)
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short | cut -c4-');
-    });
-
-    it('should handle numeric values', () => {
-      const result = dirtyHook.makeHook({
-        staged: 1,
-        unstaged: 0,
-        filenames: 0,
-        diffs: 1,
-      });
-
-      // staged=1 (truthy), unstaged=0 (falsy), diffs=1 (truthy)
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git diff --cached');
-    });
-
-    it('should handle null and undefined values', () => {
-      const result = dirtyHook.makeHook({
-        staged: null,
-        unstaged: undefined,
-        filenames: null,
-        diffs: undefined,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short');
+    it('should handle truthy non-boolean values', () => {
+      const result = dirtyHook.makeHook({ 
+        staged: 'yes', 
+        unstaged: 1,
+        filenames: 'true',
+        diffs: {} 
+      }, mockContext);
+      
+      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
+        '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged --unstaged --filenames --diffs'
+      );
     });
   });
 
   describe('hook configuration structure', () => {
     it('should always return UserPromptSubmit configuration', () => {
-      const result = dirtyHook.makeHook({});
+      const result = dirtyHook.makeHook({}, mockContext);
 
       expect(result).toHaveProperty('UserPromptSubmit');
       expect(Array.isArray(result.UserPromptSubmit)).toBe(true);
@@ -302,7 +226,7 @@ describe('dirty-hook plugin', () => {
     });
 
     it('should have proper hook command structure', () => {
-      const result = dirtyHook.makeHook({});
+      const result = dirtyHook.makeHook({}, mockContext);
       const hookConfig = result.UserPromptSubmit?.[0];
 
       expect(hookConfig).toEqual({
@@ -317,7 +241,7 @@ describe('dirty-hook plugin', () => {
     });
 
     it('should not include matcher in hook configuration', () => {
-      const result = dirtyHook.makeHook({});
+      const result = dirtyHook.makeHook({}, mockContext);
       const hookConfig = result.UserPromptSubmit?.[0];
 
       expect(hookConfig).not.toHaveProperty('matcher');
@@ -335,13 +259,13 @@ describe('dirty-hook plugin', () => {
       ];
 
       scenarios.forEach(args => {
-        const result = dirtyHook.makeHook(args);
+        const result = dirtyHook.makeHook(args, mockContext);
         expect(result.UserPromptSubmit?.[0]?.hooks[0]?.timeout).toBe(10000);
       });
     });
 
     it('should not return other hook event types', () => {
-      const result = dirtyHook.makeHook({});
+      const result = dirtyHook.makeHook({}, mockContext);
 
       expect(result).not.toHaveProperty('PreToolUse');
       expect(result).not.toHaveProperty('PostToolUse');
@@ -354,46 +278,37 @@ describe('dirty-hook plugin', () => {
     });
   });
 
-  describe('command generation edge cases', () => {
-    it('should generate valid git commands for all scenarios', () => {
-      const testCases = [
-        { args: {}, expected: 'git status --short' },
-        { args: { staged: true }, expected: 'git diff --cached --name-status' },
-        { args: { unstaged: true }, expected: 'git diff --name-status' },
-        { args: { filenames: true }, expected: 'git status --short | cut -c4-' },
-        { args: { diffs: true }, expected: 'git diff HEAD' },
-        { args: { staged: true, filenames: true }, expected: 'git diff --cached --name-only' },
-        { args: { unstaged: true, filenames: true }, expected: 'git diff --name-only' },
-        { args: { staged: true, diffs: true }, expected: 'git diff --cached' },
-        { args: { unstaged: true, diffs: true }, expected: 'git diff' },
-        {
-          args: { staged: true, unstaged: true, filenames: true },
-          expected: 'git status --short | cut -c4-',
-        },
-        { args: { staged: true, unstaged: true, diffs: true }, expected: 'git diff HEAD' },
-      ];
-
-      testCases.forEach(({ args, expected }) => {
-        const result = dirtyHook.makeHook(args);
-        expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(expected);
-      });
-    });
-
-    it('should handle empty object gracefully', () => {
-      const result = dirtyHook.makeHook({});
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe('git status --short');
-    });
-
-    it('should handle extra unknown arguments gracefully', () => {
-      const result = dirtyHook.makeHook({
-        staged: true,
-        unknown: 'value',
-        another: 123,
-      });
-
-      expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
-        'git diff --cached --name-status'
+  describe('error handling', () => {
+    it('should handle filesystem errors when creating scripts directory', () => {
+      // Create a read-only temp directory to simulate permission error
+      const readOnlyDir = path.join(tempDir, 'readonly');
+      fs.mkdirSync(readOnlyDir);
+      fs.chmodSync(readOnlyDir, 0o444); // Remove write permissions
+      
+      const readOnlyContext = { settingsDirectoryPath: readOnlyDir };
+      
+      expect(() => dirtyHook.makeHook({}, readOnlyContext)).toThrow(
+        'Failed to create scripts directory'
       );
+      
+      // Clean up
+      fs.chmodSync(readOnlyDir, 0o755); // Restore permissions for cleanup
+    });
+
+    it('should handle case when scripts directory creation succeeds but write fails', () => {
+      // Create scripts directory first
+      const scriptsDir = path.join(tempDir, 'scripts');
+      fs.mkdirSync(scriptsDir);
+      
+      // Make scripts directory read-only to prevent file creation
+      fs.chmodSync(scriptsDir, 0o444);
+      
+      expect(() => dirtyHook.makeHook({}, mockContext)).toThrow(
+        'Failed to write script file'
+      );
+      
+      // Clean up
+      fs.chmodSync(scriptsDir, 0o755); // Restore permissions for cleanup
     });
   });
 });

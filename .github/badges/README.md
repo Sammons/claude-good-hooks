@@ -42,8 +42,8 @@ Instead of external services:
 
 Use self-hosted badges:
 ```markdown
-[![Coverage](.github/badges/coverage.svg)](...)
-[![npm version](.github/badges/package-version.svg)](...)
+[![Coverage](.github/badges/coverage.svg)](https://github.com/owner/repo/actions/workflows/coverage.yml)
+[![npm version](.github/badges/package-version.svg)](https://www.npmjs.com/package/package-name)
 ```
 
 ## Benefits

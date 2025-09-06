@@ -1,5 +1,6 @@
-import { GlobalOptionProcessor, CommandOptionProcessor, GlobalOptionResult, CommandOptionResult } from './cli-parser/types.js';
-import { CommandRegistry, HelpInfo } from '../commands/command-registry.js';
+import type { GlobalOptionProcessor, CommandOptionProcessor, GlobalOptionResult, CommandOptionResult } from './cli-parser/types.js';
+import { CommandRegistry } from '../commands/command-registry.js';
+import type { HelpInfo } from '../commands/command-registry.js';
 import chalk from 'chalk';
 
 // Global option processors
@@ -16,6 +17,7 @@ import { InitOptions } from './cli-parser/init-options.js';
 import { ValidateOptions } from './cli-parser/validate-options.js';
 import { ExportOptions } from './cli-parser/export-options.js';
 import { ImportOptions } from './cli-parser/import-options.js';
+import { RestoreOptions } from './cli-parser/restore-options.js';
 import { DoctorOptions } from './cli-parser/doctor-options.js';
 import { UpdateOptions } from './cli-parser/update-options.js';
 import { DefaultOptions } from './cli-parser/default-options.js';
@@ -172,6 +174,7 @@ export class CLIParser {
     new ValidateOptions(),
     new ExportOptions(),
     new ImportOptions(),
+    new RestoreOptions(),
     new DoctorOptions(),
     new UpdateOptions(),
     new DefaultOptions(), // Must be last as it matches many commands

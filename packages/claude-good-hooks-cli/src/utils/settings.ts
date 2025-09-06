@@ -1,28 +1,28 @@
 import { homedir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { existsSync } from 'fs';
 import type { HookConfiguration } from '@sammons/claude-good-hooks-types';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { 
   validateSettingsComprehensive,
   convertLegacySettings 
-} from '@sammons/claude-good-hooks-types';
+} from '@sammons/claude-good-hooks-settings';
 import { 
   atomicReadFile,
   atomicWriteSettings,
   atomicUpdateSettings,
   verifyFileIntegrity,
   cleanupBackups
-} from '@sammons/claude-good-hooks-types';
+} from '@sammons/claude-good-hooks-settings';
 import { 
   migrateSettings,
   needsMigration
-} from '@sammons/claude-good-hooks-types';
+} from '@sammons/claude-good-hooks-settings';
 import { 
   createVersionedSettings,
   trackSettingsChange,
   getVersionInfo
-} from '@sammons/claude-good-hooks-types';
+} from '@sammons/claude-good-hooks-settings';
 
 export function getSettingsPath(scope: 'global' | 'project' | 'local'): string {
   switch (scope) {

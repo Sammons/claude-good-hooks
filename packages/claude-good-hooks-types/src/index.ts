@@ -216,12 +216,169 @@ export function isHookMetadata(obj: unknown): obj is HookMetadata {
   );
 }
 
-// Re-export all schema and validation utilities
-export * from './schemas/index.js';
-export * from './validation.js';
-export * from './atomic-operations.js';
-export * from './migrations.js';
-export * from './version-tracking.js';
+// Settings-related functionality has been moved to @sammons/claude-good-hooks-settings
+// Define basic types that are shared between packages to avoid circular dependencies
+
+// Schema validation types
+export interface SchemaValidationError {
+  path: string;
+  message: string;
+  value?: unknown;
+  expected?: string;
+}
+
+export interface SchemaValidationResult {
+  valid: boolean;
+  errors: SchemaValidationError[];
+}
+
+// Settings versioning types
+export interface SettingsVersion {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+export interface MigrationRecord {
+  version: string;
+  appliedAt: string;
+  description: string;
+  changes?: string[];
+}
+
+export interface SettingsMetadata {
+  createdAt?: string;
+  updatedAt?: string;
+  source?: 'global' | 'project' | 'local';
+  migrations?: MigrationRecord[];
+  changes?: any[];
+}
+
+// Extended settings interface with versioning and metadata
+export interface VersionedClaudeSettings {
+  $schema?: string;
+  version?: string;
+  hooks?: {
+    PreToolUse?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    PostToolUse?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    UserPromptSubmit?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    Notification?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    Stop?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    SubagentStop?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    SessionEnd?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    SessionStart?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+    PreCompact?: Array<{
+      matcher?: string;
+      description?: string;
+      enabled?: boolean;
+      hooks: Array<{
+        type: 'command';
+        command: string;
+        timeout?: number;
+        description?: string;
+        enabled?: boolean;
+        continueOnError?: boolean;
+      }>;
+    }>;
+  };
+  meta?: SettingsMetadata;
+}
 
 // Enhanced types for hook composition and advanced features
 

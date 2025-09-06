@@ -1,5 +1,5 @@
 import { parseArgs } from 'node:util';
-import { CommandOptionProcessor, CommandOptionResult } from './types.js';
+import type { CommandOptionProcessor, CommandOptionResult } from './types.js';
 
 export class ExportOptions implements CommandOptionProcessor {
   match(command: string): boolean {
@@ -16,6 +16,7 @@ export class ExportOptions implements CommandOptionProcessor {
           format: { type: 'string' },
           minify: { type: 'boolean' },
           'include-metadata': { type: 'boolean' },
+          backup: { type: 'boolean' },
           help: { type: 'boolean' },
         },
         allowPositionals: false,

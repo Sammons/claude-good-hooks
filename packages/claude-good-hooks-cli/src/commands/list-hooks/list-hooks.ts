@@ -26,11 +26,11 @@ export class ListHooksCommand {
   name = 'list-hooks';
   description = 'List available hooks';
 
-  private hookService: HookService;
+  private _hookService: HookService;
   private moduleService: ModuleService;
 
   constructor(hookService?: HookService, moduleService?: ModuleService) {
-    this.hookService = hookService || new HookService();
+    this._hookService = hookService || new HookService();
     this.moduleService = moduleService || new ModuleService();
   }
 
@@ -44,7 +44,7 @@ export class ListHooksCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], _options: any): boolean | ValidationResult {
     return true;
   }
 
@@ -159,7 +159,7 @@ export class ListHooksCommand {
   /**
    * Execute the list-hooks command
    */
-  async execute(args: string[], options: ListHooksOptions): Promise<void> {
+  async execute(_args: string[], options: ListHooksOptions): Promise<void> {
     const json = options.json || options.parent?.json;
     
     // Handle help flag
@@ -204,7 +204,7 @@ export class ListHooksCommand {
     if (installed) {
       hooks = await hookService.listInstalledHooks(scope);
     } else {
-      hooks = await hookService.listAvailableHooks(global);
+      hooks = await hookService.listAvailableHooks(global ?? false);
     }
 
     if (json) {

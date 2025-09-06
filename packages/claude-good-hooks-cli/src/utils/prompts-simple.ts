@@ -176,7 +176,13 @@ export class SimplePrompts {
           return;
         }
 
-        resolve(validChoices[index].value);
+        const choice = validChoices[index];
+        if (choice) {
+          resolve(choice.value);
+        } else {
+          console.log(chalk.red('✗ Invalid selection'));
+          this.select(options).then(resolve);
+        }
       });
     });
   }
@@ -216,7 +222,10 @@ export class SimplePrompts {
             return;
           }
 
-          const selectedValues = indices.map(index => validChoices[index].value);
+          const selectedValues = indices.map(index => {
+            const choice = validChoices[index];
+            return choice ? choice.value : undefined;
+          }).filter((value): value is string => value !== undefined);
           resolve(selectedValues);
         } catch (error) {
           console.log(chalk.red('✗ Invalid format. Please enter comma-separated numbers.'));

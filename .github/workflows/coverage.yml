@@ -203,21 +203,80 @@ jobs:
             echo "<p>No coverage data was available for HTML report generation.</p>" >> coverage-reports/html/index.html
           fi
         
-      # Step 11: Upload coverage to Codecov (enhanced)
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage-reports/merged-lcov.info,coverage-reports/*-lcov.info
-          directory: coverage-reports
-          flags: comprehensive
-          name: comprehensive-coverage
-          fail_ci_if_error: false
-          verbose: true
-          # Additional options for enhanced reporting
-          functionalities: search,gcov,fix
+      # Step 11: Generate local coverage badge
+      - name: Generate local coverage badge
+        run: |
+          echo "🏷️ Generating local coverage badge..."
+          
+          # Extract coverage percentage from LCOV data
+          if [ -f "coverage-reports/merged-lcov.info" ]; then
+            LINES_FOUND=$(grep -c '^LF:' coverage-reports/merged-lcov.info || echo "0")
+            LINES_HIT=$(grep '^LH:' coverage-reports/merged-lcov.info | cut -d':' -f2 | paste -sd+ | bc || echo "0")
+            
+            if [ "$LINES_FOUND" -gt 0 ]; then
+              COVERAGE_PCT=$(echo "scale=1; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+            else
+              COVERAGE_PCT="0"
+            fi
+          else
+            echo "⚠️ No merged coverage data found, checking individual reports..."
+            # Try to find any coverage report
+            FIRST_COVERAGE_FILE=$(find coverage-reports -name "*-lcov.info" | head -1)
+            if [ -n "$FIRST_COVERAGE_FILE" ]; then
+              LINES_FOUND=$(grep -c '^LF:' "$FIRST_COVERAGE_FILE" || echo "0")
+              LINES_HIT=$(grep '^LH:' "$FIRST_COVERAGE_FILE" | cut -d':' -f2 | paste -sd+ | bc || echo "0")
+              
+              if [ "$LINES_FOUND" -gt 0 ]; then
+                COVERAGE_PCT=$(echo "scale=1; $LINES_HIT * 100 / $LINES_FOUND" | bc)
+              else
+                COVERAGE_PCT="0"
+              fi
+            else
+              COVERAGE_PCT="0"
+            fi
+          fi
+          
+          echo "📊 Coverage percentage: ${COVERAGE_PCT}%"
+          
+          # Install tsx if not available
+          npm install -g tsx
+          
+          # Generate local coverage badge
+          cd .github/scripts
+          npm install || echo "Badge script dependencies may already be installed"
+          npx tsx generate-coverage-badge.ts "${COVERAGE_PCT}" ../badges/coverage.svg
+          
+          echo "✅ Local coverage badge generated"
         
-      # Step 12: Upload coverage artifacts
+      # Step 12: Commit coverage badge changes
+      - name: Commit coverage badge changes
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "💾 Committing coverage badge changes..."
+          
+          # Configure git identity for automated commits
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Stage badge files for commit
+          git add .github/badges/coverage.svg
+          
+          # Check if there are actually changes to commit
+          if ! git diff --staged --quiet; then
+            echo "📝 Coverage badge changes detected, committing..."
+            
+            # Commit with [skip ci] to prevent triggering other workflows
+            git commit -m "Update coverage badge [skip ci]"
+            
+            # Push changes back to the repository
+            git push
+            
+            echo "✅ Coverage badge updated successfully"
+          else
+            echo "ℹ️  No coverage badge changes to commit"
+          fi
+        
+      # Step 13: Upload coverage artifacts
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -317,7 +376,7 @@ jobs:
               console.log('Could not read coverage summary:', error);
             }
             
-            coverageComment += `\n---\n*Coverage analysis powered by Codecov and enhanced CI workflows.*`;
+            coverageComment += `\n---\n*Coverage analysis powered by local badge generation and enhanced CI workflows.*`;
             
             await github.rest.issues.createComment({
               issue_number: context.issue.number,

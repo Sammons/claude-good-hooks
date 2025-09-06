@@ -11,11 +11,17 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "test:watch": "vitest",
     "smoke": "vitest run --reporter=verbose",
-    "docker:build": "docker-compose build smoke-tests",
-    "docker:test": "docker-compose run --rm smoke-tests",
-    "docker:test:watch": "docker-compose run --rm smoke-tests-dev",
-    "docker:build:check": "docker-compose run --rm smoke-tests-build",
-    "docker:clean": "docker-compose down && docker system prune -f"
+    "docker:setup": "./docker-test.sh setup",
+    "docker:build": "./docker-test.sh build",
+    "docker:start": "./docker-test.sh start",
+    "docker:stop": "./docker-test.sh stop",
+    "docker:test": "./docker-test.sh test",
+    "docker:test:watch": "./docker-test.sh test:watch",
+    "docker:test:file": "./docker-test.sh test:file",
+    "docker:shell": "./docker-test.sh shell",
+    "docker:status": "./docker-test.sh status",
+    "docker:cleanup": "./docker-test.sh cleanup",
+    "docker:logs": "./docker-test.sh logs"
   },
   "keywords": [
     "claude",

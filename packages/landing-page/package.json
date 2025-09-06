@@ -7,15 +7,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:analyze": "npm run build && tsx analyze-bundle.ts",
-    "build:check": "npm run build && tsx check-bundle-budget.ts",
-    "analyze": "tsx analyze-bundle.ts",
-    "budget:check": "tsx check-bundle-budget.ts",
-    "badge": "tsx generate-badge.ts",
+    "build:analyze": "npm run build && tsx scripts/analyze-bundle.ts",
+    "build:check": "npm run build && tsx scripts/check-bundle-budget.ts",
+    "analyze": "tsx scripts/analyze-bundle.ts",
+    "budget:check": "tsx scripts/check-bundle-budget.ts",
+    "badge": "tsx scripts/generate-badge.ts",
     "preview": "vite preview",
     "build:docs": "vite build --outDir ./dist --emptyOutDir --base /claude-good-hooks/",
-    "lint": "eslint analyze-bundle.ts",
-    "lint:fix": "eslint analyze-bundle.ts --fix"
+    "lint": "eslint scripts/analyze-bundle.ts",
+    "lint:fix": "eslint scripts/analyze-bundle.ts --fix"
   },
   "keywords": [
     "claude",

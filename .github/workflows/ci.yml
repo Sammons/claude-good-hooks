@@ -169,15 +169,22 @@ jobs:
         run: pnpm test:coverage
         continue-on-error: true
         
-      # Step 13: Upload coverage to external service
-      # Provides coverage tracking and reporting via Codecov
-      # fail_ci_if_error: false prevents Codecov issues from failing the build
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # Required for private repos
-          fail_ci_if_error: false # Don't fail CI if Codecov has issues
-          verbose: true # Enable detailed logging for debugging
+      # Step 13: Generate coverage artifacts for local badge generation  
+      # Coverage data will be used by the coverage workflow for badge generation
+      - name: Store coverage for badge generation
+        run: |
+          echo "📊 Storing coverage data for badge generation..."
+          
+          # Create coverage artifact directory
+          mkdir -p .github/artifacts
+          
+          # Copy coverage summary if it exists
+          if [ -f "coverage/coverage-summary.json" ]; then
+            cp coverage/coverage-summary.json .github/artifacts/
+            echo "✅ Coverage summary stored for badge generation"
+          else
+            echo "⚠️ No coverage summary found to store"
+          fi
 
   # ===================================================================
   # Package Validation Job

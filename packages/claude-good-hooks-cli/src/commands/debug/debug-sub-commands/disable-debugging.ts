@@ -4,8 +4,14 @@
 
 import type { DebugSubCommand, DebugOptions } from '../debug-types.js';
 import { DebugConfigurations } from './debugging-utils/debug-configs.js';
+import type { ConsoleService } from '../../../services/console.service.js';
+import type { ProcessService } from '../../../services/process.service.js';
 
 export class DisableDebuggingCommand implements DebugSubCommand {
+  constructor(
+    private readonly consoleService: ConsoleService,
+    private readonly processService: ProcessService
+  ) {}
   match(subcommand: string): boolean {
     return subcommand === 'disable';
   }
@@ -16,11 +22,11 @@ export class DisableDebuggingCommand implements DebugSubCommand {
     if (!hookName) {
       // Disable all debugging
       DebugConfigurations.clearAllDebugConfigs();
-      console.log('✅ Debug disabled for all hooks');
+      this.consoleService.log('✅ Debug disabled for all hooks');
     } else {
       // Disable debugging for specific hook
       DebugConfigurations.clearDebugConfig(hookName);
-      console.log(`✅ Debug disabled for hook: ${hookName}`);
+      this.consoleService.log(`✅ Debug disabled for hook: ${hookName}`);
     }
   }
 }

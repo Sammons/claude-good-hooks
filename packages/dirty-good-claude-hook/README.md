@@ -7,6 +7,8 @@ A Claude Code hook that automatically provides Git repository status information
 
 ## Features
 
+Depending on your configuration:
+
 - Displays git status before each Claude response
 - Shows current branch information
 - Lists modified, staged, and untracked files

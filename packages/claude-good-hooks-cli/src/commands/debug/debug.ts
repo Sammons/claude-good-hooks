@@ -154,7 +154,7 @@ export class DebugCommand {
    * Show help information
    */
   private showDebugHelp(): void {
-    console.log(`
+    this.consoleService.log(`
 Claude Good Hooks Debug Tool
 
 Usage:

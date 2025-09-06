@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { PackageService } from '../../services/package.service.js';
-import { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-registry.js';
 
 interface ValidationResult {
   valid: boolean;
@@ -33,7 +33,7 @@ export class VersionCommand {
   /**
    * Validate command arguments - version doesn't require validation
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(_args: string[], _options: any): boolean | ValidationResult {
     return true;
   }
 
@@ -56,7 +56,7 @@ export class VersionCommand {
   /**
    * Execute the version command
    */
-  async execute(args: string[], options: VersionOptions): Promise<void> {
+  async execute(_args: string[], options: VersionOptions): Promise<void> {
     const isJson = options.parent?.json;
     
     const packageInfo = this.packageService.getPackageInfo();
