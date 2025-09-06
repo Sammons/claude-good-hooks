@@ -1,6 +1,6 @@
 import type { HookPlugin, HookMetadata, ClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ModuleService } from './module.service.js';
-import { SettingsService, SettingsScope } from './settings.service.js';
+import { SettingsService, type SettingsScope } from './settings.service.js';
 import { typedEntries } from '../utils/keys.js';
 
 // Type for parsed hook arguments based on plugin customArgs definition
@@ -303,7 +303,7 @@ export class HookService {
     hookName: string,
     savedArgs: Record<string, unknown>,
     scope: SettingsScope,
-    eventName: keyof ClaudeSettings['hooks']
+    eventName: keyof Required<ClaudeSettings>['hooks']
   ): Promise<RegenerateHookResult> {
     try {
       // Extract module name from the hook name
@@ -391,6 +391,7 @@ export class HookService {
   ): ParsedHookArgs {
     const parsed: ParsedHookArgs = {};
 
+    // the plugin doesn't require any args
     if (!plugin.customArgs) {
       return parsed;
     }
@@ -399,6 +400,9 @@ export class HookService {
     for (const [argName, value] of Object.entries(savedArgs)) {
       if (argName in plugin.customArgs) {
         const argDef = plugin.customArgs[argName];
+        if (!argDef) {
+          throw new Error(`Unexpectedly missing argDef for ${argName} for plugin ${plugin.name}. This is a bug.`)
+        }
         
         // Validate and convert the saved value based on current plugin definition
         if (argDef.type === 'boolean' && typeof value === 'boolean') {

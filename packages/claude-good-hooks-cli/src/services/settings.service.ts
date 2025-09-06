@@ -48,7 +48,7 @@ export class SettingsService {
 
   addHookToSettings(
     scope: SettingsScope,
-    eventName: keyof ClaudeSettings['hooks'],
+    eventName: keyof Required<ClaudeSettings>['hooks'],
     hookConfig: HookConfiguration
   ): void {
     const settings = this.readSettings(scope);
@@ -79,7 +79,7 @@ export class SettingsService {
 
   removeHookFromSettings(
     scope: SettingsScope,
-    eventName: keyof ClaudeSettings['hooks'],
+    eventName: keyof Required<ClaudeSettings>['hooks'],
     matcher?: string
   ): void {
     const settings = this.readSettings(scope);

@@ -7,6 +7,6 @@
  */
 export function typedEntries<T extends Record<string, unknown>>(
   obj: T
-): Array<{ [K in keyof T]: [K, T[K]] }[keyof T]> {
+): Array<{ [K in keyof Required<T>]: [K, T[K]] }[keyof T]> {
   return Object.entries(obj) as Array<{ [K in keyof T]: [K, T[K]] }[keyof T]>;
 }
