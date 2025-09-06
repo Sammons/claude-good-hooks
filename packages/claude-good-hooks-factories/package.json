@@ -28,7 +28,6 @@
     "node": ">=20.0.0"
   },
   "peerDependencies": {
-    "@sammons/claude-good-hooks-types": "^1.0.0",
     "typescript": ">=5.0.0"
   },
   "dependencies": {

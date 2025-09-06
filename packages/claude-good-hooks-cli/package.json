@@ -27,9 +27,6 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "peerDependencies": {
-    "@sammons/claude-good-hooks-types": "^1.0.0"
-  },
   "dependencies": {
     "@sammons/claude-good-hooks-factories": "workspace:*",
     "@sammons/claude-good-hooks-settings": "workspace:*",

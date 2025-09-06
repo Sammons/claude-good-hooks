@@ -100,7 +100,7 @@ export function createFileWatcherHook(
     name,
     description,
     version,
-    (args) => ({
+    (_args) => ({
       [eventType]: [
         createHookConfiguration([
           createHookCommand(command, timeout ? { timeout } : undefined)
