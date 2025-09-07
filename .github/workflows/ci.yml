@@ -143,14 +143,6 @@ jobs:
                 fi
               fi
               
-              # Check if package uses factories
-              if grep -r "from ['\"]@sammons/claude-good-hooks-factories" "$pkg/src" 2>/dev/null; then
-                if [ "$pkg_name" != "claude-good-hooks-factories" ]; then
-                  if ! grep -q '"@sammons/claude-good-hooks-factories"' "$pkg/package.json" | grep -A5 -B5 '"peerDependencies"'; then
-                    echo "⚠️ Warning: $pkg_name uses factories but doesn't declare it as peer dependency"
-                  fi
-                fi
-              fi
             fi
           done
           

@@ -2,6 +2,8 @@
 
 This file contains links to all README documentation files in the repository.
 
+The Anthropic Docs on Claude Code Hooks: @./.claude/docs/hooks.md
+
 ## Main Documentation
 - [Main README](./README.md) - Project overview and getting started guide
 
@@ -10,7 +12,6 @@ This file contains links to all README documentation files in the repository.
 ### Core Packages
 - [CLI Package](./packages/claude-good-hooks-cli/README.md) - Command-line interface for Claude Good Hooks
 - [Types Package](./packages/claude-good-hooks-types/README.md) - TypeScript type definitions
-- [Factories Package](./packages/claude-good-hooks-factories/README.md) - Factory functions for creating hooks
 
 ### Example and Template Packages
 - [Examples](./packages/claude-good-hooks-examples/README.md) - Example hook implementations

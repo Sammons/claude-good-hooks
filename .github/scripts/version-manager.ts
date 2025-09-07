@@ -110,7 +110,6 @@ const PACKAGES_DIR = join(WORKSPACE_ROOT, 'packages');
 const PUBLISHABLE_PACKAGES = [
   'claude-good-hooks-cli',
   'claude-good-hooks-types',
-  'claude-good-hooks-factories',
   'claude-good-hooks-template-hook',
   'dirty-good-claude-hook'
 ];

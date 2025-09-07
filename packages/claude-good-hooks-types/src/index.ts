@@ -18,30 +18,36 @@ export interface HookConfiguration {
   };
 }
 
+export type HookFactoryArgument = {
+  description: string;
+  type: 'string' | 'boolean' | 'number';
+  default?: unknown;
+  required?: boolean;
+};
+
+export type HookFactoryArguments = Record<string, HookFactoryArgument>;
+
+export type HookFactory = (
+  args: Record<string, unknown>,
+  context: { settingsDirectoryPath: string }
+) => {
+  PreToolUse?: HookConfiguration[];
+  PostToolUse?: HookConfiguration[];
+  UserPromptSubmit?: HookConfiguration[];
+  Notification?: HookConfiguration[];
+  Stop?: HookConfiguration[];
+  SubagentStop?: HookConfiguration[];
+  SessionEnd?: HookConfiguration[];
+  SessionStart?: HookConfiguration[];
+  PreCompact?: HookConfiguration[];
+};
+
 export interface HookPlugin {
   name: string;
   description: string;
   version: string;
-  customArgs?: Record<
-    string,
-    {
-      description: string;
-      type: 'string' | 'boolean' | 'number';
-      default?: unknown;
-      required?: boolean;
-    }
-  >;
-  makeHook: (args: Record<string, unknown>, context: { settingsDirectoryPath: string }) => {
-    PreToolUse?: HookConfiguration[];
-    PostToolUse?: HookConfiguration[];
-    UserPromptSubmit?: HookConfiguration[];
-    Notification?: HookConfiguration[];
-    Stop?: HookConfiguration[];
-    SubagentStop?: HookConfiguration[];
-    SessionEnd?: HookConfiguration[];
-    SessionStart?: HookConfiguration[];
-    PreCompact?: HookConfiguration[];
-  };
+  customArgs?: HookFactoryArguments;
+  makeHook: HookFactory;
 }
 
 export interface ClaudeSettings {
@@ -79,7 +85,9 @@ export function isHookCommand(obj: unknown): obj is HookCommand {
     typeof obj.command === 'string' &&
     (!('timeout' in obj) || obj.timeout === undefined || typeof obj.timeout === 'number') &&
     (!('enabled' in obj) || obj.enabled === undefined || typeof obj.enabled === 'boolean') &&
-    (!('continueOnError' in obj) || obj.continueOnError === undefined || typeof obj.continueOnError === 'boolean')
+    (!('continueOnError' in obj) ||
+      obj.continueOnError === undefined ||
+      typeof obj.continueOnError === 'boolean')
   );
 }
 
@@ -91,17 +99,22 @@ export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
     Array.isArray(obj.hooks) &&
     obj.hooks.every(isHookCommand) &&
     (!('matcher' in obj) || typeof (obj as any).matcher === 'string') &&
-    (!('enabled' in obj) || (obj as any).enabled === undefined || typeof (obj as any).enabled === 'boolean') &&
-    (!('claudegoodhooks' in obj) || 
-      ((obj as any).claudegoodhooks && 
-       typeof (obj as any).claudegoodhooks === 'object' &&
-       (obj as any).claudegoodhooks !== null &&
-       'name' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.name === 'string' &&
-       'description' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.description === 'string' &&
-       'version' in (obj as any).claudegoodhooks && typeof (obj as any).claudegoodhooks.version === 'string' &&
-       (!('hookFactoryArguments' in (obj as any).claudegoodhooks) || 
-        (typeof (obj as any).claudegoodhooks.hookFactoryArguments === 'object' && 
-         (obj as any).claudegoodhooks.hookFactoryArguments !== null))))
+    (!('enabled' in obj) ||
+      (obj as any).enabled === undefined ||
+      typeof (obj as any).enabled === 'boolean') &&
+    (!('claudegoodhooks' in obj) ||
+      ((obj as any).claudegoodhooks &&
+        typeof (obj as any).claudegoodhooks === 'object' &&
+        (obj as any).claudegoodhooks !== null &&
+        'name' in (obj as any).claudegoodhooks &&
+        typeof (obj as any).claudegoodhooks.name === 'string' &&
+        'description' in (obj as any).claudegoodhooks &&
+        typeof (obj as any).claudegoodhooks.description === 'string' &&
+        'version' in (obj as any).claudegoodhooks &&
+        typeof (obj as any).claudegoodhooks.version === 'string' &&
+        (!('hookFactoryArguments' in (obj as any).claudegoodhooks) ||
+          (typeof (obj as any).claudegoodhooks.hookFactoryArguments === 'object' &&
+            (obj as any).claudegoodhooks.hookFactoryArguments !== null))))
   );
 }
 

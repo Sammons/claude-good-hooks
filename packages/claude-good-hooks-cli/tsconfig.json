@@ -26,7 +26,6 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
   "references": [
-    { "path": "../claude-good-hooks-types" },
-    { "path": "../claude-good-hooks-factories" }
+    { "path": "../claude-good-hooks-types" }
   ]
 }

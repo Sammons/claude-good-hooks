@@ -35,9 +35,9 @@ updates:
       - "npm"
       - "root-workspace"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -91,9 +91,9 @@ updates:
       - "npm"
       - "cli-package"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps(cli)"
       include: "scope"
@@ -115,36 +115,13 @@ updates:
       - "npm"
       - "types-package"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps(types)"
       include: "scope"
 
-  # ===================================================================
-  # NPM Dependencies - Factories Package
-  # ===================================================================
-  # Updates for the factories package
-  # ===================================================================
-  - package-ecosystem: "npm"
-    directory: "/packages/claude-good-hooks-factories"
-    schedule:
-      interval: "daily"
-      time: "09:45"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "npm"
-      - "factories-package"
-    reviewers:
-      - "benjaminsammons"
-    assignees:
-      - "benjaminsammons"
-    commit-message:
-      prefix: "deps(factories)"
-      include: "scope"
 
   # ===================================================================
   # NPM Dependencies - Smoke Tests
@@ -155,7 +132,7 @@ updates:
     directory: "/packages/claude-good-hooks-smoke-tests"
     schedule:
       interval: "daily"
-      time: "10:00"
+      time: "09:45"
       timezone: "UTC"
     open-pull-requests-limit: 5
     labels:
@@ -163,9 +140,9 @@ updates:
       - "npm"
       - "smoke-tests"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps(smoke)"
       include: "scope"
@@ -179,7 +156,7 @@ updates:
     directory: "/packages/landing-page"
     schedule:
       interval: "daily"
-      time: "10:15"
+      time: "10:00"
       timezone: "UTC"
     open-pull-requests-limit: 5
     labels:
@@ -188,9 +165,9 @@ updates:
       - "docs"
       - "landing-page"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps(docs)"
       include: "scope"
@@ -213,9 +190,9 @@ updates:
       - "github-actions"
       - "ci"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -246,9 +223,9 @@ updates:
       - "docker"
       - "smoke-tests"
     reviewers:
-      - "benjaminsammons"
+      - "sammons"
     assignees:
-      - "benjaminsammons"
+      - "sammons"
     commit-message:
       prefix: "deps(docker)"
       include: "scope"

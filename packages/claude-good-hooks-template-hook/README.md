@@ -37,7 +37,6 @@ The template includes a complete example hook:
 
 ```typescript
 import { HookPlugin } from '@sammons/claude-good-hooks-types';
-import { createHookFactory } from '@sammons/claude-good-hooks-factories';
 
 export const templateHook: HookPlugin = {
   name: 'template-hook',
@@ -51,14 +50,14 @@ export const templateHook: HookPlugin = {
       required: false
     }
   },
-  makeHook: createHookFactory((args) => ({
+  makeHook: (args) => ({
     SessionStart: [{
       hooks: [{
         type: 'command',
         command: `echo "${args.message || 'Hello from template hook!'}"`
       }]
     }]
-  }))
+  })
 };
 ```
 
@@ -83,7 +82,6 @@ npm publish
 
 - [`@sammons/claude-good-hooks`](../claude-good-hooks-cli) - CLI for managing hooks
 - [`@sammons/claude-good-hooks-types`](../claude-good-hooks-types) - TypeScript types
-- [`@sammons/claude-good-hooks-factories`](../claude-good-hooks-factories) - Hook creation utilities
 
 ## License
 

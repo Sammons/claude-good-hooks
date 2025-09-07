@@ -6,7 +6,6 @@
   "readme": "README.md",
   "entryPoints": [
     "packages/claude-good-hooks-types",
-    "packages/claude-good-hooks-factories",
     "packages/claude-good-hooks-cli"
   ],
   "entryPointStrategy": "packages",
@@ -20,7 +19,6 @@
   "categorizeByGroup": true,
   "categoryOrder": [
     "Types",
-    "Factories",
     "CLI",
     "Utilities",
     "*"

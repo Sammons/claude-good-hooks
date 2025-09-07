@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -73,16 +73,16 @@ describe('dirty-hook plugin', () => {
 
     it('should throw error if settingsDirectoryPath does not exist', () => {
       const nonExistentPath = path.join(tempDir, 'non-existent');
-      expect(() => 
-        dirtyHook.makeHook({}, { settingsDirectoryPath: nonExistentPath })
-      ).toThrow(`Settings directory does not exist: ${nonExistentPath}`);
+      expect(() => dirtyHook.makeHook({}, { settingsDirectoryPath: nonExistentPath })).toThrow(
+        `Settings directory does not exist: ${nonExistentPath}`
+      );
     });
   });
 
   describe('script file creation', () => {
     it('should create scripts directory if it does not exist', () => {
       dirtyHook.makeHook({}, mockContext);
-      
+
       const scriptsDir = path.join(tempDir, 'scripts');
       expect(fs.existsSync(scriptsDir)).toBe(true);
       expect(fs.lstatSync(scriptsDir).isDirectory()).toBe(true);
@@ -90,10 +90,10 @@ describe('dirty-hook plugin', () => {
 
     it('should create the script file with correct content', () => {
       dirtyHook.makeHook({}, mockContext);
-      
+
       const scriptPath = path.join(tempDir, 'scripts', 'dirty-good-claude-hook.js');
       expect(fs.existsSync(scriptPath)).toBe(true);
-      
+
       const content = fs.readFileSync(scriptPath, 'utf8');
       expect(content).toContain('#!/usr/bin/env node');
       expect(content).toContain('parseArgs');
@@ -103,7 +103,7 @@ describe('dirty-hook plugin', () => {
 
     it('should make script file executable', () => {
       dirtyHook.makeHook({}, mockContext);
-      
+
       const scriptPath = path.join(tempDir, 'scripts', 'dirty-good-claude-hook.js');
       const stats = fs.lstatSync(scriptPath);
       // Check if the file has execute permissions
@@ -116,10 +116,10 @@ describe('dirty-hook plugin', () => {
       fs.mkdirSync(scriptsDir);
       const scriptPath = path.join(scriptsDir, 'dirty-good-claude-hook.js');
       fs.writeFileSync(scriptPath, 'old content');
-      
+
       // Now call makeHook
       dirtyHook.makeHook({}, mockContext);
-      
+
       const content = fs.readFileSync(scriptPath, 'utf8');
       expect(content).toContain('#!/usr/bin/env node');
       expect(content).not.toContain('old content');
@@ -129,7 +129,7 @@ describe('dirty-hook plugin', () => {
   describe('command generation', () => {
     it('should return script command with no arguments by default', () => {
       const result = dirtyHook.makeHook({}, mockContext);
-      
+
       expect(result).toEqual({
         UserPromptSubmit: [
           {
@@ -147,7 +147,7 @@ describe('dirty-hook plugin', () => {
 
     it('should include --staged argument when staged is true', () => {
       const result = dirtyHook.makeHook({ staged: true }, mockContext);
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged'
       );
@@ -155,7 +155,7 @@ describe('dirty-hook plugin', () => {
 
     it('should include --unstaged argument when unstaged is true', () => {
       const result = dirtyHook.makeHook({ unstaged: true }, mockContext);
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --unstaged'
       );
@@ -163,7 +163,7 @@ describe('dirty-hook plugin', () => {
 
     it('should include --filenames argument when filenames is true', () => {
       const result = dirtyHook.makeHook({ filenames: true }, mockContext);
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --filenames'
       );
@@ -171,45 +171,54 @@ describe('dirty-hook plugin', () => {
 
     it('should include --diffs argument when diffs is true', () => {
       const result = dirtyHook.makeHook({ diffs: true }, mockContext);
-      
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --diffs'
       );
     });
 
     it('should combine multiple arguments', () => {
-      const result = dirtyHook.makeHook({ 
-        staged: true, 
-        filenames: true, 
-        diffs: true 
-      }, mockContext);
-      
+      const result = dirtyHook.makeHook(
+        {
+          staged: true,
+          filenames: true,
+          diffs: true,
+        },
+        mockContext
+      );
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged --filenames --diffs'
       );
     });
 
     it('should handle falsy values correctly', () => {
-      const result = dirtyHook.makeHook({ 
-        staged: false, 
-        unstaged: false,
-        filenames: false,
-        diffs: false 
-      }, mockContext);
-      
+      const result = dirtyHook.makeHook(
+        {
+          staged: false,
+          unstaged: false,
+          filenames: false,
+          diffs: false,
+        },
+        mockContext
+      );
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js'
       );
     });
 
     it('should handle truthy non-boolean values', () => {
-      const result = dirtyHook.makeHook({ 
-        staged: 'yes', 
-        unstaged: 1,
-        filenames: 'true',
-        diffs: {} 
-      }, mockContext);
-      
+      const result = dirtyHook.makeHook(
+        {
+          staged: 'yes',
+          unstaged: 1,
+          filenames: 'true',
+          diffs: {},
+        },
+        mockContext
+      );
+
       expect(result.UserPromptSubmit?.[0]?.hooks[0]?.command).toBe(
         '$CLAUDE_PROJECT_DIR/.claude/scripts/dirty-good-claude-hook.js --staged --unstaged --filenames --diffs'
       );
@@ -284,13 +293,13 @@ describe('dirty-hook plugin', () => {
       const readOnlyDir = path.join(tempDir, 'readonly');
       fs.mkdirSync(readOnlyDir);
       fs.chmodSync(readOnlyDir, 0o444); // Remove write permissions
-      
+
       const readOnlyContext = { settingsDirectoryPath: readOnlyDir };
-      
+
       expect(() => dirtyHook.makeHook({}, readOnlyContext)).toThrow(
         'Failed to create scripts directory'
       );
-      
+
       // Clean up
       fs.chmodSync(readOnlyDir, 0o755); // Restore permissions for cleanup
     });
@@ -299,14 +308,12 @@ describe('dirty-hook plugin', () => {
       // Create scripts directory first
       const scriptsDir = path.join(tempDir, 'scripts');
       fs.mkdirSync(scriptsDir);
-      
+
       // Make scripts directory read-only to prevent file creation
       fs.chmodSync(scriptsDir, 0o444);
-      
-      expect(() => dirtyHook.makeHook({}, mockContext)).toThrow(
-        'Failed to write script file'
-      );
-      
+
+      expect(() => dirtyHook.makeHook({}, mockContext)).toThrow('Failed to write script file');
+
       // Clean up
       fs.chmodSync(scriptsDir, 0o755); // Restore permissions for cleanup
     });

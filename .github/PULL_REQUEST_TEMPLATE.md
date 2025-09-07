@@ -31,7 +31,6 @@
 
 - [ ] `claude-good-hooks-cli`
 - [ ] `claude-good-hooks-types`
-- [ ] `claude-good-hooks-factories`
 - [ ] `claude-good-hooks-template-hook`
 - [ ] `claude-good-hooks-examples`
 - [ ] `dirty-good-claude-hook`

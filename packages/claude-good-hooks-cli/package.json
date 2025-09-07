@@ -28,7 +28,6 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@sammons/claude-good-hooks-factories": "workspace:*",
     "@sammons/claude-good-hooks-settings": "workspace:*",
     "@sammons/claude-good-hooks-types": "workspace:*",
     "chalk": "^5.3.0",

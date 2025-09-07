@@ -20,7 +20,6 @@ This release updates the following packages:
 
 - **claude-good-hooks-cli**: {CLI_VERSION}
 - **claude-good-hooks-types**: {TYPES_VERSION}
-- **claude-good-hooks-factories**: {FACTORIES_VERSION}
 - **claude-good-hooks-template-hook**: {TEMPLATE_VERSION}
 - **dirty-hook**: {DIRTY_HOOK_VERSION}
 

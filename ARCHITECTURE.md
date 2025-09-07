@@ -29,15 +29,6 @@ This monorepo follows a layered architecture with clear separation of concerns. 
 └─────────────┬───────────────────────────────────────────────────┘
               │
               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         Utility Layer                          │
-├─────────────────────────────────────────────────────────────────┤
-│  @sammons/claude-good-hooks-factories                          │
-│  • Factory functions                                            │
-│  • Utility builders                                             │
-│  • Common patterns                                              │
-│  • Re-exports types for convenience                             │
-└─────────────┬───────────────────────────────────────────────────┘
               │
               ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -67,23 +58,7 @@ This monorepo follows a layered architecture with clear separation of concerns. 
   - Should be pure TypeScript with minimal runtime footprint
   - Can only depend on Node.js built-ins or TypeScript
 
-### 2. Utility Layer
-
-#### @sammons/claude-good-hooks-factories  
-- **Purpose**: Factory functions and utilities for creating hooks
-- **Responsibilities**:
-  - Provide builder patterns for common hook scenarios
-  - Simplify hook creation with convenience functions
-  - Re-export types for consumer convenience
-  - Contain reusable patterns and utilities
-- **Dependencies**: 
-  - `@sammons/claude-good-hooks-types` (foundation)
-- **Architectural Rules**:
-  - Can only depend on the foundation layer
-  - Should focus on creating well-typed factory functions
-  - No CLI-specific logic or external runtime dependencies
-
-### 3. Implementation Layer
+### 2. Implementation Layer
 
 #### Hook Implementation Packages
 Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-template-hook`
@@ -95,13 +70,12 @@ Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-templat
   - Serve as examples for custom hook development
 - **Dependencies**: 
   - `@sammons/claude-good-hooks-types` (foundation)
-  - `@sammons/claude-good-hooks-factories` (utility, optional)
 - **Architectural Rules**:
-  - Can depend on foundation and utility layers
+  - Can depend on foundation layer
   - Should be self-contained and focused on single responsibility
   - Can have external runtime dependencies specific to their function
 
-### 4. Consumer Layer
+### 3. Consumer Layer
 
 #### @sammons/claude-good-hooks (CLI)
 - **Purpose**: Command-line interface for managing hooks
@@ -123,9 +97,8 @@ Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-templat
 ### Allowed Dependencies
 
 1. **Foundation → Nothing** (pure types)
-2. **Utility → Foundation** (factories use types)
-3. **Implementation → Foundation + Utility** (hooks use types and optionally factories)  
-4. **Consumer → Foundation** (CLI uses types directly)
+2. **Implementation → Foundation** (hooks use types)  
+3. **Consumer → Foundation** (CLI uses types directly)
 
 ### Prohibited Dependencies
 
@@ -139,7 +112,6 @@ Each package declares appropriate peer dependencies to ensure compatibility:
 
 - **TypeScript**: All packages that export types declare TypeScript as optional peer dependency
 - **Foundation types**: All packages consuming types declare the types package as peer dependency
-- **Factories**: Packages using factories declare the factories package as peer dependency
 
 ## Benefits of This Architecture
 
@@ -148,7 +120,6 @@ Each package declares appropriate peer dependencies to ensure compatibility:
 3. **Maintainability**: Changes in one layer have predictable effects on dependent layers
 4. **Extensibility**: New hooks can be added without affecting existing packages
 5. **Type Safety**: Foundation types ensure consistency across all packages
-6. **Flexibility**: Consumers can choose to use factories or build hooks from scratch
 
 ## Development Guidelines
 

@@ -41,43 +41,6 @@ export default [
     },
   },
   {
-    files: ['**/factories/**/*.ts', '**/*-factories.ts'],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-      globals: {
-        console: 'readonly',
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        exports: 'writable',
-        module: 'writable',
-        require: 'readonly',
-        global: 'readonly',
-        setTimeout: 'readonly',
-      },
-    },
-    plugins: {
-      '@typescript-eslint': typescript,
-      prettier: prettierPlugin,
-    },
-    rules: {
-      ...typescript.configs.recommended.rules,
-      'prettier/prettier': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-console': 'off',
-      'no-useless-escape': 'warn',
-      'no-case-declarations': 'warn',
-      'no-undef': 'warn',
-    },
-  },
-  {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     languageOptions: {
       parser: typescriptParser,

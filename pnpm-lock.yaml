@@ -62,9 +62,6 @@ importers:
 
   packages/claude-good-hooks-cli:
     dependencies:
-      '@sammons/claude-good-hooks-factories':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-factories
       '@sammons/claude-good-hooks-settings':
         specifier: workspace:*
         version: link:../claude-good-hooks-settings
@@ -131,22 +128,6 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)
 
-  packages/claude-good-hooks-factories:
-    dependencies:
-      '@sammons/claude-good-hooks-types':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-types
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.0(postcss@8.5.6)(tsx@4.20.5)(typescript@5.9.2)(yaml@2.8.1)
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.2
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@24.3.0)
-
   packages/claude-good-hooks-settings:
     dependencies:
       '@sammons/claude-good-hooks-types':
@@ -190,9 +171,6 @@ importers:
 
   packages/claude-good-hooks-template-hook:
     dependencies:
-      '@sammons/claude-good-hooks-factories':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-factories
       '@sammons/claude-good-hooks-types':
         specifier: workspace:*
         version: link:../claude-good-hooks-types

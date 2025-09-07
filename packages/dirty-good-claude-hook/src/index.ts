@@ -138,7 +138,9 @@ const dirtyHook: HookPlugin = {
         fs.mkdirSync(scriptsDir, { recursive: true });
       }
     } catch (error) {
-      throw new Error(`Failed to create scripts directory: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to create scripts directory: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     // Write the script file
@@ -146,7 +148,9 @@ const dirtyHook: HookPlugin = {
     try {
       fs.writeFileSync(scriptPath, SCRIPT_CONTENT, { mode: 0o755 });
     } catch (error) {
-      throw new Error(`Failed to write script file: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to write script file: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     // Build command arguments based on provided args
