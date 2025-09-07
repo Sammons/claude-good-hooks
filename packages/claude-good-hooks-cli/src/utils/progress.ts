@@ -4,6 +4,21 @@ import chalk from 'chalk';
  * Progress indicator utilities for CLI operations
  */
 
+type ChalkColor = 'green' | 'blue' | 'yellow' | 'red' | 'cyan' | 'magenta';
+
+// Type guard for chalk color functions
+function getChalkColor(color: ChalkColor): (text: string) => string {
+  switch (color) {
+    case 'green': return chalk.green;
+    case 'blue': return chalk.blue;
+    case 'yellow': return chalk.yellow;
+    case 'red': return chalk.red;
+    case 'cyan': return chalk.cyan;
+    case 'magenta': return chalk.magenta;
+    default: return chalk.cyan;
+  }
+}
+
 export interface ProgressOptions {
   message?: string;
   total?: number;
@@ -11,12 +26,12 @@ export interface ProgressOptions {
   showETA?: boolean;
   spinner?: boolean;
   width?: number;
-  color?: 'green' | 'blue' | 'yellow' | 'red' | 'cyan' | 'magenta';
+  color?: ChalkColor;
 }
 
 export interface SpinnerOptions {
   message?: string;
-  color?: 'green' | 'blue' | 'yellow' | 'red' | 'cyan' | 'magenta';
+  color?: ChalkColor;
   frames?: string[];
 }
 
@@ -26,7 +41,7 @@ export interface SpinnerOptions {
 export class Spinner {
   private frames: string[];
   private message: string;
-  private color: string;
+  private color: ChalkColor;
   private interval?: NodeJS.Timeout;
   private currentFrame = 0;
   private isSpinning = false;
@@ -56,7 +71,7 @@ export class Spinner {
       if (!this.isSpinning) return;
       
       const frame = this.frames[this.currentFrame];
-      const coloredFrame = (chalk as any)[this.color](frame);
+      const coloredFrame = getChalkColor(this.color)(frame);
       
       process.stdout.write(`\r${coloredFrame} ${this.message}`);
       
@@ -132,7 +147,7 @@ export class ProgressBar {
   private startTime: number;
   private showPercent: boolean;
   private showETA: boolean;
-  private color: string;
+  private color: ChalkColor;
 
   constructor(total: number, options: ProgressOptions = {}) {
     this.total = total;
@@ -174,7 +189,7 @@ export class ProgressBar {
 
     const filledBar = '█'.repeat(filled);
     const emptyBar = '░'.repeat(empty);
-    const bar = (chalk as any)[this.color](filledBar) + chalk.gray(emptyBar);
+    const bar = getChalkColor(this.color)(filledBar) + chalk.gray(emptyBar);
 
     let output = `\r[${bar}]`;
     

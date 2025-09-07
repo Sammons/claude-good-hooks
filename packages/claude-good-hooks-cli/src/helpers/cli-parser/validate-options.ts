@@ -1,5 +1,5 @@
 import { parseArgs } from 'node:util';
-import { CommandOptionProcessor, CommandOptionResult } from './types.js';
+import type { CommandOptionProcessor, CommandOptionResult } from './types.js';
 
 export class ValidateOptions implements CommandOptionProcessor {
   match(command: string): boolean {

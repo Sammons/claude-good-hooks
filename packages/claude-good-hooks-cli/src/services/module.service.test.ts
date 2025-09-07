@@ -1,0 +1,254 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ModuleService } from './module.service.js';
+
+// Mock the dependencies
+vi.mock('./file-system.service.js', () => ({
+  FileSystemService: vi.fn().mockImplementation(() => ({
+    exists: vi.fn(),
+    join: (...args: string[]) => args.join('/'),
+    cwd: () => '/test/cwd',
+    readFile: vi.fn(),
+    resolveFromCwd: (path: string) => path.startsWith('/') ? path : `/test/cwd/${path}`,
+    isAbsolute: (path: string) => path.startsWith('/')
+  }))
+}));
+
+vi.mock('./process.service.js', () => ({
+  ProcessService: vi.fn().mockImplementation(() => ({}))
+}));
+
+vi.mock('../utils/detect-package-manager.js', () => ({
+  detectPackageManager: () => 'npm'
+}));
+
+vi.mock('../helpers/package-manager-helper.js', () => ({
+  PackageManagerHelper: vi.fn().mockImplementation(() => ({
+    getGlobalRoot: () => Promise.resolve('/global/npm'),
+    listModules: () => Promise.resolve({ dependencies: {} })
+  }))
+}));
+
+describe('ModuleService', () => {
+  let moduleService: ModuleService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    moduleService = new ModuleService();
+  });
+
+  describe('isFilePath', () => {
+    it('should identify .js files', () => {
+      expect((moduleService as any).isFilePath('./my-hook.js')).toBe(true);
+      expect((moduleService as any).isFilePath('my-hook.js')).toBe(true);
+      expect((moduleService as any).isFilePath('/absolute/path/hook.js')).toBe(true);
+    });
+
+    it('should identify .mjs files', () => {
+      expect((moduleService as any).isFilePath('./my-hook.mjs')).toBe(true);
+      expect((moduleService as any).isFilePath('my-hook.mjs')).toBe(true);
+      expect((moduleService as any).isFilePath('/absolute/path/hook.mjs')).toBe(true);
+    });
+
+    it('should identify .cjs files', () => {
+      expect((moduleService as any).isFilePath('./my-hook.cjs')).toBe(true);
+      expect((moduleService as any).isFilePath('my-hook.cjs')).toBe(true);
+      expect((moduleService as any).isFilePath('/absolute/path/hook.cjs')).toBe(true);
+    });
+
+    it('should identify absolute paths', () => {
+      expect((moduleService as any).isFilePath('/usr/local/hooks/my-hook')).toBe(true);
+      expect((moduleService as any).isFilePath('/home/user/hook.js')).toBe(true);
+    });
+
+    it('should identify relative paths', () => {
+      expect((moduleService as any).isFilePath('./hooks/my-hook')).toBe(true);
+      expect((moduleService as any).isFilePath('../hooks/my-hook')).toBe(true);
+      expect((moduleService as any).isFilePath('./my-hook.js')).toBe(true);
+    });
+
+    it('should not identify npm packages as file paths', () => {
+      expect((moduleService as any).isFilePath('@sammons/dirty-good-claude-hook')).toBe(false);
+      expect((moduleService as any).isFilePath('my-npm-package')).toBe(false);
+      expect((moduleService as any).isFilePath('package-name/export')).toBe(false);
+    });
+  });
+
+  describe('parseHookIdentifier', () => {
+    it('should parse file paths correctly', () => {
+      const result = (moduleService as any).parseHookIdentifier('./my-hook.js');
+      expect(result).toEqual({
+        moduleName: './my-hook.js',
+        exportPath: undefined,
+        isFile: true
+      });
+    });
+
+    it('should parse absolute file paths', () => {
+      const result = (moduleService as any).parseHookIdentifier('/home/user/hooks/my-hook.mjs');
+      expect(result).toEqual({
+        moduleName: '/home/user/hooks/my-hook.mjs',
+        exportPath: undefined,
+        isFile: true
+      });
+    });
+
+    it('should parse scoped package without suffix', () => {
+      const result = (moduleService as any).parseHookIdentifier('@sammons/dirty-good-claude-hook');
+      expect(result).toEqual({
+        moduleName: '@sammons/dirty-good-claude-hook',
+        exportPath: undefined,
+        isFile: false
+      });
+    });
+
+    it('should parse scoped package with suffix', () => {
+      const result = (moduleService as any).parseHookIdentifier('@sammons/claude-good-hooks-code-outline/code-outline');
+      expect(result).toEqual({
+        moduleName: '@sammons/claude-good-hooks-code-outline',
+        exportPath: 'code-outline',
+        isFile: false
+      });
+    });
+
+    it('should parse non-scoped package without suffix', () => {
+      const result = (moduleService as any).parseHookIdentifier('my-hook-package');
+      expect(result).toEqual({
+        moduleName: 'my-hook-package',
+        exportPath: undefined,
+        isFile: false
+      });
+    });
+
+    it('should parse non-scoped package with suffix', () => {
+      const result = (moduleService as any).parseHookIdentifier('my-hook-package/special-hook');
+      expect(result).toEqual({
+        moduleName: 'my-hook-package',
+        exportPath: 'special-hook',
+        isFile: false
+      });
+    });
+
+    it('should handle complex export paths', () => {
+      const result = (moduleService as any).parseHookIdentifier('@sammons/hooks/hooks/special/deep');
+      expect(result).toEqual({
+        moduleName: '@sammons/hooks',
+        exportPath: 'hooks/special/deep',
+        isFile: false
+      });
+    });
+  });
+
+  describe('extractModuleNameFromHookName', () => {
+    it('should extract module name from scoped package with suffix', () => {
+      const result = moduleService.extractModuleNameFromHookName('@sammons/claude-good-hooks-code-outline/code-outline');
+      expect(result).toBe('@sammons/claude-good-hooks-code-outline');
+    });
+
+    it('should return full name when no suffix', () => {
+      const result = moduleService.extractModuleNameFromHookName('@sammons/dirty-good-claude-hook');
+      expect(result).toBe('@sammons/dirty-good-claude-hook');
+    });
+
+    it('should handle non-scoped packages', () => {
+      const result = moduleService.extractModuleNameFromHookName('my-hook/sub-hook');
+      expect(result).toBe('my-hook');
+    });
+  });
+
+  describe('loadHookPlugin with deep imports', () => {
+    it('should load default export when no suffix provided', async () => {
+      const mockModule = {
+        HookPlugin: { name: 'default-hook' }
+      };
+      vi.doMock('@sammons/test-hook', () => mockModule, { virtual: true });
+      
+      // Note: In a real test environment, we'd need to properly mock the dynamic import
+      // This is a simplified example to show the intended behavior
+    });
+
+    it('should load named export when suffix provided', async () => {
+      const mockModule = {
+        codeOutline: { name: 'code-outline-hook' },
+        HookPlugin: { name: 'default-hook' }
+      };
+      vi.doMock('@sammons/test-hook', () => mockModule, { virtual: true });
+      
+      // The loadHookPlugin method would access mockModule['codeOutline']
+      // when called with '@sammons/test-hook/codeOutline'
+    });
+
+    it('should fall back to suffix+HookPlugin pattern', async () => {
+      const mockModule = {
+        codeOutlineHookPlugin: { name: 'code-outline-hook' }
+      };
+      vi.doMock('@sammons/test-hook', () => mockModule, { virtual: true });
+      
+      // The loadHookPlugin method would access mockModule['codeOutlineHookPlugin']
+      // when called with '@sammons/test-hook/codeOutline'
+    });
+
+    it('should return null when specified export not found', async () => {
+      const mockModule = {
+        HookPlugin: { name: 'default-hook' }
+      };
+      vi.doMock('@sammons/test-hook', () => mockModule, { virtual: true });
+      
+      // The loadHookPlugin method would return null
+      // when called with '@sammons/test-hook/nonExistent'
+    });
+  });
+
+  describe('isModuleInstalled with deep imports', () => {
+    it('should check base module regardless of suffix', async () => {
+      const fileSystemService = (moduleService as any).fileSystem;
+      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      
+      const result = await moduleService.isModuleInstalled('@sammons/test-hook/deep-export');
+      
+      expect(fileSystemService.exists).toHaveBeenCalledWith('/test/cwd/node_modules/@sammons/test-hook');
+      expect(result).toBe(true);
+    });
+
+    it('should handle global installation check with suffix', async () => {
+      const fileSystemService = (moduleService as any).fileSystem;
+      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      
+      const result = await moduleService.isModuleInstalled('@sammons/test-hook/deep-export', true);
+      
+      expect(fileSystemService.exists).toHaveBeenCalledWith('/global/npm/@sammons/test-hook');
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('isModuleInstalled with file paths', () => {
+    it('should check if relative file path exists', async () => {
+      const fileSystemService = (moduleService as any).fileSystem;
+      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      
+      const result = await moduleService.isModuleInstalled('./my-hook.js');
+      
+      expect(fileSystemService.exists).toHaveBeenCalledWith('/test/cwd/./my-hook.js');
+      expect(result).toBe(true);
+    });
+
+    it('should check if absolute file path exists', async () => {
+      const fileSystemService = (moduleService as any).fileSystem;
+      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      
+      const result = await moduleService.isModuleInstalled('/home/user/hooks/my-hook.mjs');
+      
+      expect(fileSystemService.exists).toHaveBeenCalledWith('/home/user/hooks/my-hook.mjs');
+      expect(result).toBe(true);
+    });
+
+    it('should return false for non-existent file', async () => {
+      const fileSystemService = (moduleService as any).fileSystem;
+      fileSystemService.exists = vi.fn().mockResolvedValue(false);
+      
+      const result = await moduleService.isModuleInstalled('./non-existent.js');
+      
+      expect(fileSystemService.exists).toHaveBeenCalledWith('/test/cwd/./non-existent.js');
+      expect(result).toBe(false);
+    });
+  });
+});

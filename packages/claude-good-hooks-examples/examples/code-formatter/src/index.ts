@@ -179,22 +179,20 @@ class CodeFormatterHook {
   /**
    * Extract file path from tool input
    */
-  extractFilePaths(toolInput: any): string[] {
+  extractFilePaths(toolInput: Record<string, unknown>): string[] {
     const paths: string[] = [];
 
-    if (toolInput?.file_path) {
+    if (typeof toolInput?.file_path === 'string') {
       paths.push(toolInput.file_path);
     }
 
-    if (toolInput?.filePath) {
+    if (typeof toolInput?.filePath === 'string') {
       paths.push(toolInput.filePath);
     }
 
-    if (toolInput?.edits) {
+    if (toolInput?.edits && Array.isArray(toolInput.edits) && typeof toolInput.file_path === 'string') {
       // Handle MultiEdit tool
-      if (Array.isArray(toolInput.edits) && toolInput.file_path) {
-        paths.push(toolInput.file_path);
-      }
+      paths.push(toolInput.file_path);
     }
 
     return paths.filter(Boolean);

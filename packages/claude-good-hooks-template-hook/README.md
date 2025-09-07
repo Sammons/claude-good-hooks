@@ -61,6 +61,53 @@ export const templateHook: HookPlugin = {
 };
 ```
 
+## Multiple Hook Variants
+
+You can export multiple hook configurations from a single package:
+
+```typescript
+import { HookPlugin } from '@sammons/claude-good-hooks-types';
+
+// Default export - main hook
+const mainHook: HookPlugin = {
+  name: 'my-hook',
+  description: 'Main hook configuration',
+  version: '1.0.0',
+  makeHook: (args) => ({ /* ... */ })
+};
+
+// Export variants for specific use cases
+export const development: HookPlugin = {
+  ...mainHook,
+  name: 'my-hook-dev',
+  description: 'Development configuration with verbose output',
+  makeHook: (args) => ({ /* dev-specific config */ })
+};
+
+export const production: HookPlugin = {
+  ...mainHook,
+  name: 'my-hook-prod',
+  description: 'Production configuration with minimal output',
+  makeHook: (args) => ({ /* prod-specific config */ })
+};
+
+// Standard exports
+export default mainHook;
+export const HookPlugin = mainHook;
+```
+
+Users can then apply specific variants:
+```bash
+# Default configuration
+claude-good-hooks apply --project @your-org/your-hook
+
+# Development variant
+claude-good-hooks apply --project @your-org/your-hook/development
+
+# Production variant  
+claude-good-hooks apply --project @your-org/your-hook/production
+```
+
 ## Development
 
 ### Building

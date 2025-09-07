@@ -92,30 +92,56 @@ export function isHookCommand(obj: unknown): obj is HookCommand {
 }
 
 export function isHookConfiguration(obj: unknown): obj is HookConfiguration {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'hooks' in obj &&
-    Array.isArray(obj.hooks) &&
-    obj.hooks.every(isHookCommand) &&
-    (!('matcher' in obj) || typeof (obj as any).matcher === 'string') &&
-    (!('enabled' in obj) ||
-      (obj as any).enabled === undefined ||
-      typeof (obj as any).enabled === 'boolean') &&
-    (!('claudegoodhooks' in obj) ||
-      ((obj as any).claudegoodhooks &&
-        typeof (obj as any).claudegoodhooks === 'object' &&
-        (obj as any).claudegoodhooks !== null &&
-        'name' in (obj as any).claudegoodhooks &&
-        typeof (obj as any).claudegoodhooks.name === 'string' &&
-        'description' in (obj as any).claudegoodhooks &&
-        typeof (obj as any).claudegoodhooks.description === 'string' &&
-        'version' in (obj as any).claudegoodhooks &&
-        typeof (obj as any).claudegoodhooks.version === 'string' &&
-        (!('hookFactoryArguments' in (obj as any).claudegoodhooks) ||
-          (typeof (obj as any).claudegoodhooks.hookFactoryArguments === 'object' &&
-            (obj as any).claudegoodhooks.hookFactoryArguments !== null))))
-  );
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+
+  const typed = obj as Record<string, unknown>;
+
+  if (!('hooks' in typed) || !Array.isArray(typed.hooks) || !typed.hooks.every(isHookCommand)) {
+    return false;
+  }
+
+  if ('matcher' in typed && typed.matcher !== undefined && typeof typed.matcher !== 'string') {
+    return false;
+  }
+
+  if ('enabled' in typed && typed.enabled !== undefined && typeof typed.enabled !== 'boolean') {
+    return false;
+  }
+
+  if ('claudegoodhooks' in typed) {
+    const claudegoodhooks = typed.claudegoodhooks;
+    if (typeof claudegoodhooks !== 'object' || claudegoodhooks === null) {
+      return false;
+    }
+
+    const typedClaudeGoodHooks = claudegoodhooks as Record<string, unknown>;
+
+    if (!('name' in typedClaudeGoodHooks) || typeof typedClaudeGoodHooks.name !== 'string') {
+      return false;
+    }
+
+    if (
+      !('description' in typedClaudeGoodHooks) ||
+      typeof typedClaudeGoodHooks.description !== 'string'
+    ) {
+      return false;
+    }
+
+    if (!('version' in typedClaudeGoodHooks) || typeof typedClaudeGoodHooks.version !== 'string') {
+      return false;
+    }
+
+    if ('hookFactoryArguments' in typedClaudeGoodHooks) {
+      const hookFactoryArgs = typedClaudeGoodHooks.hookFactoryArguments;
+      if (typeof hookFactoryArgs !== 'object' || hookFactoryArgs === null) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 export function isHookPlugin(obj: unknown): obj is HookPlugin {
@@ -264,7 +290,7 @@ export interface SettingsMetadata {
   updatedAt?: string;
   source?: 'global' | 'project' | 'local';
   migrations?: MigrationRecord[];
-  changes?: any[];
+  changes?: Record<string, unknown>[];
 }
 
 // Extended settings interface with versioning and metadata

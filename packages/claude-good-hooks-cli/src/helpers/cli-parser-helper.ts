@@ -19,6 +19,7 @@ import { ImportOptions } from './cli-parser/import-options.js';
 import { RestoreOptions } from './cli-parser/restore-options.js';
 import { DoctorOptions } from './cli-parser/doctor-options.js';
 import { UpdateOptions } from './cli-parser/update-options.js';
+import { RemoveOptions } from './cli-parser/remove-options.js';
 import { DefaultOptions } from './cli-parser/default-options.js';
 
 export interface CliCommand {
@@ -175,6 +176,7 @@ export class CLIParser {
     new RestoreOptions(),
     new DoctorOptions(),
     new UpdateOptions(),
+    new RemoveOptions(),
     new DefaultOptions(), // Must be last as it matches many commands
   ];
 

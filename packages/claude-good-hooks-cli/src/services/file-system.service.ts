@@ -16,7 +16,7 @@ import {
 } from 'fs/promises';
 import { constants } from 'fs';
 import { homedir } from 'os';
-import { join, dirname } from 'path';
+import { join, dirname, resolve, isAbsolute } from 'path';
 
 /**
  * Simple file system service that wraps Node.js fs operations
@@ -73,6 +73,25 @@ export class FileSystemService {
 
   cwd(): string {
     return process.cwd();
+  }
+
+  /**
+   * Resolve a path relative to the current working directory
+   * If the path is already absolute, returns it as-is
+   * @param relativePath The path to resolve
+   * @returns Absolute path
+   */
+  resolveFromCwd(relativePath: string): string {
+    return resolve(process.cwd(), relativePath);
+  }
+
+  /**
+   * Check if a path is absolute
+   * @param path The path to check
+   * @returns True if the path is absolute
+   */
+  isAbsolute(path: string): boolean {
+    return isAbsolute(path);
   }
 
   unlink(path: string): void {

@@ -61,19 +61,21 @@ This monorepo follows a layered architecture with clear separation of concerns. 
 ### 2. Implementation Layer
 
 #### Hook Implementation Packages
-Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-template-hook`
+Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-template-hook`, `@sammons/claude-good-hooks-code-outline`
 
 - **Purpose**: Concrete hook implementations
 - **Responsibilities**:
   - Implement specific hook functionality
   - Provide complete, ready-to-use hooks
   - Serve as examples for custom hook development
+  - Can export multiple hook variants via deep imports
 - **Dependencies**: 
   - `@sammons/claude-good-hooks-types` (foundation)
 - **Architectural Rules**:
   - Can depend on foundation layer
   - Should be self-contained and focused on single responsibility
   - Can have external runtime dependencies specific to their function
+  - Can export multiple hook configurations through named exports
 
 ### 3. Consumer Layer
 
@@ -144,3 +146,42 @@ The CI pipeline includes automated checks to validate:
 - All packages build successfully
 - Peer dependencies are correctly declared
 - Type compatibility across packages
+
+## Hook Resolution and Deep Imports
+
+### Hook Package Naming and Resolution
+
+The CLI supports flexible hook resolution through module paths:
+
+1. **Default Export**: `@org/package-name` resolves to the default export or `HookPlugin` named export
+2. **Deep Import**: `@org/package-name/variant` resolves to a specific named export
+
+### Implementation Pattern
+
+Hook packages can export multiple configurations:
+
+```typescript
+// Default export - main hook
+export default mainHook;
+export const HookPlugin = mainHook;
+
+// Named exports for deep imports
+export const minimal = { ...mainHook, /* custom config */ };
+export const detailed = { ...mainHook, /* custom config */ };
+```
+
+### Usage Examples
+
+```bash
+# Apply default hook
+claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline
+
+# Apply specific variant via deep import
+claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/minimal
+claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/detailed
+```
+
+This pattern allows:
+- Single package to provide multiple pre-configured hooks
+- Users to choose appropriate configuration without custom arguments
+- Backward compatibility with existing single-export packages

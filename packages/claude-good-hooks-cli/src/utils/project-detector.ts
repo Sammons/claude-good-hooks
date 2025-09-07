@@ -17,16 +17,27 @@ export interface ProjectInfo {
 /**
  * Detect project type and features based on files and package.json
  */
+interface PackageJson {
+  name?: string;
+  main?: string;
+  type?: string;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
+
 export function detectProject(cwd: string = process.cwd()): ProjectInfo {
   const packageJsonPath = join(cwd, 'package.json');
   const features: string[] = [];
-  let packageJson: any = {};
+  let packageJson: PackageJson = {};
   let packageManager: ProjectInfo['packageManager'] | undefined;
 
   // Read package.json if it exists
   if (existsSync(packageJsonPath)) {
     try {
-      packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+      const rawData = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as unknown;
+      if (typeof rawData === 'object' && rawData !== null) {
+        packageJson = rawData as PackageJson;
+      }
     } catch (error) {
       console.warn('Could not parse package.json:', error);
     }

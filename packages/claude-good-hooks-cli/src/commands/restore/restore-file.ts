@@ -142,13 +142,16 @@ export class RestoreFileCommand implements RestoreSubCommand {
     // Use the import command to restore the backup
     if (!isJson) {
       console.log(chalk.blue('\n📥 Restoring from backup...'));
+      console.log(chalk.gray('   Safe mode: only claude-good-hooks managed hooks will be affected'));
+      console.log(chalk.gray('   This will show detailed hook-level changes:\n'));
     }
     
     try {
       // Pass the backup file to the import command with appropriate options
+      // Import now safely uses selective replacement by default
       const importOptions = {
         scope,
-        merge: false, // Default to replace mode
+        merge: false,
         force: options.force || false,
         dryRun: false,
         validate: true,
@@ -156,6 +159,7 @@ export class RestoreFileCommand implements RestoreSubCommand {
         parent: options.parent
       };
 
+      // The import command will show detailed hook-level deltas
       await this.importCommand.execute([backupFile], importOptions);
 
       if (isJson) {

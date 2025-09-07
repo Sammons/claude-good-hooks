@@ -33,7 +33,7 @@ npm install -g @sammons/dirty-good-claude-hook
 npm install -g @sammons/claude-good-hooks
 
 # Apply the hook globally
-claude-good-hooks apply dirty --global
+claude-good-hooks apply --global @sammons/dirty-good-claude-hook
 ```
 
 ## Usage
@@ -42,19 +42,19 @@ claude-good-hooks apply dirty --global
 
 Apply the hook to all Claude sessions:
 ```bash
-claude-good-hooks apply dirty --global
+claude-good-hooks apply --global @sammons/dirty-good-claude-hook
 ```
 
 Apply to current project only:
 ```bash
-claude-good-hooks apply dirty --project
+claude-good-hooks apply --project @sammons/dirty-good-claude-hook
 ```
 
 ### Custom Configuration
 
 Create a custom configuration with options:
 ```bash
-claude-good-hooks apply dirty --global --show-branch --hide-untracked
+claude-good-hooks apply --global @sammons/dirty-good-claude-hook --show-branch --hide-untracked
 ```
 
 ### Manual Configuration

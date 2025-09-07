@@ -23,8 +23,8 @@ async function main(): Promise<void> {
       
       if (typeof validationResult === 'object' && !validationResult.valid) {
         console.error('Error: Invalid command arguments');
-        if (validationResult.errors) {
-          validationResult.errors.forEach((error: string) => console.error(`  ${error}`));
+        if (validationResult.error) {
+          console.error(`  ${validationResult.error}`);
         }
         process.exit(1);
       }

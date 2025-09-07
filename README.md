@@ -114,7 +114,87 @@ npm publish # you will need to login to npm  for this to work
 
 ```bash
 npm install -g your-hook-package
-claude-good-hooks apply --global your-hook-name
+claude-good-hooks apply --global your-hook-package
+```
+
+## Deep Import Support
+
+Hooks can export multiple configurations through deep imports. This allows a single package to provide multiple pre-configured hooks:
+
+```typescript
+// In your hook package's index.ts
+import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+
+// Default export
+export default mainHook;
+export const HookPlugin = mainHook;
+
+// Additional named exports for deep imports
+export const minimal = { ...mainHook, /* minimal config */ };
+export const detailed = { ...mainHook, /* detailed config */ };
+```
+
+Users can then apply specific configurations:
+
+```bash
+# Apply default hook
+claude-good-hooks apply --project @your-org/your-hook
+
+# Apply specific configuration via deep import
+claude-good-hooks apply --project @your-org/your-hook/minimal
+claude-good-hooks apply --project @your-org/your-hook/detailed
+```
+
+## Direct File Path Support
+
+You can also apply hooks directly from JavaScript files without publishing them to npm:
+
+```bash
+# Apply from a local file
+claude-good-hooks apply --project ./my-custom-hook.js
+claude-good-hooks apply --project ./hooks/my-hook.mjs
+claude-good-hooks apply --project ../shared/company-hook.cjs
+
+# Apply from an absolute path
+claude-good-hooks apply --project /home/user/hooks/my-hook.js
+```
+
+The file must export a valid `HookPlugin` object:
+
+```javascript
+// my-custom-hook.js
+module.exports = {
+  name: 'my-custom-hook',
+  description: 'A custom hook for my project',
+  version: '1.0.0',
+  makeHook: (args) => ({
+    SessionStart: [{
+      hooks: [{
+        type: 'command',
+        command: 'echo "Custom hook activated!"'
+      }]
+    }]
+  })
+};
+```
+
+Or using ES modules:
+
+```javascript
+// my-custom-hook.mjs
+export default {
+  name: 'my-custom-hook',
+  description: 'A custom hook for my project',
+  version: '1.0.0',
+  makeHook: (args) => ({
+    SessionStart: [{
+      hooks: [{
+        type: 'command',
+        command: 'echo "Custom hook activated!"'
+      }]
+    }]
+  })
+};
 ```
 
 ## Development

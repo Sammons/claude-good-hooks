@@ -1,8 +1,8 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 import { detectPackageManager } from './detect-package-manager.js';
-import { PackageManagerHelper } from './package-manager-helper.js';
+import { PackageManagerHelper } from '../helpers/package-manager-helper.js';
 import { ProcessService } from '../services/process.service.js';
 
 export async function isModuleInstalled(moduleName: string, global: boolean = false): Promise<boolean> {

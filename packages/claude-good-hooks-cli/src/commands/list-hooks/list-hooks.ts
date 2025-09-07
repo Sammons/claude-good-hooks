@@ -126,10 +126,20 @@ export class ListHooksCommand {
       const isModuleInstalled = await this.moduleService.isModuleInstalled(moduleName, isGlobal);
       
       if (!isModuleInstalled) {
-        lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
+        // Check if it's a file path to provide a more helpful message
+        const fileSystemService = (this.moduleService as any).fileSystem;
+        const isFile = moduleName.endsWith('.js') || moduleName.endsWith('.mjs') || moduleName.endsWith('.cjs') || 
+                      moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName.startsWith('/');
+        
+        if (isFile) {
+          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('File not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- File may have been moved or deleted')}`);
+        } else {
+          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
+        }
       } else {
         // Check if plugin is exported from the module
-        const isPluginExported = await this.moduleService.isPluginExported(moduleName, isGlobal);
+        // Pass the full hook name to check for the specific variant/export
+        const isPluginExported = await this.moduleService.isPluginExported(hookName, isGlobal);
         if (!isPluginExported) {
           lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Plugin not found in module: The hook may have been removed or renamed')}`);
         }

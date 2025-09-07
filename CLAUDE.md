@@ -16,7 +16,8 @@ The Anthropic Docs on Claude Code Hooks: @./.claude/docs/hooks.md
 ### Example and Template Packages
 - [Examples](./packages/claude-good-hooks-examples/README.md) - Example hook implementations
 - [Template Hook](./packages/claude-good-hooks-template-hook/README.md) - Template for creating new hooks
-- [Dirty Good Claude Hook](./packages/dirty-good-claude-hook/README.md) - Additional hook implementations
+- [Dirty Good Claude Hook](./packages/dirty-good-claude-hook/README.md) - Git status hook implementation
+- [Code Outline Hook](./packages/claude-good-hooks-code-outline/README.md) - Code structure analysis hook
 
 ### Testing and Website
 - [Smoke Tests](./packages/claude-good-hooks-smoke-tests/README.md) - Smoke test suite
@@ -33,11 +34,12 @@ The Anthropic Docs on Claude Code Hooks: @./.claude/docs/hooks.md
     b. claude-good-hooks list-hooks # by default lists all, --installed shows installed locally and for --project by default, --project, --installed --globally changes that to
    show globally installed (flags may be mixed)
     c. claude-good-hooks remote --add <npm-module-name> # for undo, supports --remove, the related module must installed locally or globally first
-    d. claude-good-hooks apply --global <name-of-hook> # sets up hook with default params, globally
-    e. claude-good-hooks apply --global <name-of-hook> --help # outputs help, including custom args supported by hook
-    f. claude-good-hooks apply --project <name-of-hook> # sets up hook with default params, in the current directory
-    g. claude-good-hooks apply --project dirty --staged --filenames # example hook that outputs staged changes from git, as filenames
-    i. claude-good-hooks apply --local dirty --diffs # exapmle hook that outputs unstaged changes from git, including diffs
+    d. claude-good-hooks apply --global <npm-package-name> # sets up hook with default params, globally
+    e. claude-good-hooks apply --global <npm-package-name> --help # outputs help, including custom args supported by hook
+    f. claude-good-hooks apply --project <npm-package-name> # sets up hook with default params, in the current directory
+    g. claude-good-hooks apply --project <npm-package-name>/variant # apply specific hook variant via deep import
+    h. claude-good-hooks apply --project @sammons/dirty-good-claude-hook --staged --filenames # example with args
+    i. claude-good-hooks apply --local @sammons/dirty-good-claude-hook --diffs # example hook that outputs unstaged changes
     j. claude-good-hooks update # updates itself via npm install -g
     k. claude-good-hooks doctor # detects if missing from the PATH
     l. claude-good-hooks version # outputs current version

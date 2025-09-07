@@ -159,10 +159,36 @@ export class SettingsHelper {
     // Also check for old format (top-level name) for backwards compatibility
     const hookName = hookConfig.claudegoodhooks?.name || (hookConfig as any).name;
     if (hookName) {
+      // For file-based hooks, extract just the plugin name for comparison
+      // E.g., "./test-hook.js/my-hook" -> "my-hook"
+      // E.g., "@sammons/hook/my-hook" -> "@sammons/hook/my-hook" (unchanged for npm packages)
+      const getComparableName = (name: string): string => {
+        // Check if this looks like a file path with a plugin name
+        const lastSlash = name.lastIndexOf('/');
+        if (lastSlash !== -1) {
+          const pathPart = name.substring(0, lastSlash);
+          const pluginPart = name.substring(lastSlash + 1);
+          
+          // If the path part looks like a file (has extension or starts with ./ or ../ or /)
+          if (pathPart.endsWith('.js') || pathPart.endsWith('.mjs') || pathPart.endsWith('.cjs') ||
+              pathPart.startsWith('./') || pathPart.startsWith('../') || pathPart.startsWith('/')) {
+            // For file-based hooks, use just the plugin name for deduplication
+            return pluginPart;
+          }
+        }
+        // For npm packages, use the full name
+        return name;
+      };
+      
+      const comparableName = getComparableName(hookName);
+      
       settings.hooks[eventName] = settings.hooks[eventName]!.filter(
         (existingConfig: HookConfiguration) => {
           const existingName = existingConfig.claudegoodhooks?.name || (existingConfig as any).name;
-          return existingName !== hookName;
+          if (!existingName) return true; // Keep configs without names
+          
+          const existingComparableName = getComparableName(existingName);
+          return existingComparableName !== comparableName;
         }
       );
     }

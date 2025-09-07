@@ -1,4 +1,4 @@
-import type { PackageManager } from './detect-package-manager.js';
+import type { PackageManager } from '../utils/detect-package-manager.js';
 import { ProcessService } from '../services/process.service.js';
 
 export interface ListModulesOptions {

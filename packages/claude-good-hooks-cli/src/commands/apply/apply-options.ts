@@ -7,6 +7,7 @@ import type { ValidationResult } from '../common-validation-types';
  */
 export const ApplyOptionsSchema = z.object({
   global: z.boolean().optional(),
+  project: z.boolean().optional(),
   local: z.boolean().optional(),
   help: z.boolean().optional(),
   regenerate: z.boolean().optional(),
@@ -15,14 +16,15 @@ export const ApplyOptionsSchema = z.object({
   }).strict().optional(),
 }).strict().refine(
   (data) => {
-    // Cannot be both global and local simultaneously
-    if (data.global && data.local) {
+    // Cannot use multiple scope flags simultaneously
+    const scopeFlags = [data.global, data.project, data.local].filter(Boolean).length;
+    if (scopeFlags > 1) {
       return false;
     }
     return true;
   },
   {
-    message: 'Cannot specify both --global and --local flags simultaneously',
+    message: 'Cannot specify multiple scope flags (--global, --project, --local) simultaneously',
   }
 );
 

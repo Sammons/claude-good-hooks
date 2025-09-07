@@ -10,13 +10,13 @@ import { DoctorCommand } from './doctor/doctor.js';
 import { ExportCommand } from './export/export.js';
 import { ImportCommand } from './import/import.js';
 import { RestoreCommand } from './restore/restore.js';
+import { RemoveCommand } from './remove/remove.js';
 
 // Import services needed by commands
 import { HookService } from '../services/hook.service.js';
 import { ProcessService } from '../services/process.service.js';
 import { SettingsService } from '../services/settings.service.js';
 import { FileSystemService } from '../services/file-system.service.js';
-import { ConsoleService } from '../services/console.service.js';
 
 // Help information structure
 export interface HelpInfo {
@@ -38,13 +38,20 @@ export interface HelpInfo {
   examples?: string[];
 }
 
+// Command validation result
+export interface ValidationResult<T = unknown> {
+  valid: boolean;
+  error?: string;
+  data?: T;
+}
+
 // Command interface for duck typing
 export interface CommandLike {
   name?: string;
   description?: string;
   match(command: string): boolean;
-  validate(args: string[], options: any): boolean | any;
-  execute(args: string[], options: any): Promise<void>;
+  validate(args: string[], options: Record<string, unknown>): boolean | ValidationResult;
+  execute(args: string[], options: Record<string, unknown>): Promise<void>;
   getHelp(): HelpInfo;
 }
 
@@ -57,7 +64,6 @@ export class CommandRegistry {
   private processService: ProcessService;
   private settingsService: SettingsService;
   private fileSystemService: FileSystemService;
-  private consoleService: ConsoleService;
 
   constructor() {
     // Initialize shared services
@@ -65,7 +71,6 @@ export class CommandRegistry {
     this.processService = new ProcessService();
     this.settingsService = new SettingsService();
     this.fileSystemService = new FileSystemService();
-    this.consoleService = new ConsoleService();
     
     // Initialize all command instances
     this.commands = [
@@ -80,6 +85,7 @@ export class CommandRegistry {
       new ExportCommand(this.settingsService, this.fileSystemService, this.processService),
       new ImportCommand(this.settingsService, this.processService),
       new RestoreCommand(this.fileSystemService, this.processService),
+      new RemoveCommand(this.settingsService),
     ];
   }
 

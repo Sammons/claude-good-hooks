@@ -7,7 +7,7 @@ import type { HelpInfo } from '../command-registry.js';
 export function getImportHelpInfo(): HelpInfo {
   return {
     name: 'import',
-    description: 'Import Claude hooks configuration from file or URL',
+    description: 'Import Claude hooks configuration from file or URL (only affects claude-good-hooks managed hooks)',
     usage: 'claude-good-hooks import <source> [options]',
     options: [
       {

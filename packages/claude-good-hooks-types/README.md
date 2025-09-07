@@ -42,6 +42,52 @@ export const myHook: HookPlugin = {
 };
 ```
 
+### Multiple Hooks via Deep Imports
+
+Hooks can export multiple configurations for different use cases:
+
+```typescript
+import { HookPlugin } from '@sammons/claude-good-hooks-types';
+
+// Default export - main hook
+const mainHook: HookPlugin = {
+  name: 'my-hook',
+  description: 'Main hook with full configuration',
+  version: '1.0.0',
+  customArgs: { /* ... */ },
+  makeHook: (args) => ({ /* ... */ })
+};
+
+// Named exports for specific use cases
+export const minimal: HookPlugin = {
+  ...mainHook,
+  name: 'my-hook-minimal',
+  description: 'Minimal configuration',
+  makeHook: () => ({ /* simplified config */ })
+};
+
+export const verbose: HookPlugin = {
+  ...mainHook,
+  name: 'my-hook-verbose',
+  description: 'Verbose configuration with detailed output',
+  makeHook: () => ({ /* verbose config */ })
+};
+
+// Standard exports
+export default mainHook;
+export const HookPlugin = mainHook;
+```
+
+Users can then apply specific configurations:
+```bash
+# Default hook
+claude-good-hooks apply --project @your-org/your-hook
+
+# Specific variants via deep import
+claude-good-hooks apply --project @your-org/your-hook/minimal
+claude-good-hooks apply --project @your-org/your-hook/verbose
+```
+
 ### Hook Configuration
 
 ```typescript

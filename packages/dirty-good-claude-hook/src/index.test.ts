@@ -66,7 +66,7 @@ describe('dirty-hook plugin', () => {
 
   describe('context validation', () => {
     it('should throw error if settingsDirectoryPath is not provided', () => {
-      expect(() => dirtyHook.makeHook({}, {} as any)).toThrow(
+      expect(() => dirtyHook.makeHook({}, {} as { settingsDirectoryPath: string })).toThrow(
         'settingsDirectoryPath is required but was not provided'
       );
     });

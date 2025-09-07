@@ -6,7 +6,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { createInterface } from 'readline';
 import chalk from 'chalk';
-import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
 import { detectProject, getProjectTypeName, getFeatureDescription } from '../../utils/project-detector.js';
 import { generateStarterHooks, getAvailableTemplates } from '../../utils/hook-templates.js';
 import { SettingsService } from '../../services/settings.service.js';
@@ -120,7 +120,7 @@ export class InitCreateCommand implements InitSubCommand {
       const totalEvents = Object.keys(settings.hooks || {}).length;
       const totalHooks = Object.values(settings.hooks || {})
         .flat()
-        .reduce((count: number, config: any) => count + (config.hooks?.length || 0), 0);
+        .reduce((count: number, config: HookConfiguration) => count + (config.hooks?.length || 0), 0);
 
       console.log(JSON.stringify({
         success: true,
@@ -138,7 +138,7 @@ export class InitCreateCommand implements InitSubCommand {
       const totalEvents = Object.keys(settings.hooks || {}).length;
       const totalHooks = Object.values(settings.hooks || {})
         .flat()
-        .reduce((count: number, config: any) => count + (config.hooks?.length || 0), 0);
+        .reduce((count: number, config: HookConfiguration) => count + (config.hooks?.length || 0), 0);
 
       console.log(chalk.blue('\n📊 Configuration Summary:'));
       console.log(chalk.gray(`   • Events configured: ${totalEvents}`));
@@ -220,7 +220,7 @@ export class InitCreateCommand implements InitSubCommand {
 
     for (const [event, configs] of Object.entries(settings.hooks)) {
       console.log(chalk.cyan(`  ${event}:`));
-      for (const config of configs as any[]) {
+      for (const config of configs as HookConfiguration[]) {
         console.log(chalk.gray(`    Matcher: ${config.matcher || '*'}`));
         for (const hook of config.hooks) {
           console.log(chalk.gray(`      • ${hook.type}: ${hook.command}`));

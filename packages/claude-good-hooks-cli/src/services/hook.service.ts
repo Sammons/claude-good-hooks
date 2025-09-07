@@ -308,12 +308,20 @@ export class HookService {
 
       // Check if the module is still installed
       if (!(await this.moduleService.isModuleInstalled(moduleName, isGlobal))) {
+        // Check if it's a file path to provide a more helpful error message
+        const isFile = moduleName.endsWith('.js') || moduleName.endsWith('.mjs') || moduleName.endsWith('.cjs') || 
+                      moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName.startsWith('/');
+        
+        const errorMessage = isFile 
+          ? `File ${moduleName} not found - it may have been moved or deleted`
+          : `Module ${moduleName} is not installed ${isGlobal ? 'globally' : 'locally'}`;
+        
         return {
           success: false,
           hookName,
           scope,
           eventName,
-          error: `Module ${moduleName} is not installed ${isGlobal ? 'globally' : 'locally'}`
+          error: errorMessage
         };
       }
 

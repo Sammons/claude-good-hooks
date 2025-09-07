@@ -122,14 +122,16 @@ export class HelpCommand {
     console.log(chalk.bold('EXAMPLES'));
     console.log(`  ${chalk.dim('# List all available hooks')}`);
     console.log(`  claude-good-hooks list-hooks`);
-    console.log(`  ${chalk.dim('# Install and apply the dirty hook')}`);
+    console.log(`  ${chalk.dim('# Install and apply a hook')}`);
     const packageManager = detectPackageManager();
     const helper = new PackageManagerHelper(packageManager);
     const installCmd = helper.getInstallInstructions('@sammons/dirty-good-claude-hook', true);
     console.log(`  ${installCmd}`);
-    console.log(`  claude-good-hooks apply --global dirty`);
+    console.log(`  claude-good-hooks apply --global @sammons/dirty-good-claude-hook`);
     console.log(`  ${chalk.dim('# Apply hook with custom arguments')}`);
-    console.log(`  claude-good-hooks apply --project dirty --staged --filenames`);
+    console.log(`  claude-good-hooks apply --project @sammons/dirty-good-claude-hook --staged --filenames`);
+    console.log(`  ${chalk.dim('# Apply a specific hook variant via deep import')}`);
+    console.log(`  claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/minimal`);
     console.log(`  ${chalk.dim('# Check system configuration')}`);
     console.log(`  claude-good-hooks doctor\n`);
     

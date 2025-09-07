@@ -311,17 +311,15 @@ export class ImportFileCommand implements ImportSubCommand {
       return targetSettings;
     }
 
+    // ALWAYS use selective replacement to preserve non-claude-good-hooks managed hooks
+    // This is the safest approach and prevents accidental loss of unmanaged hooks
     if (merge) {
-      return this.mergeSettings(existingSettings, targetSettings);
+      // For merge mode, we still use selective replacement but add imported hooks
+      return this.selectiveReplaceSettings(existingSettings, targetSettings);
     }
 
-    if (options.yes && !force) {
-      console.error(chalk.red('Existing configuration found and --yes flag used'));
-      console.error(chalk.yellow('Use --merge to combine or --force to overwrite'));
-      this.processService.exit(1);
-    }
-
-    return targetSettings;
+    // Default behavior is selective replacement
+    return this.selectiveReplaceSettings(existingSettings, targetSettings);
   }
 
   private async handleExistingSettings(
@@ -337,44 +335,20 @@ export class ImportFileCommand implements ImportSubCommand {
 
     console.log(chalk.yellow('⚠️  Existing hooks configuration found'));
     
+    // All operations now use selective replacement to preserve unmanaged hooks
+    console.log(chalk.blue('🎯 Safe import mode: only claude-good-hooks managed hooks will be affected'));
+    console.log(chalk.gray('   • Unmanaged hooks will be preserved'));
+    console.log(chalk.gray('   • Third-party hooks will be preserved'));
+    
+    const finalSettings = this.selectiveReplaceSettings(existingSettings, targetSettings);
+    
     if (merge) {
-      console.log(chalk.blue('🔄 Merging with existing configuration...'));
-      const finalSettings = this.mergeSettings(existingSettings, targetSettings);
-      console.log(chalk.green('✅ Configurations merged successfully'));
-      return finalSettings;
-    } else if (!force) {
-      if (!options.yes) {
-        console.log(chalk.blue('Choose how to handle existing configuration:'));
-        console.log('  1. Replace (overwrite existing hooks)');
-        console.log('  2. Merge (combine with existing hooks)');
-        console.log('  3. Cancel import');
-        
-        const choice = await this.askQuestion('\nEnter your choice (1/2/3): ');
-        
-        switch (choice.trim()) {
-          case '1':
-            return targetSettings;
-          case '2':
-            const finalSettings = this.mergeSettings(existingSettings, targetSettings);
-            console.log(chalk.green('✅ Configurations will be merged'));
-            return finalSettings;
-          case '3':
-          default:
-            console.log(chalk.yellow('Import cancelled'));
-            this.processService.exit(0);
-            // TypeScript requires a return, but this will never be reached
-            return targetSettings;
-        }
-      } else {
-        console.error(chalk.red('Existing configuration found and --yes flag used'));
-        console.error(chalk.yellow('Use --merge to combine or --force to overwrite'));
-        this.processService.exit(1);
-        return targetSettings;
-      }
+      console.log(chalk.green('✅ claude-good-hooks merged with existing configuration'));
     } else {
-      console.log(chalk.yellow('🔄 Overwriting existing configuration (--force flag)'));
-      return targetSettings;
+      console.log(chalk.green('✅ claude-good-hooks managed hooks updated, unmanaged hooks preserved'));
     }
+    
+    return finalSettings;
   }
 
   /**
@@ -543,7 +517,41 @@ export class ImportFileCommand implements ImportSubCommand {
   }
 
   /**
-   * Show preview of import changes
+   * Selective replacement - only replaces claude-good-hooks managed hooks
+   * This preserves any manually added or third-party hooks
+   */
+  private selectiveReplaceSettings(existing: ClaudeSettings, imported: ClaudeSettings): ClaudeSettings {
+    const result: ClaudeSettings = { hooks: {} as ClaudeSettings['hooks'] };
+    
+    // Start with existing hooks, filtering out claude-good-hooks managed ones
+    if (existing.hooks) {
+      for (const [event, configs] of Object.entries(existing.hooks)) {
+        const preservedConfigs = configs.filter((config: any) => {
+          // Keep hooks that are NOT managed by claude-good-hooks
+          return !config.claudegoodhooks?.name && !(config as any).name;
+        });
+        
+        if (preservedConfigs.length > 0) {
+          (result.hooks as any)[event] = preservedConfigs;
+        }
+      }
+    }
+    
+    // Add all imported hooks (which should be claude-good-hooks managed)
+    if (imported.hooks) {
+      for (const [event, configs] of Object.entries(imported.hooks)) {
+        if (!(result.hooks as any)[event]) {
+          (result.hooks as any)[event] = [];
+        }
+        (result.hooks as any)[event].push(...configs);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Show preview of import changes with detailed hook-level deltas
    */
   private async showImportPreview(finalSettings: ClaudeSettings, existingSettings: ClaudeSettings): Promise<void> {
     const existingHookCount = this.countHooks(existingSettings);
@@ -553,14 +561,104 @@ export class ImportFileCommand implements ImportSubCommand {
     console.log(chalk.gray(`   After import: ${finalHookCount}`));
     console.log(chalk.gray(`   Change: ${finalHookCount > existingHookCount ? '+' : ''}${finalHookCount - existingHookCount}`));
 
-    if (finalSettings.hooks) {
-      console.log(chalk.blue('\n   Events to be configured:'));
-      for (const event of Object.keys(finalSettings.hooks)) {
-        const configs = (finalSettings.hooks as any)[event];
-        const hookCount = configs.reduce((total: number, config: any) => total + config.hooks.length, 0);
-        console.log(chalk.gray(`     • ${event}: ${hookCount} hook(s)`));
+    // Calculate detailed deltas
+    console.log(chalk.blue('\n   Hook-level changes:'));
+    
+    // Track existing hooks for comparison
+    const existingHooksMap = new Map<string, Set<string>>();
+    if (existingSettings.hooks) {
+      for (const [event, configs] of Object.entries(existingSettings.hooks)) {
+        const hookNames = new Set<string>();
+        for (const config of configs as any[]) {
+          const hookName = config.claudegoodhooks?.name || config.matcher || 'unnamed';
+          hookNames.add(hookName);
+        }
+        existingHooksMap.set(event, hookNames);
       }
     }
+
+    // Track final hooks and show additions/removals
+    const finalHooksMap = new Map<string, Set<string>>();
+    const addedHooks: string[] = [];
+    const removedHooks: string[] = [];
+    const modifiedHooks: string[] = [];
+
+    if (finalSettings.hooks) {
+      for (const [event, configs] of Object.entries(finalSettings.hooks)) {
+        const hookNames = new Set<string>();
+        for (const config of configs as any[]) {
+          const hookName = config.claudegoodhooks?.name || config.matcher || 'unnamed';
+          hookNames.add(hookName);
+          
+          // Check if this is a new hook
+          const existingInEvent = existingHooksMap.get(event);
+          if (!existingInEvent || !existingInEvent.has(hookName)) {
+            addedHooks.push(`${event}/${hookName}`);
+          }
+        }
+        finalHooksMap.set(event, hookNames);
+      }
+    }
+
+    // Check for removed hooks
+    for (const [event, existingHooks] of existingHooksMap) {
+      const finalHooks = finalHooksMap.get(event);
+      for (const hookName of existingHooks) {
+        if (!finalHooks || !finalHooks.has(hookName)) {
+          removedHooks.push(`${event}/${hookName}`);
+        } else if (finalHooks.has(hookName)) {
+          // Check if the hook configuration has changed
+          const existingConfig = this.findHookConfig(existingSettings, event, hookName);
+          const finalConfig = this.findHookConfig(finalSettings, event, hookName);
+          if (JSON.stringify(existingConfig) !== JSON.stringify(finalConfig)) {
+            modifiedHooks.push(`${event}/${hookName}`);
+          }
+        }
+      }
+    }
+
+    // Display the deltas
+    if (addedHooks.length > 0) {
+      console.log(chalk.green('\n   ➕ Added hooks:'));
+      for (const hook of addedHooks) {
+        console.log(chalk.green(`      • ${hook}`));
+      }
+    }
+
+    if (modifiedHooks.length > 0) {
+      console.log(chalk.yellow('\n   ✏️  Modified hooks:'));
+      for (const hook of modifiedHooks) {
+        console.log(chalk.yellow(`      • ${hook}`));
+      }
+    }
+
+    if (removedHooks.length > 0) {
+      console.log(chalk.red('\n   ➖ Removed hooks:'));
+      for (const hook of removedHooks) {
+        console.log(chalk.red(`      • ${hook}`));
+      }
+    }
+
+    if (addedHooks.length === 0 && modifiedHooks.length === 0 && removedHooks.length === 0) {
+      console.log(chalk.gray('   No changes detected'));
+    }
+  }
+
+  /**
+   * Find a specific hook configuration
+   */
+  private findHookConfig(settings: ClaudeSettings, event: string, hookName: string): any {
+    if (!settings.hooks) return null;
+    const configs = (settings.hooks as any)[event];
+    if (!configs) return null;
+    
+    for (const config of configs) {
+      const name = config.claudegoodhooks?.name || config.matcher || 'unnamed';
+      if (name === hookName) {
+        return config;
+      }
+    }
+    return null;
   }
 
   /**

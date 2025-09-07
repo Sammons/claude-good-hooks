@@ -26,12 +26,25 @@ export function showApplyHelp(isJson?: boolean): void {
   console.log('');
   
   console.log(chalk.bold('Examples:'));
-  console.log('  claude-good-hooks apply dirty');
-  console.log('  claude-good-hooks apply --global dirty');
-  console.log('  claude-good-hooks apply --local dirty --staged');
-  console.log('  claude-good-hooks apply dirty --help');
+  console.log('  # Apply default hook from package');
+  console.log('  claude-good-hooks apply @sammons/dirty-good-claude-hook');
+  console.log('  claude-good-hooks apply --global @sammons/dirty-good-claude-hook');
+  console.log('  claude-good-hooks apply --local @sammons/dirty-good-claude-hook --staged');
+  console.log('  ');
+  console.log('  # Apply specific hook variant via deep import');
+  console.log('  claude-good-hooks apply @sammons/claude-good-hooks-code-outline/minimal');
+  console.log('  claude-good-hooks apply @sammons/claude-good-hooks-code-outline/detailed');
+  console.log('  ');
+  console.log('  # Apply hook from local file');
+  console.log('  claude-good-hooks apply --project ./my-hook.js');
+  console.log('  claude-good-hooks apply --project ../shared/company-hook.mjs');
+  console.log('  ');
+  console.log('  # Get help for a specific hook');
+  console.log('  claude-good-hooks apply @sammons/dirty-good-claude-hook --help');
+  console.log('  ');
+  console.log('  # Regenerate hooks');
   console.log('  claude-good-hooks apply --regenerate');
-  console.log('  claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook/dirty');
+  console.log('  claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook');
   console.log('');
   
   console.log(chalk.bold('Help:'));
@@ -74,7 +87,7 @@ export function getApplyHelpInfo(): HelpInfo {
     arguments: [
       {
         name: 'hook-name',
-        description: 'Name of the hook to apply (optional with --regenerate)',
+        description: 'Name or path of the hook to apply (e.g., @org/package or @org/package/variant)',
         required: false
       },
       {
@@ -85,12 +98,12 @@ export function getApplyHelpInfo(): HelpInfo {
       }
     ],
     examples: [
-      'claude-good-hooks apply dirty',
-      'claude-good-hooks apply --global dirty',
-      'claude-good-hooks apply --help dirty',
-      'claude-good-hooks apply dirty --staged --filenames',
+      'claude-good-hooks apply @sammons/dirty-good-claude-hook',
+      'claude-good-hooks apply --global @sammons/dirty-good-claude-hook',
+      'claude-good-hooks apply @sammons/claude-good-hooks-code-outline/minimal',
+      'claude-good-hooks apply @sammons/dirty-good-claude-hook --staged --filenames',
       'claude-good-hooks apply --regenerate',
-      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook/dirty'
+      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook'
     ]
   };
 }

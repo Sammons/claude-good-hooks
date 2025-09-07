@@ -36,7 +36,7 @@ export class UpdateCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: any): boolean | ValidationResult {
+  validate(args: string[], options: UpdateOptions): boolean | ValidationResult {
     // Update command doesn't require any arguments
     return true;
   }
