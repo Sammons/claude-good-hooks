@@ -96,6 +96,9 @@ importers:
       '@sammons/claude-good-hooks-types':
         specifier: workspace:*
         version: link:../claude-good-hooks-types
+      '@sammons/code-outline-cli':
+        specifier: ^2.0.3
+        version: 2.0.3
     devDependencies:
       tsup:
         specifier: ^8.0.0
@@ -837,6 +840,16 @@ packages:
     resolution: {integrity: sha512-xMmiWRR8sp72Zqwjgtf3QbZfF1wdh8X2ABu3EaozvZcyHJeU0r+XAnXdKgs4cCAp6ORoYoCygipYP1mjmbjrsg==}
     cpu: [x64]
     os: [win32]
+
+  '@sammons/code-outline-cli@2.0.3':
+    resolution: {integrity: sha512-5Urijcj7g+yXbhkmDWBWcdGEcp4DHJTKFUozSx/tw9rD0pS3hCjH/C68C+3G4gPSH/mwhVbQrgGzzAvb60RFjw==}
+    hasBin: true
+
+  '@sammons/code-outline-formatter@2.0.1':
+    resolution: {integrity: sha512-zJKg4mIivtAk5hoNdokhHoQ7qqzdecISXonEq8sK7OwCb0fJZBLk0zQH/z8X/LK5VH6Ma8sVzWV/Qg+aWBP8Pw==}
+
+  '@sammons/code-outline-parser@2.0.1':
+    resolution: {integrity: sha512-aFeHWrShFD78SeICHT3AkdOlYSj3DzdBNdk7AVafXeYBunfyihd/4dBVh0YbO3CBx9EJ6phwnpOgLac3cPzeaQ==}
 
   '@shikijs/engine-oniguruma@3.12.1':
     resolution: {integrity: sha512-hbYq+XOc55CU7Irkhsgwh8WgQbx2W5IVzHV4l+wZ874olMLSNg5o3F73vo9m4SAhimFyqq/86xnx9h+T30HhhQ==}
@@ -1685,6 +1698,14 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
+  node-addon-api@8.5.0:
+    resolution: {integrity: sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==}
+    engines: {node: ^18 || ^20 || >= 21}
+
+  node-gyp-build@4.8.4:
+    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
+
   npm-run-path@5.3.0:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -2063,6 +2084,34 @@ packages:
   tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
+
+  tree-sitter-javascript@0.21.4:
+    resolution: {integrity: sha512-Lrk8yahebwrwc1sWJE9xPcz1OnnqiEV7Dh5fbN6EN3wNAdu9r06HpTqLqDwUUbnG4EB46Sfk+FJFAOldfoKLOw==}
+    peerDependencies:
+      tree-sitter: ^0.21.1
+      tree_sitter: '*'
+    peerDependenciesMeta:
+      tree_sitter:
+        optional: true
+
+  tree-sitter-javascript@0.23.1:
+    resolution: {integrity: sha512-/bnhbrTD9frUYHQTiYnPcxyHORIw157ERBa6dqzaKxvR/x3PC4Yzd+D1pZIMS6zNg2v3a8BZ0oK7jHqsQo9fWA==}
+    peerDependencies:
+      tree-sitter: ^0.21.1
+    peerDependenciesMeta:
+      tree-sitter:
+        optional: true
+
+  tree-sitter-typescript@0.23.2:
+    resolution: {integrity: sha512-e04JUUKxTT53/x3Uq1zIL45DoYKVfHH4CZqwgZhPg5qYROl5nQjV+85ruFzFGZxu+QeFVbRTPDRnqL9UbU4VeA==}
+    peerDependencies:
+      tree-sitter: ^0.21.0
+    peerDependenciesMeta:
+      tree-sitter:
+        optional: true
+
+  tree-sitter@0.21.1:
+    resolution: {integrity: sha512-7dxoA6kYvtgWw80265MyqJlkRl4yawIjO7S5MigytjELkX43fV2WsAXzsNfO7sBpPPCF5Gp0+XzHk0DwLCq3xQ==}
 
   ts-api-utils@2.1.0:
     resolution: {integrity: sha512-CUgTZL1irw8u29bzrOD/nH85jqyc74D6SshFgujOIA7osm2Rz7dYH77agkx7H4FBNxDq7Cjf+IjaX/8zwFW+ZQ==}
@@ -2848,6 +2897,31 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.50.0':
     optional: true
 
+  '@sammons/code-outline-cli@2.0.3':
+    dependencies:
+      '@sammons/code-outline-formatter': 2.0.1
+      '@sammons/code-outline-parser': 2.0.1
+      fast-glob: 3.3.3
+      glob: 11.0.3
+    transitivePeerDependencies:
+      - tree_sitter
+
+  '@sammons/code-outline-formatter@2.0.1':
+    dependencies:
+      '@sammons/code-outline-parser': 2.0.1
+      picocolors: 1.1.1
+      yaml: 2.8.1
+    transitivePeerDependencies:
+      - tree_sitter
+
+  '@sammons/code-outline-parser@2.0.1':
+    dependencies:
+      tree-sitter: 0.21.1
+      tree-sitter-javascript: 0.21.4(tree-sitter@0.21.1)
+      tree-sitter-typescript: 0.23.2(tree-sitter@0.21.1)
+    transitivePeerDependencies:
+      - tree_sitter
+
   '@shikijs/engine-oniguruma@3.12.1':
     dependencies:
       '@shikijs/types': 3.12.1
@@ -3024,14 +3098,6 @@ snapshots:
       '@vitest/utils': 3.2.4
       chai: 5.3.3
       tinyrainbow: 2.0.0
-
-  '@vitest/mocker@2.1.9(vite@5.4.19(@types/node@22.18.0))':
-    dependencies:
-      '@vitest/spy': 2.1.9
-      estree-walker: 3.0.3
-      magic-string: 0.30.18
-    optionalDependencies:
-      vite: 5.4.19(@types/node@22.18.0)
 
   '@vitest/mocker@2.1.9(vite@5.4.19(@types/node@24.3.0))':
     dependencies:
@@ -3789,6 +3855,10 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
+  node-addon-api@8.5.0: {}
+
+  node-gyp-build@4.8.4: {}
+
   npm-run-path@5.3.0:
     dependencies:
       path-key: 4.0.0
@@ -4112,6 +4182,32 @@ snapshots:
 
   tree-kill@1.2.2: {}
 
+  tree-sitter-javascript@0.21.4(tree-sitter@0.21.1):
+    dependencies:
+      node-addon-api: 8.5.0
+      node-gyp-build: 4.8.4
+      tree-sitter: 0.21.1
+
+  tree-sitter-javascript@0.23.1(tree-sitter@0.21.1):
+    dependencies:
+      node-addon-api: 8.5.0
+      node-gyp-build: 4.8.4
+    optionalDependencies:
+      tree-sitter: 0.21.1
+
+  tree-sitter-typescript@0.23.2(tree-sitter@0.21.1):
+    dependencies:
+      node-addon-api: 8.5.0
+      node-gyp-build: 4.8.4
+      tree-sitter-javascript: 0.23.1(tree-sitter@0.21.1)
+    optionalDependencies:
+      tree-sitter: 0.21.1
+
+  tree-sitter@0.21.1:
+    dependencies:
+      node-addon-api: 8.5.0
+      node-gyp-build: 4.8.4
+
   ts-api-utils@2.1.0(typescript@5.9.2):
     dependencies:
       typescript: 5.9.2
@@ -4355,7 +4451,7 @@ snapshots:
   vitest@2.1.9(@types/node@22.18.0):
     dependencies:
       '@vitest/expect': 2.1.9
-      '@vitest/mocker': 2.1.9(vite@5.4.19(@types/node@22.18.0))
+      '@vitest/mocker': 2.1.9(vite@5.4.19(@types/node@24.3.0))
       '@vitest/pretty-format': 2.1.9
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9

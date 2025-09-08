@@ -31,7 +31,8 @@
     "typescript": ">=5.0.0"
   },
   "dependencies": {
-    "@sammons/claude-good-hooks-types": "workspace:*"
+    "@sammons/claude-good-hooks-types": "workspace:*",
+    "@sammons/code-outline-cli": "^2.0.3"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

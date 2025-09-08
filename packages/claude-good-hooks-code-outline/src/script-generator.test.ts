@@ -7,19 +7,18 @@ describe('script-generator', () => {
       const params = {
         format: 'ascii' as const,
         includeAll: false,
-        projectPath: '/test/project',
         patterns: ['**/*.ts'],
-        projectDescription: 'TypeScript project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
       expect(script).toContain('#!/usr/bin/env node');
-      expect(script).toContain("'--format', 'ascii'");
-      expect(script).toContain('TypeScript project');
+      expect(script).toContain("new Formatter('ascii')");
+      expect(script).toContain('const { FileProcessor }');
+      expect(script).toContain('const { Formatter }');
       expect(script).toContain('["**/*.ts"]');
-      expect(script).not.toContain('--all');
-      expect(script).not.toContain('--depth');
+      expect(script).toContain('true // includeAll=false means namedOnly=true');
     });
 
     it('should generate script with JSON format and depth', () => {
@@ -27,43 +26,38 @@ describe('script-generator', () => {
         format: 'json' as const,
         depth: 3,
         includeAll: true,
-        projectPath: '/test/project',
         patterns: ['**/*.{js,ts}', '!node_modules/**'],
-        projectDescription: 'Mixed project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain("'--format', 'json'");
-      expect(script).toContain("'--depth', '3'");
-      expect(script).toContain("'--all'");
+      expect(script).toContain("new Formatter('json')");
+      expect(script).toContain('3,'); // depth parameter
+      expect(script).toContain('false // includeAll=false means namedOnly=true');
       expect(script).toContain('["**/*.{js,ts}","!node_modules/**"]');
-      expect(script).toContain('Mixed project');
     });
 
     it('should generate script with YAML format', () => {
       const params = {
         format: 'yaml' as const,
         includeAll: false,
-        projectPath: '/test/project',
         patterns: ['**/*.tsx'],
-        projectDescription: 'React TypeScript project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain("'--format', 'yaml'");
-      expect(script).toContain('React TypeScript project');
-      expect(script).not.toContain('--all');
+      expect(script).toContain("new Formatter('yaml')");
+      expect(script).toContain('true // includeAll=false means namedOnly=true');
     });
 
     it('should handle multiple patterns correctly', () => {
       const params = {
         format: 'ascii' as const,
         includeAll: false,
-        projectPath: '/test/project',
         patterns: ['**/*.{js,ts,jsx,tsx}', '!node_modules/**', '!dist/**', '!build/**'],
-        projectDescription: 'Full-stack project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
@@ -78,57 +72,44 @@ describe('script-generator', () => {
       const params = {
         format: 'ascii' as const,
         includeAll: false,
-        projectPath: '/test/project',
         patterns: ['**/*.ts'],
-        projectDescription: 'TypeScript project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
       expect(script).toContain('catch (error)');
-      expect(script).toContain('SIGINT');
-      expect(script).toContain('SIGTERM');
-      expect(script).toContain('process.exit');
-      expect(script).toContain('No files found');
-      expect(script).toContain('timed out');
+      expect(script).toContain('process.exit(1)');
+      expect(script).toContain('No files found matching the specified patterns');
+      expect(script).toContain('Error generating code outline:');
     });
 
-    it('should include installation logic', () => {
+    it('should use absolute module paths', () => {
       const params = {
         format: 'ascii' as const,
         includeAll: false,
-        projectPath: '/test/project',
         patterns: ['**/*.ts'],
-        projectDescription: 'TypeScript project',
+        modulePath: '/custom/path/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain('checkCodeOutlineAvailability');
-      expect(script).toContain('ensureCodeOutlineInstalled');
-      expect(script).toContain('npm install -g @sammons/code-outline-cli');
-      expect(script).toContain('code-outline-cli installed successfully');
+      expect(script).toContain("require('/custom/path/node_modules/@sammons/code-outline-cli/dist/file-processor')");
+      expect(script).toContain("require('/custom/path/node_modules/@sammons/code-outline-formatter')");
     });
 
-    it('should include proper logging and output formatting', () => {
+    it('should use default depth when not specified', () => {
       const params = {
         format: 'json' as const,
-        depth: 5,
         includeAll: true,
-        projectPath: '/test/project',
         patterns: ['**/*.ts'],
-        projectDescription: 'TypeScript project',
+        modulePath: '/path/to/node_modules/@sammons',
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain('🔍 Analyzing codebase structure');
-      expect(script).toContain('📁 Project Type:');
-      expect(script).toContain('🚀 Running: npx');
-      expect(script).toContain('✅ Code outline generated successfully');
-      expect(script).toContain('📊 Format: JSON');
-      expect(script).toContain('Depth: 5');
-      expect(script).toContain('All nodes included');
+      expect(script).toContain('10,'); // default depth
+      expect(script).toContain('processor.processFiles');
     });
   });
 });

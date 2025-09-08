@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammons/claude-good-hooks/schemas/claude-good-hooks-metadata.json",
+  "title": "Claude Good Hooks Metadata",
+  "description": "Schema for claude-good-hooks.json metadata files that store Claude Good Hooks metadata separately from Claude settings",
+  "type": "object",
+  "required": ["meta", "hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "meta": {
+      "type": "object",
+      "required": ["version", "createdAt", "updatedAt", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version of the metadata format"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this metadata file was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time", 
+          "description": "ISO 8601 timestamp when this metadata file was last updated"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["global", "project", "local"],
+          "description": "Scope of the settings this metadata corresponds to"
+        },
+        "migrations": {
+          "type": "array",
+          "description": "Migration history for this metadata file",
+          "items": {
+            "type": "object",
+            "required": ["version", "appliedAt", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "version": {
+                "type": "string",
+                "description": "Version migrated from"
+              },
+              "appliedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When this migration was applied"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of what was migrated"
+              },
+              "changes": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of specific changes made during migration"
+              }
+            }
+          }
+        },
+        "generator": {
+          "type": "object",
+          "description": "Information about what generated this file",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the generator tool"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the generator tool"
+            }
+          }
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Hook metadata organized by event type",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(PreToolUse|PostToolUse|UserPromptSubmit|Notification|Stop|SubagentStop|SessionEnd|SessionStart|PreCompact)$": {
+          "type": "object",
+          "required": ["claudegoodhooks"],
+          "additionalProperties": false,
+          "properties": {
+            "claudegoodhooks": {
+              "type": "array",
+              "description": "Array of metadata for hooks in this event category",
+              "items": {
+                "type": "object",
+                "required": ["identifier", "description", "source", "installedAt", "lastModified", "enabled"],
+                "additionalProperties": false,
+                "properties": {
+                  "identifier": {
+                    "type": "object",
+                    "required": ["id", "name", "version"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{16}$",
+                        "description": "Unique hash identifier for this hook instance"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Name of the hook from the plugin"
+                      },
+                      "packageName": {
+                        "type": "string",
+                        "description": "NPM package name if sourced from npm"
+                      },
+                      "version": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Version of the hook"
+                      }
+                    }
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable description of this hook"
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": ["local", "global", "remote"],
+                    "description": "Source type of this hook installation"
+                  },
+                  "installedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp when this hook was installed"
+                  },
+                  "lastModified": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp when this hook was last modified"
+                  },
+                  "hookFactoryArguments": {
+                    "type": "object",
+                    "description": "Factory arguments used when the hook was applied",
+                    "additionalProperties": true
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Whether this hook instance is currently enabled"
+                  },
+                  "customConfig": {
+                    "type": "object",
+                    "description": "Custom configuration specific to this instance",
+                    "additionalProperties": true
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Tags for organization and filtering"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "User notes about this hook instance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

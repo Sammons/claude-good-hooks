@@ -48,7 +48,6 @@ const codeOutlineHook: HookPlugin = {
     const format = validateFormat(args.format);
     const depth = args.depth ? validateDepth(args.depth) : undefined;
     const includeAll = Boolean(args.includeAll);
-    const autoDetectProject = args.autoDetectProject !== false; // Default to true
     const customPatterns = args.customPatterns ? String(args.customPatterns) : undefined;
 
     // Create scripts subdirectory if it doesn't exist
@@ -65,26 +64,12 @@ const codeOutlineHook: HookPlugin = {
 
     // Determine project type and patterns
     let patterns: string[];
-    let projectDescription: string;
 
     if (customPatterns) {
       // Use custom patterns provided by user
       patterns = customPatterns.split(',').map(pattern => pattern.trim());
-      projectDescription = 'Custom patterns specified';
-    } else if (autoDetectProject) {
-      // Auto-detect project type from current working directory
-      // Note: We can't determine the actual project path at hook creation time,
-      // so we'll generate a script that detects at runtime
-      patterns = [
-        '**/*.{js,ts,jsx,tsx}',
-        '!node_modules/**',
-        '!dist/**',
-        '!build/**',
-        '!coverage/**',
-      ];
-      projectDescription = 'Auto-detected project type';
     } else {
-      // Fallback patterns
+      // Default patterns for JavaScript/TypeScript projects
       patterns = [
         '**/*.{js,ts,jsx,tsx}',
         '!node_modules/**',
@@ -92,7 +77,19 @@ const codeOutlineHook: HookPlugin = {
         '!build/**',
         '!coverage/**',
       ];
-      projectDescription = 'Default patterns for JavaScript/TypeScript';
+    }
+
+    // Find the node_modules path for this package
+    let modulePath: string;
+    try {
+      // Resolve the path to the code-outline-cli module
+      const cliPath = require.resolve('@sammons/code-outline-cli/package.json');
+      // Get the node_modules directory (go up two levels from package.json)
+      modulePath = path.dirname(path.dirname(cliPath));
+    } catch (error) {
+      throw new Error(
+        `Failed to locate @sammons/code-outline-cli: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
 
     // Generate the script content
@@ -100,9 +97,8 @@ const codeOutlineHook: HookPlugin = {
       format,
       depth,
       includeAll,
-      projectPath: '$CLAUDE_PROJECT_DIR',
       patterns,
-      projectDescription,
+      modulePath,
     });
 
     // Write the script file
@@ -219,7 +215,6 @@ export const typescript: HookPlugin = {
     const tsArgs = {
       ...args,
       customPatterns: '**/*.{ts,tsx},!**/*.js,!**/*.jsx,!node_modules/**,!dist/**,!build/**',
-      autoDetectProject: false,
     };
     return codeOutlineHook.makeHook(tsArgs, context);
   },

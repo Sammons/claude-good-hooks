@@ -42,10 +42,6 @@ describe('code-outline hook', () => {
       expect(customArgs?.includeAll.type).toBe('boolean');
       expect(customArgs?.includeAll.default).toBe(false);
 
-      expect(customArgs?.autoDetectProject).toBeDefined();
-      expect(customArgs?.autoDetectProject.type).toBe('boolean');
-      expect(customArgs?.autoDetectProject.default).toBe(true);
-
       expect(customArgs?.customPatterns).toBeDefined();
       expect(customArgs?.customPatterns.type).toBe('string');
     });
@@ -109,9 +105,9 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--format', 'ascii'");
-      expect(scriptContent).not.toContain('--depth');
-      expect(scriptContent).not.toContain('--all');
+      expect(scriptContent).toContain("new Formatter('ascii')");
+      expect(scriptContent).toContain('const { FileProcessor }');
+      expect(scriptContent).toContain('const { Formatter }');
     });
 
     it('should handle custom format argument', () => {
@@ -120,7 +116,7 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--format', 'json'");
+      expect(scriptContent).toContain("new Formatter('json')");
     });
 
     it('should handle depth argument', () => {
@@ -129,7 +125,8 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--depth', '5'");
+      expect(scriptContent).toContain('5,');
+      expect(scriptContent).toContain('processor.processFiles');
     });
 
     it('should handle includeAll argument', () => {
@@ -138,7 +135,8 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--all'");
+      // includeAll=true means namedOnly=false in processFiles
+      expect(scriptContent).toContain('false // includeAll=false means namedOnly=true');
     });
 
     it('should handle custom patterns', () => {
@@ -151,7 +149,6 @@ describe('code-outline hook', () => {
       expect(scriptContent).toContain('**/*.ts');
       expect(scriptContent).toContain('**/*.js');
       expect(scriptContent).toContain('!node_modules/**');
-      expect(scriptContent).toContain('Custom patterns specified');
     });
 
     it('should validate format argument', () => {
@@ -161,23 +158,23 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--format', 'ascii'");
+      expect(scriptContent).toContain("new Formatter('ascii')");
     });
 
     it('should validate depth argument', () => {
-      // Invalid depth should be ignored
+      // Invalid depth should be ignored, using default 10
       codeOutlineHook.makeHook({ depth: 'invalid' }, validContext());
 
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).not.toContain('--depth');
+      expect(scriptContent).toContain('10,'); // Default depth
 
       // Negative depth should be ignored
       codeOutlineHook.makeHook({ depth: -1 }, validContext());
 
       const scriptContent2 = fs.readFileSync(scriptPath, 'utf8');
-      expect(scriptContent2).not.toContain('--depth');
+      expect(scriptContent2).toContain('10,'); // Default depth
     });
 
     it('should handle all arguments combined', () => {
@@ -193,9 +190,9 @@ describe('code-outline hook', () => {
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain("'--format', 'yaml'");
-      expect(scriptContent).toContain("'--depth', '3'");
-      expect(scriptContent).toContain("'--all'");
+      expect(scriptContent).toContain("new Formatter('yaml')");
+      expect(scriptContent).toContain('3,'); // depth
+      expect(scriptContent).toContain('false // includeAll=false means namedOnly=true');
       expect(scriptContent).toContain('**/*.tsx');
       expect(scriptContent).toContain('**/*.ts');
     });
