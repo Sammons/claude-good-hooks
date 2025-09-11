@@ -4,7 +4,7 @@ declare global {
   // Node.js globals
   var AbortController: typeof globalThis.AbortController;
   var AbortSignal: typeof globalThis.AbortSignal;
-  
+
   namespace NodeJS {
     interface Timeout {
       ref(): this;
@@ -13,7 +13,7 @@ declare global {
       [Symbol.toPrimitive](): number;
     }
   }
-  
+
   function setTimeout(callback: () => void, ms?: number): NodeJS.Timeout;
   function clearTimeout(timeoutId: NodeJS.Timeout | undefined): void;
   function setInterval(callback: () => void, ms?: number): NodeJS.Timeout;

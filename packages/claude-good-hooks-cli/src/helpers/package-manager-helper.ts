@@ -151,12 +151,13 @@ export class PackageManagerHelper {
           return `yarn add ${packageName || ''}`.trim();
         }
       case 'npm':
-      default:
+      default: {
         let command = 'npm install';
         if (global) command += ' -g';
         if (saveDev) command += ' --save-dev';
         if (packageName) command += ` ${packageName}`;
         return command;
+      }
     }
   }
 

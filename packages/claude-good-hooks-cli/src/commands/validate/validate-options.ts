@@ -35,12 +35,12 @@ export function validateValidateCommand(
   options: unknown
 ): ValidationResult<ValidateOptions> {
   // Special case: help command without args is valid
-  const _isHelpWithoutArgs =
-    args.length === 0 &&
-    typeof options === 'object' &&
-    options !== null &&
-    'help' in options &&
-    (options as any).help === true;
+  // const _isHelpWithoutArgs =
+  //   args.length === 0 &&
+  //   typeof options === 'object' &&
+  //   options !== null &&
+  //   'help' in options &&
+  //   (options as any).help === true;
 
   // Validate basic requirements - validate command doesn't require args
   if (args.length > 0) {

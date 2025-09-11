@@ -94,7 +94,7 @@ export async function withFallback<T, F>(
 
     try {
       return await fallback();
-    } catch (fallbackError) {
+    } catch {
       // If fallback fails, throw the original error
       throw error;
     }

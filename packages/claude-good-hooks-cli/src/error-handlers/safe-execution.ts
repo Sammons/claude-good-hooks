@@ -2,7 +2,7 @@
  * Safe execution wrappers that convert non-CLI errors to appropriate CLI errors
  */
 
-import { CLIError, ValidationError, isCLIError } from '../errors/index.js';
+import { CLIError, isCLIError } from '../errors/index.js';
 
 /**
  * Safe execution wrapper that converts non-CLI errors to appropriate CLI errors

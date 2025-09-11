@@ -321,9 +321,9 @@ describe('Fallback Logic', () => {
 });
 
 // Mock console methods for testing
-const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+const _mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+const _mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+const _mockProcessExit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
 beforeEach(() => {
   vi.clearAllMocks();

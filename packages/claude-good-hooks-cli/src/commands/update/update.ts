@@ -131,7 +131,7 @@ export class UpdateCommand {
           } else {
             throw new Error(localResult.error || 'Local update failed');
           }
-        } catch (_localError) {
+        } catch {
           throw globalError; // Prefer the global error message
         }
       }

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PackageManagerHelper } from './package-manager-helper.js';
-import { ProcessService } from '../services/process.service.js';
 
 // Mock ProcessService
 class MockProcessService {
