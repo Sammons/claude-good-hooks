@@ -220,7 +220,9 @@ describe('ApplyOptions Zod validation', () => {
       if (!result.success) {
         expect(
           result.error.issues.some(issue =>
-            issue.message.includes('Cannot specify multiple scope flags (--global, --project, --local) simultaneously')
+            issue.message.includes(
+              'Cannot specify multiple scope flags (--global, --project, --local) simultaneously'
+            )
           )
         ).toBe(true);
       }
