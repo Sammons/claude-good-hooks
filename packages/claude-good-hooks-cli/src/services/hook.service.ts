@@ -1,6 +1,6 @@
 import type { HookPlugin, HookMetadata, ClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ModuleService } from './module.service.js';
-import { SettingsService, type SettingsScope } from './settings.service.js';
+import { DualSettingsService, type SettingsScope } from './dual-settings.service.js';
 import { typedEntries } from '../utils/keys.js';
 
 // Type for parsed hook arguments based on plugin customArgs definition
@@ -42,7 +42,7 @@ export interface RegenerateAllHooksResult {
 
 export class HookService {
   private moduleService = new ModuleService();
-  private settingsService = new SettingsService();
+  private settingsService = new DualSettingsService();
 
   constructor() {}
 
@@ -63,6 +63,13 @@ export class HookService {
     const parsedArgs = this.parseHookArgs(args, plugin);
     const settingsDirectoryPath = this.getSettingsDirectoryPath(scope);
     const hookConfiguration = plugin.makeHook(parsedArgs, { settingsDirectoryPath });
+
+    if (!hookConfiguration) {
+      return {
+        success: false,
+        error: 'makeHook returned undefined or null'
+      };
+    }
 
     for (const [eventName, configs] of typedEntries(hookConfiguration)) {
       if (configs && Array.isArray(configs) && configs.length > 0) {
@@ -186,30 +193,34 @@ export class HookService {
       console.warn(`Warning: Could not list installed hook modules: ${String(error)}`);
     }
 
-    const settings = await this.settingsService.readSettings(scope);
-    if (settings.hooks) {
-      for (const [eventName, configs] of typedEntries(settings.hooks)) {
-        if (configs && Array.isArray(configs)) {
-          for (const config of configs) {
-            // Handle both new (claudegoodhooks) and old (top-level) formats for backwards compatibility
-            const name = config.claudegoodhooks?.name || 
-                        (config as any).name || 
-                        `${eventName}${config.matcher ? `:${config.matcher}` : ''}`;
-            const description = config.claudegoodhooks?.description || 
-                               (config as any).description || 
-                               `Configured ${eventName} hook`;
-            const version = config.claudegoodhooks?.version || 'n/a';
-            
-            hooks.push({
-              name,
-              description,
-              version,
-              source: isGlobal ? 'global' : 'local',
-              installed: true,
-              hookConfiguration: config,
-            });
-          }
-        }
+    const hooksWithMetadata = await this.settingsService.getHooksWithMetadata(scope);
+    for (const [eventName, hookArray] of Object.entries(hooksWithMetadata)) {
+      for (const hookWithMeta of hookArray) {
+        const metadata = hookWithMeta.metadata;
+        const config = hookWithMeta.configuration;
+        
+        // Use metadata if available, otherwise fall back to config properties for backwards compatibility
+        const name = metadata?.identifier.name || 
+                     (config as any).claudegoodhooks?.name ||
+                     (config as any).name || 
+                     `${eventName}${config.matcher ? `:${config.matcher}` : ''}`;
+        const description = metadata?.description || 
+                           (config as any).claudegoodhooks?.description ||
+                           (config as any).description || 
+                           `Configured ${eventName} hook`;
+        const version = metadata?.identifier.version || 
+                       (config as any).claudegoodhooks?.version ||
+                       (config as any).version || 
+                       'n/a';
+        
+        hooks.push({
+          name,
+          description,
+          version,
+          source: isGlobal ? 'global' : 'local',
+          installed: true,
+          hookConfiguration: config,
+        });
       }
     }
 
@@ -251,28 +262,25 @@ export class HookService {
     const scopesToProcess: SettingsScope[] = scope ? [scope] : ['global', 'project', 'local'];
 
     for (const currentScope of scopesToProcess) {
-      const settings = await this.settingsService.readSettings(currentScope);
-      if (!settings.hooks) continue;
+      const hooksWithMetadata = await this.settingsService.getHooksWithMetadata(currentScope);
 
-      for (const [eventName, configs] of typedEntries(settings.hooks)) {
-        if (!configs || !Array.isArray(configs)) continue;
-
-        for (const config of configs) {
-          const claudeGoodHooks = config.claudegoodhooks;
+      for (const [eventName, hookArray] of Object.entries(hooksWithMetadata)) {
+        for (const hookWithMeta of hookArray) {
+          const metadata = hookWithMeta.metadata;
           
-          // Skip if no claudegoodhooks metadata or missing required fields
-          if (!claudeGoodHooks || !claudeGoodHooks.name || !claudeGoodHooks.hookFactoryArguments) {
+          // Skip if no metadata or missing required fields
+          if (!metadata || !metadata.identifier.name || !metadata.hookFactoryArguments) {
             continue;
           }
 
           // If specific hook requested, check if this matches
-          if (hookName && claudeGoodHooks.name !== hookName) {
+          if (hookName && metadata.identifier.name !== hookName) {
             continue;
           }
 
           const result = await this.regenerateSingleHook(
-            claudeGoodHooks.name,
-            claudeGoodHooks.hookFactoryArguments,
+            metadata.identifier.name,
+            metadata.hookFactoryArguments,
             currentScope,
             eventName as keyof ClaudeSettings['hooks']
           );

@@ -5,6 +5,11 @@ This file contains links to all README documentation files in the repository.
 The Anthropic Docs on Claude Code Hooks: @./.claude/docs/hooks.md
 
 ## Main Documentation
+
+### Code Outline
+
+The code structure outline is available at: @./.claude/code-outline.md
+
 - [Main README](./README.md) - Project overview and getting started guide
 
 ## Package Documentation

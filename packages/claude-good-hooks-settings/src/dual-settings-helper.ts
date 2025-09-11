@@ -167,7 +167,7 @@ export class DualSettingsHelper {
     if (!pair.settings.hooks) {
       pair.settings.hooks = {};
     }
-    if (!pair.metadata) {
+    if (!pair.metadata || Object.keys(pair.metadata).length === 0) {
       pair.metadata = createMetadataTemplate(scope);
     }
 

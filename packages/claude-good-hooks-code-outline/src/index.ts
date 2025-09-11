@@ -11,7 +11,7 @@ const codeOutlineHook: HookPlugin = {
     format: {
       description: 'Output format for code outline',
       type: 'string',
-      default: 'ascii',
+      default: 'compressed',
     },
     depth: {
       description: 'Maximum depth to scan (optional)',
@@ -22,6 +22,11 @@ const codeOutlineHook: HookPlugin = {
       description: 'Include all nodes in the outline',
       type: 'boolean',
       default: false,
+    },
+    compress: {
+      description: 'Compress the output for token efficiency (default: true)',
+      type: 'boolean',
+      default: true,
     },
     autoDetectProject: {
       description: 'Automatically detect project type and use appropriate patterns',
@@ -48,6 +53,7 @@ const codeOutlineHook: HookPlugin = {
     const format = validateFormat(args.format);
     const depth = args.depth ? validateDepth(args.depth) : undefined;
     const includeAll = Boolean(args.includeAll);
+    const compress = args.compress !== false; // Default to true
     const customPatterns = args.customPatterns ? String(args.customPatterns) : undefined;
 
     // Create scripts subdirectory if it doesn't exist
@@ -97,8 +103,10 @@ const codeOutlineHook: HookPlugin = {
       format,
       depth,
       includeAll,
+      compress,
       patterns,
       modulePath,
+      settingsPath: context.settingsDirectoryPath,
     });
 
     // Write the script file
@@ -133,17 +141,17 @@ const codeOutlineHook: HookPlugin = {
 /**
  * Validates the format argument
  */
-function validateFormat(format: unknown): 'ascii' | 'json' | 'yaml' {
-  const validFormats = ['ascii', 'json', 'yaml'] as const;
+function validateFormat(format: unknown): 'ascii' | 'json' | 'yaml' | 'compressed' {
+  const validFormats = ['ascii', 'json', 'yaml', 'compressed'] as const;
 
   if (
     typeof format === 'string' &&
     validFormats.includes(format as (typeof validFormats)[number])
   ) {
-    return format as 'ascii' | 'json' | 'yaml';
+    return format as 'ascii' | 'json' | 'yaml' | 'compressed';
   }
 
-  return 'ascii'; // Default format
+  return 'compressed'; // Default format for token efficiency
 }
 
 /**
@@ -175,13 +183,14 @@ export const codeOutline = codeOutlineHook;
 export const minimal: HookPlugin = {
   ...codeOutlineHook,
   name: 'code-outline-minimal',
-  description: 'Minimal code outline - only shows top-level structure',
+  description: 'Minimal code outline - compressed format with top-level structure only',
   makeHook: (args: Record<string, unknown>, context: { settingsDirectoryPath: string }) => {
     // Force minimal settings
     const minimalArgs = {
       ...args,
       depth: 2, // Only show top 2 levels
-      format: 'ascii',
+      format: 'compressed',
+      compress: true,
       includeAll: false,
     };
     return codeOutlineHook.makeHook(minimalArgs, context);

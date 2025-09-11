@@ -14,5 +14,9 @@ export * from './settings-utils/index.js';
 // Re-export the core settings helper (renamed from SettingsService)
 export * from './settings-helper.js';
 
+// Re-export dual settings helper and migration utilities
+export * from './dual-settings-helper.js';
+export * from './migration-utility.js';
+
 // Note: Backwards compatibility exports removed - use settings-utils imports
 // Files have been consolidated into settings-utils/ directory

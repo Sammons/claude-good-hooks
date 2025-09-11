@@ -2,7 +2,8 @@
  * Utility for creating metadata file templates
  */
 
-import type { ClaudeGoodHooksMetadata, SettingsScope } from '@sammons/claude-good-hooks-types';
+import type { ClaudeGoodHooksMetadata } from '@sammons/claude-good-hooks-types';
+import type { SettingsScope } from '../dual-settings-helper.js';
 
 /**
  * Create a new metadata file template for a given scope

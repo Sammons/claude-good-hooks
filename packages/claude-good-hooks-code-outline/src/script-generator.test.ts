@@ -9,16 +9,16 @@ describe('script-generator', () => {
         includeAll: false,
         patterns: ['**/*.ts'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
+        compress: false,
       };
 
       const script = generateCodeOutlineScript(params);
 
       expect(script).toContain('#!/usr/bin/env node');
-      expect(script).toContain("new Formatter('ascii')");
-      expect(script).toContain('const { FileProcessor }');
-      expect(script).toContain('const { Formatter }');
+      expect(script).toContain('--format ascii');
       expect(script).toContain('["**/*.ts"]');
-      expect(script).toContain('true // includeAll=false means namedOnly=true');
+      expect(script).toContain('execSync');
     });
 
     it('should generate script with JSON format and depth', () => {
@@ -28,28 +28,33 @@ describe('script-generator', () => {
         includeAll: true,
         patterns: ['**/*.{js,ts}', '!node_modules/**'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
+        compress: false,
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain("new Formatter('json')");
-      expect(script).toContain('3,'); // depth parameter
-      expect(script).toContain('false // includeAll=false means namedOnly=true');
+      expect(script).toContain('--format ascii'); // Always ascii because it's the base format
+      expect(script).toContain('--depth 3');
+      expect(script).toContain('--include-all');
       expect(script).toContain('["**/*.{js,ts}","!node_modules/**"]');
     });
 
-    it('should generate script with YAML format', () => {
+    it('should generate script with compressed format', () => {
       const params = {
-        format: 'yaml' as const,
+        format: 'compressed' as const,
         includeAll: false,
         patterns: ['**/*.tsx'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
+        compress: true,
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain("new Formatter('yaml')");
-      expect(script).toContain('true // includeAll=false means namedOnly=true');
+      expect(script).toContain('compressOutline');
+      expect(script).toContain('ABBREVIATIONS');
+      expect(script).toContain('CODE STRUCTURE OUTLINE');
     });
 
     it('should handle multiple patterns correctly', () => {
@@ -58,6 +63,7 @@ describe('script-generator', () => {
         includeAll: false,
         patterns: ['**/*.{js,ts,jsx,tsx}', '!node_modules/**', '!dist/**', '!build/**'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
       };
 
       const script = generateCodeOutlineScript(params);
@@ -74,6 +80,7 @@ describe('script-generator', () => {
         includeAll: false,
         patterns: ['**/*.ts'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
       };
 
       const script = generateCodeOutlineScript(params);
@@ -84,18 +91,20 @@ describe('script-generator', () => {
       expect(script).toContain('Error generating code outline:');
     });
 
-    it('should use absolute module paths', () => {
+    it('should use execSync for running code-outline-cli', () => {
       const params = {
         format: 'ascii' as const,
         includeAll: false,
         patterns: ['**/*.ts'],
         modulePath: '/custom/path/node_modules/@sammons',
+        settingsPath: '/test/settings',
+        compress: false,
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain("require('/custom/path/node_modules/@sammons/code-outline-cli/dist/file-processor')");
-      expect(script).toContain("require('/custom/path/node_modules/@sammons/code-outline-formatter')");
+      expect(script).toContain('execSync');
+      expect(script).toContain('npx @sammons/code-outline-cli');
     });
 
     it('should use default depth when not specified', () => {
@@ -104,12 +113,13 @@ describe('script-generator', () => {
         includeAll: true,
         patterns: ['**/*.ts'],
         modulePath: '/path/to/node_modules/@sammons',
+        settingsPath: '/test/settings',
+        compress: false,
       };
 
       const script = generateCodeOutlineScript(params);
 
-      expect(script).toContain('10,'); // default depth
-      expect(script).toContain('processor.processFiles');
+      expect(script).toContain('--depth 2'); // default depth is 2
     });
   });
 });
