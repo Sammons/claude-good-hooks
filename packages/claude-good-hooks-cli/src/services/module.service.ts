@@ -235,7 +235,7 @@ export class ModuleService {
     let lastIndex = hookName.lastIndexOf('/');
     while (lastIndex !== -1) {
       const possiblePath = hookName.substring(0, lastIndex);
-      const remainder = hookName.substring(lastIndex + 1);
+      const _remainder = hookName.substring(lastIndex + 1);
 
       // Check if this looks like a file path (has extension or starts with ./ or ../ or /)
       if (

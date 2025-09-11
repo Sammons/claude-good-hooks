@@ -317,6 +317,7 @@ export class ConsoleOutputFormatter implements OutputFormatter {
 
   private padString(str: string, width: number): string {
     // Handle ANSI escape codes when calculating padding
+    // eslint-disable-next-line no-control-regex
     const visibleLength = str.replace(/\x1b\[[0-9;]*m/g, '').length;
     const padding = Math.max(0, width - visibleLength);
     return str + ' '.repeat(padding);

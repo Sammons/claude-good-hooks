@@ -198,7 +198,7 @@ export function validateMatcher(matcher: string, location?: string): ValidationR
   // Check for potentially problematic regex patterns
   try {
     new RegExp(matcher);
-  } catch (error) {
+  } catch {
     result.warnings.push({
       type: 'compatibility',
       message: `Matcher pattern may be invalid regex: ${matcher}`,
@@ -422,7 +422,7 @@ export function validateCommandPaths(
   const pathPatterns = [
     /["']([^"']+\.(?:sh|py|js|ts|json|yaml|yml|toml))["']/g,
     /\$CLAUDE_PROJECT_DIR\/([^\s]+)/g,
-    /([\.\/][^\s]+)/g,
+    /([./][^\s]+)/g,
   ];
 
   const foundPaths = new Set<string>();
