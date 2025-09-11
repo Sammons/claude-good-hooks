@@ -81,7 +81,7 @@ describe('ApplyOptions Zod validation', () => {
       expect(result.valid).toBe(false);
       if (!result.valid) {
         expect(result.errors).toContain(
-          'Cannot specify both --global and --local flags simultaneously'
+          'Cannot specify multiple scope flags (--global, --project, --local) simultaneously'
         );
       }
     });
@@ -220,7 +220,7 @@ describe('ApplyOptions Zod validation', () => {
       if (!result.success) {
         expect(
           result.error.issues.some(issue =>
-            issue.message.includes('Cannot specify both --global and --local flags simultaneously')
+            issue.message.includes('Cannot specify multiple scope flags (--global, --project, --local) simultaneously')
           )
         ).toBe(true);
       }

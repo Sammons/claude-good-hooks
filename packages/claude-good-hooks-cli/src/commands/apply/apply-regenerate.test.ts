@@ -109,7 +109,7 @@ describe('ApplyCommand --regenerate', () => {
 
     expect(help.examples).toContain('claude-good-hooks apply --regenerate');
     expect(help.examples).toContain(
-      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook/dirty'
+      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook'
     );
   });
 });

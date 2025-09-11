@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "metadata": {
-    "exported": "2025-09-03T03:06:50.975Z",
+    "exported": "2025-09-11T04:25:07.498Z",
     "source": [
       "local"
     ],
@@ -20,8 +20,7 @@
               "type": "command",
               "command": "echo \"Pre-tool validation for Write/Edit operations\"",
               "timeout": 30,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ],
           "matcher": "Write|Edit"
@@ -32,8 +31,7 @@
             {
               "type": "command",
               "command": "echo \"Validating bash command before execution\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ],
           "matcher": "Bash"
@@ -45,8 +43,7 @@
               "type": "command",
               "command": "echo \"Universal pre-tool hook\"",
               "timeout": 10,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ],
           "matcher": ".*"
@@ -59,8 +56,7 @@
             {
               "type": "command",
               "command": "echo \"File written, running post-validation\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ],
           "matcher": "Write"
@@ -72,8 +68,7 @@
               "type": "command",
               "command": "echo \"Files edited, checking formatting\"",
               "timeout": 45,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ],
           "matcher": "Edit|MultiEdit"
@@ -86,8 +81,7 @@
             {
               "type": "command",
               "command": "echo \"Processing user prompt, adding context\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -100,8 +94,7 @@
               "type": "command",
               "command": "echo \"Session started, initializing environment\"",
               "timeout": 60,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -113,8 +106,7 @@
             {
               "type": "command",
               "command": "echo \"Claude stopped, running cleanup tasks\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -127,8 +119,7 @@
               "type": "command",
               "command": "echo \"Subagent task completed\"",
               "timeout": 20,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -140,8 +131,7 @@
             {
               "type": "command",
               "command": "echo \"Session ended, final cleanup\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -153,8 +143,7 @@
             {
               "type": "command",
               "command": "echo \"Claude notification received\"",
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
@@ -167,33 +156,24 @@
               "type": "command",
               "command": "echo \"Before compacting conversation\"",
               "timeout": 15,
-              "enabled": true,
-              "continueOnError": false
+              "enabled": true
             }
           ]
         }
       ]
     },
     "meta": {
-      "createdAt": "2025-09-03T03:06:28.480Z",
-      "updatedAt": "2025-09-03T03:06:50.973Z",
+      "createdAt": "2025-09-11T04:25:02.915Z",
+      "updatedAt": "2025-09-11T04:25:02.915Z",
       "source": "local",
       "migrations": [
         {
           "version": "1.0.0",
-          "appliedAt": "2025-09-03T03:06:28.480Z",
+          "appliedAt": "2025-09-11T04:25:02.915Z",
           "description": "Converted from legacy settings format",
           "changes": [
             "Added versioning and metadata",
             "Applied schema validation"
-          ]
-        },
-        {
-          "version": "1.0.0",
-          "appliedAt": "2025-09-03T03:06:28.481Z",
-          "description": "Convert legacy unversioned settings to versioned format with metadata",
-          "changes": [
-            "Migrated to version 1.0.0"
           ]
         }
       ]
