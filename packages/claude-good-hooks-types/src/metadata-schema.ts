@@ -1,6 +1,6 @@
 /**
  * Schema definition for claude-good-hooks.json metadata files
- * 
+ *
  * This file defines the structure for storing Claude Good Hooks metadata
  * separately from Claude's settings.json files to avoid validation conflicts.
  */
@@ -25,31 +25,31 @@ export interface HookIdentifier {
 export interface HookInstanceMetadata {
   /** Unique identifier for this hook instance */
   identifier: HookIdentifier;
-  
+
   /** Human-readable description */
   description: string;
-  
+
   /** Source of the hook */
   source: 'local' | 'global' | 'remote';
-  
+
   /** Installation timestamp */
   installedAt: string;
-  
+
   /** Last modified timestamp */
   lastModified: string;
-  
+
   /** Factory arguments used when the hook was applied */
   hookFactoryArguments?: Record<string, unknown>;
-  
+
   /** Whether this hook is currently enabled */
   enabled: boolean;
-  
+
   /** Custom configuration specific to this instance */
   customConfig?: Record<string, unknown>;
-  
+
   /** Tags for organization and filtering */
   tags?: string[];
-  
+
   /** Notes from the user about this hook */
   notes?: string;
 }
@@ -71,16 +71,16 @@ export interface EventHookMetadata {
 export interface MetadataFileInfo {
   /** Schema version for this metadata file */
   version: string;
-  
+
   /** When this metadata file was created */
   createdAt: string;
-  
+
   /** Last time this metadata file was updated */
   updatedAt: string;
-  
+
   /** Source type of the settings file this metadata corresponds to */
   source: 'global' | 'project' | 'local';
-  
+
   /** Migration history for this metadata file */
   migrations?: Array<{
     version: string;
@@ -88,7 +88,7 @@ export interface MetadataFileInfo {
     description: string;
     changes?: string[];
   }>;
-  
+
   /** Generator information */
   generator?: {
     name: string;
@@ -103,7 +103,7 @@ export interface ClaudeGoodHooksMetadata {
   /** File format version and metadata */
   $schema?: string;
   meta: MetadataFileInfo;
-  
+
   /** Hook metadata organized by event type */
   hooks: EventHookMetadata;
 }
@@ -111,7 +111,7 @@ export interface ClaudeGoodHooksMetadata {
 /**
  * Utility type to extract hook metadata for a specific event
  */
-export type HookMetadataForEvent<T extends keyof EventHookMetadata> = 
+export type HookMetadataForEvent<T extends keyof EventHookMetadata> =
   EventHookMetadata[T]['claudegoodhooks'];
 
 /**
@@ -130,7 +130,7 @@ export interface HookWithMetadata {
     }>;
     enabled?: boolean;
   };
-  
+
   /** Associated metadata from claude-good-hooks.json */
   metadata?: HookInstanceMetadata;
 }
@@ -141,16 +141,16 @@ export interface HookWithMetadata {
 export interface SettingsMetadataPair {
   /** Path to the settings file */
   settingsPath: string;
-  
+
   /** Path to the metadata file */
   metadataPath: string;
-  
+
   /** Whether both files exist */
   exists: {
     settings: boolean;
     metadata: boolean;
   };
-  
+
   /** Settings content (clean Claude format) */
   settings?: {
     hooks?: {
@@ -167,7 +167,7 @@ export interface SettingsMetadataPair {
       }>;
     };
   };
-  
+
   /** Metadata content */
   metadata?: ClaudeGoodHooksMetadata;
 }
@@ -178,16 +178,16 @@ export interface SettingsMetadataPair {
 export interface MigrationStatus {
   /** Whether migration is needed */
   needsMigration: boolean;
-  
+
   /** Issues found that prevent migration */
   blockingIssues: string[];
-  
+
   /** Warnings about the migration */
   warnings: string[];
-  
+
   /** Metadata that would be extracted */
   extractedMetadata?: ClaudeGoodHooksMetadata;
-  
+
   /** Clean settings that would remain */
   cleanSettings?: {
     hooks?: {
@@ -245,12 +245,12 @@ export function isEventHookMetadata(obj: unknown): obj is EventHookMetadata {
   if (typeof obj !== 'object' || obj === null) {
     return false;
   }
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof key !== 'string') {
       return false;
     }
-    
+
     if (
       typeof value !== 'object' ||
       value === null ||
@@ -261,7 +261,7 @@ export function isEventHookMetadata(obj: unknown): obj is EventHookMetadata {
       return false;
     }
   }
-  
+
   return true;
 }
 
