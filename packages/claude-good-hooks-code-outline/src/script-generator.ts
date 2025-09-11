@@ -10,7 +10,7 @@ export function generateCodeOutlineScript(params: {
   settingsPath: string;
   compress?: boolean;
 }): string {
-  const { depth, includeAll, patterns, settingsPath, compress = true } = params;
+  const { depth = 2, includeAll, patterns, settingsPath, compress = true } = params;
 
   return `#!/usr/bin/env node
 
@@ -168,8 +168,8 @@ async function main() {
     // Build the command
     let command = 'npx @sammons/code-outline-cli';
     command += ' --format ascii';
-    if (${depth}) command += ' --depth ${depth || 2}';
-    if (${includeAll}) command += ' --include-all';
+    command += ' --depth ${depth}';
+    ${includeAll ? `command += ' --include-all';` : ''}
     command += ' ' + patterns.map(p => \`"\${p}"\`).join(' ');
     
     let output;

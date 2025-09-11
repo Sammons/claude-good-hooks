@@ -160,19 +160,20 @@ describe('code-outline hook', () => {
     });
 
     it('should validate depth argument', () => {
-      // Invalid depth should be ignored, using default 2
+      // Invalid depth should use default (2)
       codeOutlineHook.makeHook({ depth: 'invalid' }, validContext());
 
       const scriptPath = path.join(settingsDir, 'scripts', 'code-outline-hook.js');
       const scriptContent = fs.readFileSync(scriptPath, 'utf8');
 
-      expect(scriptContent).toContain('--depth 2'); // Default depth
+      // When depth is invalid, default depth of 2 should be used
+      expect(scriptContent).toContain('--depth 2');
 
-      // Negative depth should be ignored
+      // Negative depth should use default
       codeOutlineHook.makeHook({ depth: -1 }, validContext());
 
       const scriptContent2 = fs.readFileSync(scriptPath, 'utf8');
-      expect(scriptContent2).toContain('--depth 2'); // Default depth
+      expect(scriptContent2).toContain('--depth 2');
     });
 
     it('should handle all arguments combined', () => {
