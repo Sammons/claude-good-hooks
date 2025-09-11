@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { HookPlugin } from '@sammons/claude-good-hooks-types';
 import { generateCodeOutlineScript } from './script-generator';
+import { generateSearchInterceptScript } from './search-script-generator';
 
 const codeOutlineHook: HookPlugin = {
   name: 'code-outline',
@@ -38,6 +39,11 @@ const codeOutlineHook: HookPlugin = {
       type: 'string',
       default: undefined,
     },
+    interceptSearch: {
+      description: 'Intercept Glob and Grep tools to provide code outline context',
+      type: 'boolean',
+      default: true,
+    },
   },
   makeHook: (args: Record<string, unknown>, context: { settingsDirectoryPath: string }) => {
     // Validate that settingsDirectoryPath exists
@@ -55,6 +61,7 @@ const codeOutlineHook: HookPlugin = {
     const includeAll = Boolean(args.includeAll);
     const compress = args.compress !== false; // Default to true
     const customPatterns = args.customPatterns ? String(args.customPatterns) : undefined;
+    const interceptSearch = args.interceptSearch !== false; // Default to true
 
     // Create scripts subdirectory if it doesn't exist
     const scriptsDir = path.join(context.settingsDirectoryPath, 'scripts');
@@ -122,7 +129,25 @@ const codeOutlineHook: HookPlugin = {
     // Build the command
     const command = `$CLAUDE_PROJECT_DIR/.claude/scripts/code-outline-hook.js`;
 
-    return {
+    // Generate search intercept script if enabled
+    let searchCommand: string | undefined;
+    if (interceptSearch) {
+      const searchScriptContent = generateSearchInterceptScript({
+        settingsPath: context.settingsDirectoryPath,
+        depth: depth || 2,
+      });
+
+      const searchScriptPath = path.join(scriptsDir, 'code-outline-search-hook.js');
+      try {
+        fs.writeFileSync(searchScriptPath, searchScriptContent, { mode: 0o755 });
+        searchCommand = `$CLAUDE_PROJECT_DIR/.claude/scripts/code-outline-search-hook.js`;
+      } catch (error) {
+        // Silently skip search interception if script creation fails
+        console.error('Failed to create search intercept script:', error);
+      }
+    }
+
+    const hooks: Record<string, unknown> = {
       SessionStart: [
         {
           hooks: [
@@ -135,6 +160,24 @@ const codeOutlineHook: HookPlugin = {
         },
       ],
     };
+
+    // Add search interception hooks if enabled
+    if (searchCommand) {
+      hooks.PreToolUse = [
+        {
+          matcher: 'Glob|Grep',
+          hooks: [
+            {
+              type: 'command',
+              command: searchCommand,
+              timeout: 10000, // 10 seconds timeout for search enhancement
+            },
+          ],
+        },
+      ];
+    }
+
+    return hooks;
   },
 };
 

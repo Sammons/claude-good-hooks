@@ -44,6 +44,10 @@ describe('code-outline hook', () => {
 
       expect(customArgs?.customPatterns).toBeDefined();
       expect(customArgs?.customPatterns.type).toBe('string');
+
+      expect(customArgs?.interceptSearch).toBeDefined();
+      expect(customArgs?.interceptSearch.type).toBe('boolean');
+      expect(customArgs?.interceptSearch.default).toBe(true);
     });
   });
 
@@ -209,6 +213,46 @@ describe('code-outline hook', () => {
 
       // Clean up
       fs.chmodSync(scriptsDir, 0o755);
+    });
+
+    it('should generate search intercept hooks when interceptSearch is true', () => {
+      const result = codeOutlineHook.makeHook({ interceptSearch: true }, validContext());
+
+      expect(result.PreToolUse).toBeDefined();
+      expect(result.PreToolUse).toHaveLength(1);
+
+      const preToolUseConfig = result.PreToolUse![0];
+      expect(preToolUseConfig.matcher).toBe('Glob|Grep');
+      expect(preToolUseConfig.hooks).toHaveLength(1);
+
+      const searchHook = preToolUseConfig.hooks[0];
+      expect(searchHook.type).toBe('command');
+      expect(searchHook.command).toContain('code-outline-search-hook.js');
+      expect(searchHook.timeout).toBe(10000);
+
+      // Check that search script was created
+      const searchScriptPath = path.join(settingsDir, 'scripts', 'code-outline-search-hook.js');
+      expect(fs.existsSync(searchScriptPath)).toBe(true);
+    });
+
+    it('should not generate search intercept hooks when interceptSearch is false', () => {
+      const result = codeOutlineHook.makeHook({ interceptSearch: false }, validContext());
+
+      expect(result.PreToolUse).toBeUndefined();
+
+      // Check that search script was not created
+      const searchScriptPath = path.join(settingsDir, 'scripts', 'code-outline-search-hook.js');
+      expect(fs.existsSync(searchScriptPath)).toBe(false);
+    });
+
+    it('should generate search intercept hooks by default', () => {
+      const result = codeOutlineHook.makeHook({}, validContext());
+
+      expect(result.PreToolUse).toBeDefined();
+      expect(result.PreToolUse).toHaveLength(1);
+
+      const searchScriptPath = path.join(settingsDir, 'scripts', 'code-outline-search-hook.js');
+      expect(fs.existsSync(searchScriptPath)).toBe(true);
     });
   });
 });
