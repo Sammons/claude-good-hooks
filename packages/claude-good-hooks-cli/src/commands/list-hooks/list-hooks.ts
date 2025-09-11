@@ -130,7 +130,7 @@ export class ListHooksCommand {
 
       if (!isModuleInstalled) {
         // Check if it's a file path to provide a more helpful message
-        const fileSystemService = (this.moduleService as any).fileSystem;
+        const _fileSystemService = (this.moduleService as any).fileSystem;
         const isFile =
           moduleName.endsWith('.js') ||
           moduleName.endsWith('.mjs') ||

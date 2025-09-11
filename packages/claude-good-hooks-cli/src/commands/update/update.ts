@@ -36,7 +36,7 @@ export class UpdateCommand {
   /**
    * Validate command arguments
    */
-  validate(args: string[], options: UpdateOptions): boolean | ValidationResult {
+  validate(_args: string[], _options: UpdateOptions): boolean | ValidationResult {
     // Update command doesn't require any arguments
     return true;
   }
@@ -63,7 +63,7 @@ export class UpdateCommand {
   /**
    * Execute the update command
    */
-  async execute(args: string[], options: UpdateOptions): Promise<void> {
+  async execute(_args: string[], options: UpdateOptions): Promise<void> {
     const { help, json } = options;
     const isJson = options.parent?.json || json;
 
@@ -131,7 +131,7 @@ export class UpdateCommand {
           } else {
             throw new Error(localResult.error || 'Local update failed');
           }
-        } catch (localError) {
+        } catch (_localError) {
           throw globalError; // Prefer the global error message
         }
       }

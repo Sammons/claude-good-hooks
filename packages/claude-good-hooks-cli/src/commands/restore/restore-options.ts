@@ -20,7 +20,7 @@ export const RestoreOptionsSchema = z
   })
   .strict()
   .refine(
-    data => {
+    _data => {
       // Cannot specify filename when using --latest flag
       // This validation will be handled at command level since it involves args
       return true;

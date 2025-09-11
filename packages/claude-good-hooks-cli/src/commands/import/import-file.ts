@@ -81,9 +81,9 @@ export class ImportFileCommand implements ImportSubCommand {
     const force = options.force || false;
     const dryRun = options.dryRun || false;
     const validate = options.validate !== false;
-    const isJson = options.parent?.json;
+    const _isJson = options.parent?.json;
 
-    if (isJson) {
+    if (_isJson) {
       await this.executeJson(source, scope, merge, force, dryRun, validate, options);
     } else {
       await this.executeInteractive(source, scope, merge, force, dryRun, validate, options);
@@ -316,8 +316,8 @@ export class ImportFileCommand implements ImportSubCommand {
     existingSettings: ClaudeSettings,
     targetSettings: ClaudeSettings,
     merge: boolean,
-    force: boolean,
-    options: ImportOptions
+    _force: boolean,
+    _options: ImportOptions
   ): ClaudeSettings {
     if (!existingSettings.hooks || Object.keys(existingSettings.hooks).length === 0) {
       return targetSettings;
@@ -338,8 +338,8 @@ export class ImportFileCommand implements ImportSubCommand {
     existingSettings: ClaudeSettings,
     targetSettings: ClaudeSettings,
     merge: boolean,
-    force: boolean,
-    options: ImportOptions
+    _force: boolean,
+    _options: ImportOptions
   ): Promise<ClaudeSettings> {
     if (!existingSettings.hooks || Object.keys(existingSettings.hooks).length === 0) {
       return targetSettings;
