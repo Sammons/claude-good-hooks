@@ -14,7 +14,6 @@ import {
   atomicReadFile,
   createVersionedSettings,
   isLegacySettings,
-  ensureVersionedSettings,
 } from '@sammons/claude-good-hooks-settings';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ProcessService } from '../../services/process.service.js';
@@ -57,7 +56,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
    * Execute the validate check command
    */
   async execute(args: string[], options: ValidateOptions): Promise<void> {
-    const isJson = options.parent?.json;
+    const _isJson = options.parent?.json;
     const scope = options.scope || 'all';
     const testCommands = options.testCommands || false;
     const checkPaths = options.checkPaths || false;
@@ -106,9 +105,9 @@ export class ValidateCheckCommand implements ValidateSubCommand {
       // Additional validations if requested
       if (checkPaths && settings.hooks) {
         console.log(chalk.blue('  Checking command paths...'));
-        for (const [event, configs] of Object.entries(settings.hooks)) {
-          configs.forEach((config, configIndex) => {
-            config.hooks.forEach((hook, hookIndex) => {
+        for (const [_event, configs] of Object.entries(settings.hooks)) {
+          configs.forEach((config, _configIndex) => {
+            config.hooks.forEach((hook, _hookIndex) => {
               const pathResult = validateCommandPaths(hook.command);
               result.errors.push(...pathResult.errors);
               result.warnings.push(...pathResult.warnings);
@@ -157,7 +156,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     let totalErrors = 0;
     let totalWarnings = 0;
 
-    for (const { scope, result, path } of results) {
+    for (const { scope, result, path: _path } of results) {
       const status = result.valid ? chalk.green('✅ PASS') : chalk.red('❌ FAIL');
       console.log(
         `${status} ${scope.padEnd(8)} (${result.errors.length} errors, ${result.warnings.length} warnings)`

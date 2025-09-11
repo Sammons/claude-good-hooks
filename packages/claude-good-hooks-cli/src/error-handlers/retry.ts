@@ -77,7 +77,7 @@ export async function withFallback<T, F>(
     shouldUseFallback?: (error: unknown) => boolean;
   } = {}
 ): Promise<T | F> {
-  const { errorContext, shouldUseFallback } = options;
+  const { shouldUseFallback } = options;
 
   try {
     return await primary();
