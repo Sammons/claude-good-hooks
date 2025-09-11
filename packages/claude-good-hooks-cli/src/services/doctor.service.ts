@@ -32,7 +32,10 @@ export class DoctorService {
       this.process.execSync('which claude-good-hooks');
       checks.push({ name: 'claude-good-hooks in PATH', status: true });
     } catch {
-      const installCmd = this.packageManagerHelper.getInstallInstructions('@sammons/claude-good-hooks', true);
+      const installCmd = this.packageManagerHelper.getInstallInstructions(
+        '@sammons/claude-good-hooks',
+        true
+      );
       checks.push({
         name: 'claude-good-hooks in PATH',
         status: false,

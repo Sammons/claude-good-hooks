@@ -17,7 +17,7 @@ export enum LogLevel {
   WARN = 1,
   INFO = 2,
   DEBUG = 3,
-  TRACE = 4
+  TRACE = 4,
 }
 
 export interface Logger {
@@ -42,7 +42,9 @@ export class ConsoleLogger implements Logger {
       quiet: options.quiet || false,
       json: options.json || false,
       noColor: options.noColor || false,
-      level: options.level || (options.verbose ? LogLevel.DEBUG : options.quiet ? LogLevel.ERROR : LogLevel.INFO)
+      level:
+        options.level ||
+        (options.verbose ? LogLevel.DEBUG : options.quiet ? LogLevel.ERROR : LogLevel.INFO),
     };
 
     // Disable chalk colors if requested or if not in TTY
@@ -98,12 +100,18 @@ export class ConsoleLogger implements Logger {
 
   private getLevelName(level: LogLevel): string {
     switch (level) {
-      case LogLevel.ERROR: return 'error';
-      case LogLevel.WARN: return 'warn';
-      case LogLevel.INFO: return 'info';
-      case LogLevel.DEBUG: return 'debug';
-      case LogLevel.TRACE: return 'trace';
-      default: return 'info';
+      case LogLevel.ERROR:
+        return 'error';
+      case LogLevel.WARN:
+        return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.TRACE:
+        return 'trace';
+      default:
+        return 'info';
     }
   }
 
@@ -113,28 +121,38 @@ export class ConsoleLogger implements Logger {
         level,
         message,
         args: args.length > 0 ? args : undefined,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
     const coloredLevel = this.colorizeLevel(level);
     const prefix = this.options.verbose ? `[${coloredLevel}] ` : '';
-    const formattedArgs = args.length > 0 ? ` ${args.map(arg => 
-      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-    ).join(' ')}` : '';
+    const formattedArgs =
+      args.length > 0
+        ? ` ${args
+            .map(arg => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)))
+            .join(' ')}`
+        : '';
 
     return `${prefix}${message}${formattedArgs}`;
   }
 
   private colorizeLevel(level: string): string {
     switch (level) {
-      case 'error': return chalk.red('ERROR');
-      case 'warn': return chalk.yellow('WARN');
-      case 'info': return chalk.blue('INFO');
-      case 'debug': return chalk.gray('DEBUG');
-      case 'trace': return chalk.gray('TRACE');
-      case 'success': return chalk.green('SUCCESS');
-      default: return level.toUpperCase();
+      case 'error':
+        return chalk.red('ERROR');
+      case 'warn':
+        return chalk.yellow('WARN');
+      case 'info':
+        return chalk.blue('INFO');
+      case 'debug':
+        return chalk.gray('DEBUG');
+      case 'trace':
+        return chalk.gray('TRACE');
+      case 'success':
+        return chalk.green('SUCCESS');
+      default:
+        return level.toUpperCase();
     }
   }
 }
@@ -215,7 +233,7 @@ export class ConsoleOutputFormatter implements OutputFormatter {
       getLogger().info('No data to display');
       return;
     }
-    
+
     const headers = options.headers || Object.keys(firstRow);
     const compact = options.compact || false;
 
@@ -229,24 +247,22 @@ export class ConsoleOutputFormatter implements OutputFormatter {
     });
 
     // Print header
-    const headerRow = headers.map(header => 
-      this.padString(chalk.bold(header), widths[header] || 0)
-    ).join(compact ? ' | ' : '  ');
+    const headerRow = headers
+      .map(header => this.padString(chalk.bold(header), widths[header] || 0))
+      .join(compact ? ' | ' : '  ');
     console.log(headerRow);
 
     // Print separator
     if (!compact) {
-      const separator = headers.map(header => 
-        '-'.repeat(widths[header] || 0)
-      ).join('  ');
+      const separator = headers.map(header => '-'.repeat(widths[header] || 0)).join('  ');
       console.log(separator);
     }
 
     // Print data rows
     data.forEach(row => {
-      const dataRow = headers.map(header => 
-        this.padString(String(row[header] || ''), widths[header] || 0)
-      ).join(compact ? ' | ' : '  ');
+      const dataRow = headers
+        .map(header => this.padString(String(row[header] || ''), widths[header] || 0))
+        .join(compact ? ' | ' : '  ');
       console.log(dataRow);
     });
   }
@@ -284,7 +300,7 @@ export class ConsoleOutputFormatter implements OutputFormatter {
     if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
       const indent = ' '.repeat(options.indent || 2);
       const entries = Object.entries(data as Record<string, unknown>);
-      
+
       entries.forEach(([key, value]) => {
         if (typeof value === 'object' && value !== null) {
           console.log(`${key}:`);
@@ -330,18 +346,21 @@ export function getOutputFormatter(): OutputFormatter {
  * Parse output-related CLI options
  */
 export function parseOutputOptions(options: Record<string, unknown>): OutputOptions {
-  const parent = options.parent as Record<string, unknown> || {};
-  
+  const parent = (options.parent as Record<string, unknown>) || {};
+
   return {
     verbose: Boolean(options.verbose || parent.verbose),
     quiet: Boolean(options.quiet || parent.quiet),
     json: Boolean(options.json || parent.json),
     noColor: Boolean(options.noColor || parent.noColor || process.env.NO_COLOR),
-    level: getLogLevelFromOptions(options, parent)
+    level: getLogLevelFromOptions(options, parent),
   };
 }
 
-function getLogLevelFromOptions(options: Record<string, unknown>, parent: Record<string, unknown>): LogLevel {
+function getLogLevelFromOptions(
+  options: Record<string, unknown>,
+  parent: Record<string, unknown>
+): LogLevel {
   if (options.verbose || parent.verbose) {
     return LogLevel.DEBUG;
   }
@@ -369,8 +388,9 @@ export const output = {
   info: (message: string, ...args: unknown[]) => getLogger().info(message, ...args),
   debug: (message: string, ...args: unknown[]) => getLogger().debug(message, ...args),
   success: (message: string, ...args: unknown[]) => getLogger().success(message, ...args),
-  table: (data: Record<string, unknown>[], options?: TableOptions) => getOutputFormatter().table(data, options),
+  table: (data: Record<string, unknown>[], options?: TableOptions) =>
+    getOutputFormatter().table(data, options),
   list: (items: string[], options?: ListOptions) => getOutputFormatter().list(items, options),
   json: (data: unknown, options?: JsonOptions) => getOutputFormatter().json(data, options),
-  yaml: (data: unknown, options?: YamlOptions) => getOutputFormatter().yaml(data, options)
+  yaml: (data: unknown, options?: YamlOptions) => getOutputFormatter().yaml(data, options),
 };

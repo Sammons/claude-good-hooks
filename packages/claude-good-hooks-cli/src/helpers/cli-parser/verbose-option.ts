@@ -10,7 +10,7 @@ export class VerboseOption implements GlobalOptionProcessor {
       remainingArgs: args.slice(index + 1),
       value: true,
       key: 'verbose',
-      continueProcessing: true
+      continueProcessing: true,
     };
   }
 }

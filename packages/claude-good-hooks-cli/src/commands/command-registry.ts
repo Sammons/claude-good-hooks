@@ -71,11 +71,11 @@ export class CommandRegistry {
     this.processService = new ProcessService();
     this.settingsService = new SettingsService();
     this.fileSystemService = new FileSystemService();
-    
+
     // Initialize all command instances
     this.commands = [
       new HelpCommand(),
-      new InitCommand(this.settingsService, this.processService), 
+      new InitCommand(this.settingsService, this.processService),
       new VersionCommand(),
       new ApplyCommand(this.hookService, this.processService),
       new ListHooksCommand(),
@@ -114,15 +114,15 @@ export class CommandRegistry {
   /**
    * Get general help information for all commands
    */
-  getGeneralHelp(): { commands: Array<{ name: string; description: string; }> } {
+  getGeneralHelp(): { commands: Array<{ name: string; description: string }> } {
     return {
       commands: this.commands.map(cmd => {
         const help = cmd.getHelp();
         return {
           name: help.name,
-          description: help.description
+          description: help.description,
         };
-      })
+      }),
     };
   }
 }

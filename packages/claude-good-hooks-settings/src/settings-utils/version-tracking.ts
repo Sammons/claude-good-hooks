@@ -1,6 +1,6 @@
 /**
  * Simple settings version utilities
- * 
+ *
  * ```ts
  * import { createVersionedSettings } from '@sammons/claude-good-hooks-settings/settings-utils/version-tracking';
  * ```
@@ -8,7 +8,6 @@
 
 import type { VersionedClaudeSettings } from '../schemas/index.js';
 import { getCurrentTimestamp, CURRENT_SCHEMA_VERSION } from '../schemas/index.js';
-
 
 /**
  * Create a new versioned settings structure
@@ -35,9 +34,11 @@ export function createVersionedSettings(
 /**
  * Simple utility to update settings timestamps
  */
-export function updateSettingsTimestamp(settings: VersionedClaudeSettings): VersionedClaudeSettings {
+export function updateSettingsTimestamp(
+  settings: VersionedClaudeSettings
+): VersionedClaudeSettings {
   const updatedSettings = { ...settings };
-  
+
   if (!updatedSettings.meta) {
     updatedSettings.meta = {
       createdAt: getCurrentTimestamp(),

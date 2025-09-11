@@ -1,6 +1,6 @@
 /**
  * Migration utility for converting from legacy format to new dual-file architecture
- * 
+ *
  * This utility helps convert existing settings files that contain Claude Good Hooks
  * metadata to the new architecture where settings.json contains only clean hooks
  * and claude-good-hooks.json contains all the metadata.
@@ -63,24 +63,27 @@ export class MigrationUtility {
   async checkAllScopes(): Promise<{ [scope in SettingsScope]: MigrationStatus }> {
     const results = await Promise.all([
       this.checkScope('global'),
-      this.checkScope('project'), 
-      this.checkScope('local')
+      this.checkScope('project'),
+      this.checkScope('local'),
     ]);
 
     return {
       global: results[0],
       project: results[1],
-      local: results[2]
+      local: results[2],
     };
   }
 
   /**
    * Migrate a specific scope
    */
-  async migrateScope(scope: SettingsScope, options?: {
-    backup?: boolean;
-    force?: boolean;
-  }): Promise<MigrationResult> {
+  async migrateScope(
+    scope: SettingsScope,
+    options?: {
+      backup?: boolean;
+      force?: boolean;
+    }
+  ): Promise<MigrationResult> {
     const opts = { backup: true, force: false, ...options };
 
     try {
@@ -91,7 +94,7 @@ export class MigrationUtility {
           scope,
           success: true,
           migrated: false,
-          warnings: ['No migration needed - settings are already in the new format']
+          warnings: ['No migration needed - settings are already in the new format'],
         };
       }
 
@@ -100,7 +103,7 @@ export class MigrationUtility {
           scope,
           success: false,
           migrated: false,
-          error: `Migration blocked: ${migrationStatus.blockingIssues.join(', ')}`
+          error: `Migration blocked: ${migrationStatus.blockingIssues.join(', ')}`,
         };
       }
 
@@ -119,15 +122,14 @@ export class MigrationUtility {
         migrated: result.success,
         backupPath,
         error: result.error,
-        warnings: migrationStatus.warnings
+        warnings: migrationStatus.warnings,
       };
-
     } catch (error) {
       return {
         scope,
         success: false,
         migrated: false,
-        error: `Unexpected error during migration: ${error}`
+        error: `Unexpected error during migration: ${error}`,
       };
     }
   }
@@ -157,7 +159,7 @@ export class MigrationUtility {
           scope,
           success: false,
           migrated: false,
-          error: `Failed to migrate ${scope}: ${error}`
+          error: `Failed to migrate ${scope}: ${error}`,
         });
 
         if (!opts.continueOnError) {
@@ -171,7 +173,7 @@ export class MigrationUtility {
       successfulMigrations: results.filter(r => r.success && r.migrated).length,
       skippedMigrations: results.filter(r => r.success && !r.migrated).length,
       failedMigrations: results.filter(r => !r.success).length,
-      results
+      results,
     };
 
     return summary;
@@ -220,7 +222,6 @@ export class MigrationUtility {
 
       // Restore the original settings
       await this.fileSystem.writeFile(settingsPath, backupContent, 'utf-8');
-
     } catch (error) {
       throw new Error(`Failed to restore from backup: ${error}`);
     }
@@ -252,7 +253,9 @@ export class MigrationUtility {
             if (Array.isArray(configurations)) {
               for (const config of configurations) {
                 if (config && typeof config === 'object' && 'claudegoodhooks' in config) {
-                  issues.push(`Hook configuration in ${eventName} still contains claudegoodhooks metadata`);
+                  issues.push(
+                    `Hook configuration in ${eventName} still contains claudegoodhooks metadata`
+                  );
                 }
               }
             }
@@ -266,7 +269,7 @@ export class MigrationUtility {
         const metadataContent = await this.fileSystem.readFile(metadataPath, 'utf-8');
         try {
           const metadata = JSON.parse(metadataContent);
-          
+
           if (!metadata.meta || !metadata.hooks) {
             issues.push('Metadata file missing required properties');
           }
@@ -274,7 +277,6 @@ export class MigrationUtility {
           if (metadata.meta && !metadata.meta.version) {
             issues.push('Metadata file missing version');
           }
-
         } catch (error) {
           issues.push(`Invalid JSON in metadata file: ${error}`);
         }
@@ -289,14 +291,13 @@ export class MigrationUtility {
       } catch (error) {
         issues.push(`Error reading migrated files: ${error}`);
       }
-
     } catch (error) {
       issues.push(`Validation failed: ${error}`);
     }
 
     return {
       valid: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -322,30 +323,31 @@ export class MigrationUtility {
     const migrationStatus = await this.checkScope(scope);
 
     let currentFormat: 'clean' | 'legacy' | 'empty' = 'empty';
-    const extractedHooks: { eventName: string; count: number; hasMetadata: boolean; }[] = [];
+    const extractedHooks: { eventName: string; count: number; hasMetadata: boolean }[] = [];
 
     if (await this.fileSystem.exists(settingsPath)) {
       const content = await this.fileSystem.readFile(settingsPath, 'utf-8');
-      
+
       try {
         const parsed = JSON.parse(content);
-        
+
         if (Object.keys(parsed).length === 0) {
           currentFormat = 'empty';
         } else if (migrationStatus.needsMigration) {
           currentFormat = 'legacy';
-          
+
           if (parsed.hooks) {
             for (const [eventName, configurations] of Object.entries(parsed.hooks)) {
               if (Array.isArray(configurations)) {
-                const hasMetadata = configurations.some((config: any) => 
-                  config && typeof config === 'object' && 'claudegoodhooks' in config
+                const hasMetadata = configurations.some(
+                  (config: any) =>
+                    config && typeof config === 'object' && 'claudegoodhooks' in config
                 );
-                
+
                 extractedHooks.push({
                   eventName,
                   count: configurations.length,
-                  hasMetadata
+                  hasMetadata,
                 });
               }
             }
@@ -353,7 +355,7 @@ export class MigrationUtility {
         } else {
           currentFormat = 'clean';
         }
-      } catch (error) {
+      } catch {
         // Invalid JSON, but we still know the file exists
         currentFormat = 'legacy'; // Assume it needs migration if we can't parse it
       }
@@ -367,7 +369,7 @@ export class MigrationUtility {
       currentFormat,
       extractedHooks,
       warnings: migrationStatus.warnings,
-      blockingIssues: migrationStatus.blockingIssues
+      blockingIssues: migrationStatus.blockingIssues,
     };
   }
 }

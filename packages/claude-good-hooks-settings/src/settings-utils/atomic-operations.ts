@@ -1,6 +1,6 @@
 /**
  * Atomic file operations for safe configuration management
- * 
+ *
  * These are standalone functions that can be imported individually:
  * ```ts
  * import { atomicWriteFile, atomicReadFile } from '@sammons/claude-good-hooks-settings/settings-utils/atomic-operations';
@@ -166,7 +166,7 @@ export function atomicWriteFile(
     if (tempPath && existsSync(tempPath)) {
       try {
         unlinkSync(tempPath);
-      } catch (cleanupError) {
+      } catch {
         // Ignore cleanup errors
       }
     }
@@ -283,6 +283,7 @@ export function cleanupBackups(filePath: string, keepCount: number = 5): void {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { readdirSync, statSync } = require('fs');
     const files = readdirSync(dir)
       .filter((file: string) => file.startsWith(`${baseName}.backup.`))
@@ -298,11 +299,11 @@ export function cleanupBackups(filePath: string, keepCount: number = 5): void {
     for (const file of filesToDelete) {
       try {
         unlinkSync(file.path);
-      } catch (error) {
+      } catch {
         // Ignore individual deletion errors
       }
     }
-  } catch (error) {
+  } catch {
     // Ignore cleanup errors
   }
 }

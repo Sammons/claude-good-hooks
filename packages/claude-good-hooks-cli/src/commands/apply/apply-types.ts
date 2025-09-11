@@ -14,12 +14,12 @@ export interface ApplySubCommand {
    * Check if this sub-command handles the given arguments and options
    */
   match(args: string[], options: ApplyOptions): boolean;
-  
+
   /**
    * Validate the arguments and options for this sub-command
    */
   validate(args: string[], options: ApplyOptions): ValidationResult<any>;
-  
+
   /**
    * Execute this sub-command
    */

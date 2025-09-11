@@ -1,6 +1,6 @@
 /**
  * Configuration validation utilities using JSON Schema
- * 
+ *
  * These are standalone functions that can be imported individually:
  * ```ts
  * import { validateSettings, convertLegacySettings } from '@sammons/claude-good-hooks-settings/settings-utils/validation';
@@ -16,7 +16,7 @@ import type {
   VersionedClaudeSettings,
 } from '../schemas/index.js';
 import { claudeSettingsSchema, CURRENT_SCHEMA_VERSION } from '../schemas/index.js';
-import { isLegacySettings, convertLegacyToVersionedSettings, ensureVersionedSettings } from './migrations.js';
+import { convertLegacyToVersionedSettings, ensureVersionedSettings } from './migrations.js';
 
 // Initialize AJV with format support
 const ajv = new Ajv({
@@ -69,17 +69,19 @@ export function validateAndNormalizeSettings(
 } {
   // Handle legacy settings conversion first
   let normalizedSettings: VersionedClaudeSettings;
-  
+
   try {
     normalizedSettings = ensureVersionedSettings(settings, source);
   } catch (error) {
     return {
       valid: false,
-      errors: [{
-        path: 'root',
-        message: `Failed to convert settings: ${(error as Error).message}`,
-        value: settings,
-      }],
+      errors: [
+        {
+          path: 'root',
+          message: `Failed to convert settings: ${(error as Error).message}`,
+          value: settings,
+        },
+      ],
     };
   }
 

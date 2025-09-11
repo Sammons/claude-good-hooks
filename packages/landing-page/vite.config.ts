@@ -47,7 +47,7 @@ export default defineConfig(async ({ command, mode }) => {
           limit: 20,
           writeTo: () => {
             console.log('Bundle analysis complete. Check the output above.');
-          }
+          },
         }),
       ];
     } catch (error) {

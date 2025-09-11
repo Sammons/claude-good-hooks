@@ -10,11 +10,11 @@ export class ImportOptions implements CommandOptionProcessor {
     let source = '';
     const remainingArgs: string[] = [];
     const options: Record<string, unknown> = {};
-    
+
     let i = 0;
     while (i < args.length) {
       const arg = args[i];
-      
+
       if (arg && arg.startsWith('--')) {
         if (arg === '--scope') {
           options.scope = args[i + 1];
@@ -53,10 +53,10 @@ export class ImportOptions implements CommandOptionProcessor {
     }
 
     const finalArgs = source ? [source, ...remainingArgs] : remainingArgs;
-    
+
     return {
       args: finalArgs,
-      options
+      options,
     };
   }
 }

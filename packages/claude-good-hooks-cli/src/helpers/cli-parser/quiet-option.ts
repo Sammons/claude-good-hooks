@@ -10,7 +10,7 @@ export class QuietOption implements GlobalOptionProcessor {
       remainingArgs: args.slice(index + 1),
       value: true,
       key: 'quiet',
-      continueProcessing: true
+      continueProcessing: true,
     };
   }
 }

@@ -28,9 +28,9 @@ export function generateHookConfigId(name: string, version: string, commands: st
  * Parse a hook ID to extract information (if possible)
  * Note: This is best-effort since the ID is a hash
  */
-export function parseHookId(id: string): { 
-  id: string; 
-  isValid: boolean; 
+export function parseHookId(id: string): {
+  id: string;
+  isValid: boolean;
 } {
   const isValid = /^[a-f0-9]{16}$/.test(id);
   return { id, isValid };

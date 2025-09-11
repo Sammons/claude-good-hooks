@@ -13,8 +13,10 @@ export class RestoreHelpCommand implements RestoreSubCommand {
    */
   match(args: string[], options: RestoreOptions): boolean {
     // Match when help flag is set and no backup file provided, or when no args and no special flags
-    return (Boolean(options.help) && args.length === 0) || 
-           (args.length === 0 && !options.latest && !options.help);
+    return (
+      (Boolean(options.help) && args.length === 0) ||
+      (args.length === 0 && !options.latest && !options.help)
+    );
   }
 
   /**
@@ -24,7 +26,7 @@ export class RestoreHelpCommand implements RestoreSubCommand {
     // Restore help command is valid when help flag is set
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

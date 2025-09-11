@@ -41,7 +41,7 @@ const DEFAULT_CONFIG: Required<TestRunnerConfig> = {
     vitest: { command: 'npm run test', pattern: '**/*.{test,spec}.{js,ts}' },
     pytest: { command: 'python -m pytest', pattern: '**/test_*.py' },
     go: { command: 'go test ./...', pattern: '**/*_test.go' },
-    cargo: { command: 'cargo test', pattern: '**/tests/**/*.rs' }
+    cargo: { command: 'cargo test', pattern: '**/tests/**/*.rs' },
   },
   runOn: ['PostToolUse'],
   smartSelection: true,
@@ -53,7 +53,7 @@ const DEFAULT_CONFIG: Required<TestRunnerConfig> = {
     '**/*.{js,ts,jsx,tsx,py,go,rs}',
     '**/package.json',
     '**/Cargo.toml',
-    '**/requirements.txt'
+    '**/requirements.txt',
   ],
   excludePatterns: [
     '**/node_modules/**',
@@ -61,18 +61,18 @@ const DEFAULT_CONFIG: Required<TestRunnerConfig> = {
     '**/build/**',
     '**/.git/**',
     '**/target/**',
-    '**/__pycache__/**'
-  ]
+    '**/__pycache__/**',
+  ],
 };
 
 class TestRunnerHook {
   private config: Required<TestRunnerConfig>;
 
   constructor(config: TestRunnerConfig = {}) {
-    this.config = { 
-      ...DEFAULT_CONFIG, 
+    this.config = {
+      ...DEFAULT_CONFIG,
       ...config,
-      frameworks: { ...DEFAULT_CONFIG.frameworks, ...config.frameworks }
+      frameworks: { ...DEFAULT_CONFIG.frameworks, ...config.frameworks },
     };
   }
 
@@ -81,7 +81,7 @@ class TestRunnerHook {
    */
   async detectTestFramework(): Promise<string | null> {
     const cwd = process.cwd();
-    
+
     try {
       // Check for package.json and test scripts
       const packageJsonPath = path.join(cwd, 'package.json');
@@ -101,9 +101,11 @@ class TestRunnerHook {
       }
 
       // Check for Python
-      if (await this.fileExists(path.join(cwd, 'requirements.txt')) || 
-          await this.fileExists(path.join(cwd, 'setup.py')) ||
-          await this.fileExists(path.join(cwd, 'pyproject.toml'))) {
+      if (
+        (await this.fileExists(path.join(cwd, 'requirements.txt'))) ||
+        (await this.fileExists(path.join(cwd, 'setup.py'))) ||
+        (await this.fileExists(path.join(cwd, 'pyproject.toml')))
+      ) {
         return 'pytest';
       }
 
@@ -116,7 +118,6 @@ class TestRunnerHook {
       if (await this.fileExists(path.join(cwd, 'Cargo.toml'))) {
         return 'cargo';
       }
-
     } catch (error) {
       console.warn('Error detecting test framework:', error);
     }
@@ -194,7 +195,7 @@ class TestRunnerHook {
     // This is a simplified implementation
     // In production, use a proper glob library like 'glob' or 'fast-glob'
     const testFiles: string[] = [];
-    
+
     try {
       const stats = await fs.stat(pattern.replace('*', 'test'));
       if (stats.isFile()) {
@@ -210,19 +211,23 @@ class TestRunnerHook {
   /**
    * Run tests for the detected framework
    */
-  async runTests(framework: string, specificTests?: string[]): Promise<{
+  async runTests(
+    framework: string,
+    specificTests?: string[]
+  ): Promise<{
     success: boolean;
     output: string;
     error: string;
     duration: number;
   }> {
-    const frameworkConfig = this.config.frameworks[framework as keyof typeof this.config.frameworks];
+    const frameworkConfig =
+      this.config.frameworks[framework as keyof typeof this.config.frameworks];
     if (!frameworkConfig) {
       return {
         success: false,
         output: '',
         error: `No configuration found for framework: ${framework}`,
-        duration: 0
+        duration: 0,
       };
     }
 
@@ -250,7 +255,7 @@ class TestRunnerHook {
     }
 
     const startTime = Date.now();
-    
+
     try {
       const result = await this.runCommand(command, this.config.timeout * 1000);
       const duration = Date.now() - startTime;
@@ -259,7 +264,7 @@ class TestRunnerHook {
         success: result.exitCode === 0,
         output: result.output,
         error: result.error,
-        duration
+        duration,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -267,7 +272,7 @@ class TestRunnerHook {
         success: false,
         output: '',
         error: String(error),
-        duration
+        duration,
       };
     }
   }
@@ -275,33 +280,37 @@ class TestRunnerHook {
   /**
    * Format test results for display
    */
-  formatTestResults(results: {
-    success: boolean;
-    output: string;
-    error: string;
-    duration: number;
-  }, framework: string): string {
+  formatTestResults(
+    results: {
+      success: boolean;
+      output: string;
+      error: string;
+      duration: number;
+    },
+    framework: string
+  ): string {
     let output = `\\n🧪 Test Results (${framework}):`;
-    
+
     if (results.success) {
       output += ` ✅ PASSED`;
     } else {
       output += ` ❌ FAILED`;
     }
-    
+
     output += ` (${(results.duration / 1000).toFixed(2)}s)\\n`;
 
     if (this.config.showOutput && results.output) {
       // Extract key information from test output
       const lines = results.output.split('\\n');
-      const summaryLines = lines.filter(line => 
-        line.includes('passed') || 
-        line.includes('failed') || 
-        line.includes('Test Suites') ||
-        line.includes('coverage') ||
-        line.match(/\\d+\\s+(passed|failed|skipped)/)
+      const summaryLines = lines.filter(
+        line =>
+          line.includes('passed') ||
+          line.includes('failed') ||
+          line.includes('Test Suites') ||
+          line.includes('coverage') ||
+          line.match(/\\d+\\s+(passed|failed|skipped)/)
       );
-      
+
       if (summaryLines.length > 0) {
         output += summaryLines.slice(0, 5).join('\\n') + '\\n';
       }
@@ -340,10 +349,7 @@ class TestRunnerHook {
    * Simple pattern matching
    */
   private matchesPattern(filePath: string, pattern: string): boolean {
-    const regex = pattern
-      .replace(/\./g, '\\.')
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*');
+    const regex = pattern.replace(/\./g, '\\.').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     return new RegExp(`^${regex}$`).test(filePath);
   }
 
@@ -362,14 +368,17 @@ class TestRunnerHook {
   /**
    * Run shell command with timeout
    */
-  private async runCommand(command: string, timeout: number): Promise<{
+  private async runCommand(
+    command: string,
+    timeout: number
+  ): Promise<{
     exitCode: number;
     output: string;
     error: string;
   }> {
     return new Promise((resolve, reject) => {
       const child = spawn('sh', ['-c', command], {
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       let output = '';
@@ -382,25 +391,25 @@ class TestRunnerHook {
         reject(new Error(`Command timed out after ${timeout}ms`));
       }, timeout);
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         output += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         error += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (timedOut) return;
         clearTimeout(timer);
         resolve({
           exitCode: code || 0,
           output: output.trim(),
-          error: error.trim()
+          error: error.trim(),
         });
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         if (timedOut) return;
         clearTimeout(timer);
         reject(err);
@@ -418,35 +427,35 @@ const testRunnerHook: HookPlugin = {
     enabled: {
       description: 'Enable automatic test running',
       type: 'boolean',
-      default: true
+      default: true,
     },
     smartSelection: {
       description: 'Run only tests related to changed files',
       type: 'boolean',
-      default: true
+      default: true,
     },
     timeout: {
       description: 'Maximum test execution time in seconds',
       type: 'number',
-      default: 60
+      default: 60,
     },
     showOutput: {
       description: 'Show test execution output',
       type: 'boolean',
-      default: true
+      default: true,
     },
     showCoverage: {
       description: 'Include test coverage information',
       type: 'boolean',
-      default: false
+      default: false,
     },
     failOnTestFailure: {
       description: 'Fail hook execution if tests fail',
       type: 'boolean',
-      default: false
-    }
+      default: false,
+    },
   },
-  makeHook: (args) => {
+  makeHook: args => {
     const config: TestRunnerConfig = {
       enabled: args.enabled as boolean,
       smartSelection: args.smartSelection as boolean,
@@ -454,18 +463,20 @@ const testRunnerHook: HookPlugin = {
       showOutput: args.showOutput as boolean,
       showCoverage: args.showCoverage as boolean,
       failOnTestFailure: args.failOnTestFailure as boolean,
-      runOn: args.runOn as TestRunnerConfig['runOn'] || ['PostToolUse']
+      runOn: (args.runOn as TestRunnerConfig['runOn']) || ['PostToolUse'],
     };
 
     const runner = new TestRunnerHook(config);
     const hooks: any = {};
 
     if (config.runOn?.includes('PostToolUse')) {
-      hooks.PostToolUse = [{
-        matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command' as const,
-          command: `node -e "
+      hooks.PostToolUse = [
+        {
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [
+            {
+              type: 'command' as const,
+              command: `node -e "
             const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
             const { TestRunnerHook } = require('./dist/index.js');
             const runner = new TestRunnerHook(${JSON.stringify(config)});
@@ -504,13 +515,15 @@ const testRunnerHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: (config.timeout || 60) * 1000 + 10000 // Add buffer to hook timeout
-        }]
-      }];
+              timeout: (config.timeout || 60) * 1000 + 10000, // Add buffer to hook timeout
+            },
+          ],
+        },
+      ];
     }
 
     return hooks;
-  }
+  },
 };
 
 export default testRunnerHook;

@@ -14,41 +14,41 @@ export function getValidateHelpInfo(): HelpInfo {
       {
         name: 'scope',
         description: 'Validation scope (all|project|global|local)',
-        type: 'string'
+        type: 'string',
       },
       {
         name: 'test-commands',
         description: 'Test command syntax',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'check-paths',
         description: 'Validate file paths in commands',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'verbose',
         description: 'Show detailed information',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'fix',
         description: 'Auto-fix issues (when possible)',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'migrate',
         description: 'Automatically migrate settings to current version',
-        type: 'boolean'
-      }
+        type: 'boolean',
+      },
     ],
     examples: [
       'claude-good-hooks validate',
       'claude-good-hooks validate --scope=project',
       'claude-good-hooks validate --test-commands --check-paths',
       'claude-good-hooks validate --verbose --fix',
-      'claude-good-hooks validate --migrate'
-    ]
+      'claude-good-hooks validate --migrate',
+    ],
   };
 }
 
@@ -59,10 +59,10 @@ export function showValidateHelp(isJson?: boolean): void {
   } else {
     const helpInfo = getValidateHelpInfo();
     console.log(chalk.bold(helpInfo.name) + ' - ' + helpInfo.description + '\n');
-    
+
     console.log(chalk.bold('USAGE'));
     console.log('  ' + helpInfo.usage + '\n');
-    
+
     if (helpInfo.options && helpInfo.options.length > 0) {
       console.log(chalk.bold('OPTIONS'));
       for (const option of helpInfo.options) {
@@ -73,7 +73,7 @@ export function showValidateHelp(isJson?: boolean): void {
       }
       console.log('');
     }
-    
+
     if (helpInfo.examples && helpInfo.examples.length > 0) {
       console.log(chalk.bold('EXAMPLES'));
       for (const example of helpInfo.examples) {

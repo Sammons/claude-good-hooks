@@ -18,12 +18,12 @@ export class RestoreOptions implements CommandOptionProcessor {
           help: { type: 'boolean' },
         },
         allowPositionals: true,
-        strict: false
+        strict: false,
       });
 
       return {
         args: parsed.positionals,
-        options: parsed.values as Record<string, unknown>
+        options: parsed.values as Record<string, unknown>,
       };
     } catch {
       return { args, options: {} };

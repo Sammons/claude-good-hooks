@@ -8,7 +8,7 @@ import claudeSettingsSchema from './claude-settings.schema.json' assert { type: 
 export { claudeSettingsSchema };
 
 // Import shared types from types package to avoid circular dependencies
-export type {
+import type {
   SchemaValidationError,
   SchemaValidationResult,
   SettingsVersion,
@@ -16,6 +16,15 @@ export type {
   SettingsMetadata,
   VersionedClaudeSettings,
 } from '@sammons/claude-good-hooks-types';
+
+export type {
+  SchemaValidationError,
+  SchemaValidationResult,
+  SettingsVersion,
+  MigrationRecord,
+  SettingsMetadata,
+  VersionedClaudeSettings,
+};
 
 // Utility functions
 export function parseVersion(version: string): SettingsVersion {

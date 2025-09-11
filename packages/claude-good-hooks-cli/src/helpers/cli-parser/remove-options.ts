@@ -14,7 +14,7 @@ export class RemoveOptions implements CommandOptionProcessor {
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       if (arg === '--global') {
         options.global = true;
       } else if (arg === '--project') {

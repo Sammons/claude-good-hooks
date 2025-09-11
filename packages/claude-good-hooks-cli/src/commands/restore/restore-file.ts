@@ -19,10 +19,7 @@ export class RestoreFileCommand implements RestoreSubCommand {
   private settingsService: SettingsService;
   private importCommand: ImportCommand;
 
-  constructor(
-    fileSystemService: FileSystemService,
-    processService: ProcessService
-  ) {
+  constructor(fileSystemService: FileSystemService, processService: ProcessService) {
     this._fileSystemService = fileSystemService;
     this.processService = processService;
     this.settingsService = new SettingsService();
@@ -45,7 +42,7 @@ export class RestoreFileCommand implements RestoreSubCommand {
     if (args.length === 0) {
       return {
         valid: false,
-        errors: ['Backup filename is required']
+        errors: ['Backup filename is required'],
       };
     }
 
@@ -53,13 +50,13 @@ export class RestoreFileCommand implements RestoreSubCommand {
     if (!filename || !filename.includes('.backup.')) {
       return {
         valid: false,
-        errors: ['File does not appear to be a backup file (must contain ".backup.")']
+        errors: ['File does not appear to be a backup file (must contain ".backup.")'],
       };
     }
 
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -71,7 +68,7 @@ export class RestoreFileCommand implements RestoreSubCommand {
     if (!filename) {
       throw new Error('Backup filename is required');
     }
-    
+
     const scope = options.scope || 'project';
     const isJson = options.parent?.json;
 
@@ -83,14 +80,16 @@ export class RestoreFileCommand implements RestoreSubCommand {
     const backupFile = this.findBackupFile(filename, scope);
     if (!backupFile) {
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: `Backup file not found: ${filename}` 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Backup file not found: ${filename}`,
+          })
+        );
       } else {
         console.error(chalk.red(`❌ Backup file not found: ${filename}`));
         console.log(chalk.gray('Searched in:'));
-        
+
         const searchPaths = this.getSearchPaths(scope);
         for (const path of searchPaths) {
           console.log(chalk.gray(`  • ${path}`));
@@ -118,13 +117,18 @@ export class RestoreFileCommand implements RestoreSubCommand {
         console.log(chalk.blue('\n📋 Backup Information:'));
         console.log(chalk.gray(`   • File: ${basename(backupFile)}`));
         console.log(chalk.gray(`   • Path: ${backupFile}`));
-        console.log(chalk.gray(`   • Size: ${Math.round(stats.size / 1024 * 100) / 100} KB`));
+        console.log(chalk.gray(`   • Size: ${Math.round((stats.size / 1024) * 100) / 100} KB`));
         console.log(chalk.gray(`   • Created: ${stats.mtime.toLocaleString()}`));
-        
+
         // Try to extract timestamp from filename
         const timestampMatch = basename(backupFile).match(/\.backup\.(.+)$/);
         if (timestampMatch) {
-          const timestamp = timestampMatch[1]?.replace(/-/g, ':').replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}):(\d{3})Z/, '$1-$2-$3T$4:$5:$6.$7Z');
+          const timestamp = timestampMatch[1]
+            ?.replace(/-/g, ':')
+            .replace(
+              /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}):(\d{3})Z/,
+              '$1-$2-$3T$4:$5:$6.$7Z'
+            );
           try {
             const backupDate = new Date(timestamp);
             if (!isNaN(backupDate.getTime())) {
@@ -142,10 +146,12 @@ export class RestoreFileCommand implements RestoreSubCommand {
     // Use the import command to restore the backup
     if (!isJson) {
       console.log(chalk.blue('\n📥 Restoring from backup...'));
-      console.log(chalk.gray('   Safe mode: only claude-good-hooks managed hooks will be affected'));
+      console.log(
+        chalk.gray('   Safe mode: only claude-good-hooks managed hooks will be affected')
+      );
       console.log(chalk.gray('   This will show detailed hook-level changes:\n'));
     }
-    
+
     try {
       // Pass the backup file to the import command with appropriate options
       // Import now safely uses selective replacement by default
@@ -156,32 +162,39 @@ export class RestoreFileCommand implements RestoreSubCommand {
         dryRun: false,
         validate: true,
         yes: options.yes || false,
-        parent: options.parent
+        parent: options.parent,
       };
 
       // The import command will show detailed hook-level deltas
       await this.importCommand.execute([backupFile], importOptions);
 
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: true, 
-          message: 'Backup restored successfully',
-          backupFile: basename(backupFile)
-        }));
+        console.log(
+          JSON.stringify({
+            success: true,
+            message: 'Backup restored successfully',
+            backupFile: basename(backupFile),
+          })
+        );
       } else {
         console.log(chalk.green('\n✅ Backup restored successfully!'));
         console.log(chalk.blue('\n🎉 Next Steps:'));
-        console.log(chalk.gray('   • Run "claude-good-hooks validate" to verify the restored configuration'));
-        console.log(chalk.gray('   • Use "claude-good-hooks list-hooks --installed" to see active hooks'));
+        console.log(
+          chalk.gray('   • Run "claude-good-hooks validate" to verify the restored configuration')
+        );
+        console.log(
+          chalk.gray('   • Use "claude-good-hooks list-hooks --installed" to see active hooks')
+        );
         console.log(chalk.gray('   • Test your hooks with Claude Code'));
       }
-
     } catch (error) {
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: `Restore failed: ${String(error)}` 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Restore failed: ${String(error)}`,
+          })
+        );
       } else {
         console.error(chalk.red(`❌ Restore failed: ${error}`));
       }

@@ -4,8 +4,18 @@
 
 import { existsSync } from 'fs';
 import chalk from 'chalk';
-import { validateSettings, testCommand, validateCommandPaths, printValidationResults } from '../../utils/validator.js';
-import { atomicReadFile, createVersionedSettings, isLegacySettings, ensureVersionedSettings } from '@sammons/claude-good-hooks-settings';
+import {
+  validateSettings,
+  testCommand,
+  validateCommandPaths,
+  printValidationResults,
+} from '../../utils/validator.js';
+import {
+  atomicReadFile,
+  createVersionedSettings,
+  isLegacySettings,
+  ensureVersionedSettings,
+} from '@sammons/claude-good-hooks-settings';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ProcessService } from '../../services/process.service.js';
 import { SettingsService } from '../../services/settings.service.js';
@@ -39,7 +49,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
   validate(args: string[], options: ValidateOptions): ValidationResult<ValidateOptions> {
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -55,20 +65,31 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     const migrate = options.migrate || false;
 
     console.log(chalk.blue.bold('🔍 Claude Good Hooks Validation\n'));
-    
+
     if (migrate) {
-      console.log(chalk.cyan('Conversion enabled: Legacy settings will be automatically converted if needed\n'));
+      console.log(
+        chalk.cyan(
+          'Conversion enabled: Legacy settings will be automatically converted if needed\n'
+        )
+      );
     } else {
-      console.log(chalk.gray('Conversion disabled: Settings will be validated as-is (use --migrate to enable conversion)\n'));
+      console.log(
+        chalk.gray(
+          'Conversion disabled: Settings will be validated as-is (use --migrate to enable conversion)\n'
+        )
+      );
     }
 
-    const scopes = scope === 'all' ? ['global', 'project', 'local'] as const : [scope as 'global' | 'project' | 'local'];
+    const scopes =
+      scope === 'all'
+        ? (['global', 'project', 'local'] as const)
+        : [scope as 'global' | 'project' | 'local'];
     let overallValid = true;
     const results: Array<{ scope: string; result: UtilsValidationResult; path: string }> = [];
 
     for (const currentScope of scopes) {
       const settingsPath = this.settingsService.getSettingsPath(currentScope);
-      
+
       console.log(chalk.blue(`Validating ${currentScope} settings...`));
       console.log(chalk.gray(`Path: ${settingsPath}`));
 
@@ -77,7 +98,9 @@ export class ValidateCheckCommand implements ValidateSubCommand {
         continue;
       }
 
-      const settings = migrate ? await this.settingsService.readSettings(currentScope) : await this.readSettingsWithoutConversion(currentScope);
+      const settings = migrate
+        ? await this.settingsService.readSettings(currentScope)
+        : await this.readSettingsWithoutConversion(currentScope);
       const result = validateSettings(settings, settingsPath);
 
       // Additional validations if requested
@@ -111,7 +134,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
                 result.errors.push({
                   type: 'command',
                   message: `Failed to test command: ${error}`,
-                  location: `${currentScope}:${event}`
+                  location: `${currentScope}:${event}`,
                 });
                 result.valid = false;
               }
@@ -136,39 +159,49 @@ export class ValidateCheckCommand implements ValidateSubCommand {
 
     for (const { scope, result, path } of results) {
       const status = result.valid ? chalk.green('✅ PASS') : chalk.red('❌ FAIL');
-      console.log(`${status} ${scope.padEnd(8)} (${result.errors.length} errors, ${result.warnings.length} warnings)`);
-      
+      console.log(
+        `${status} ${scope.padEnd(8)} (${result.errors.length} errors, ${result.warnings.length} warnings)`
+      );
+
       totalErrors += result.errors.length;
       totalWarnings += result.warnings.length;
     }
 
     console.log();
-    console.log(`Total: ${chalk.red(totalErrors + ' errors')}, ${chalk.yellow(totalWarnings + ' warnings')}`);
+    console.log(
+      `Total: ${chalk.red(totalErrors + ' errors')}, ${chalk.yellow(totalWarnings + ' warnings')}`
+    );
 
     if (overallValid) {
       console.log(chalk.green.bold('\n🎉 All validations passed!'));
-      
+
       if (totalWarnings > 0) {
         console.log(chalk.yellow('Note: There are warnings that should be reviewed.'));
       }
-      
+
       console.log(chalk.blue('\n💡 Next Steps:'));
       console.log(chalk.gray('  • Your hooks are ready to use with Claude Code'));
-      console.log(chalk.gray('  • Run "claude-good-hooks list-hooks --installed" to see active hooks'));
+      console.log(
+        chalk.gray('  • Run "claude-good-hooks list-hooks --installed" to see active hooks')
+      );
       console.log(chalk.gray('  • Consider running with --test-commands to verify command syntax'));
     } else {
       console.log(chalk.red.bold('\n🚨 Validation failed!'));
-      
+
       console.log(chalk.blue('\n🔧 Recommended Actions:'));
       console.log(chalk.gray('  • Fix the errors listed above'));
-      console.log(chalk.gray('  • Run "claude-good-hooks validate --verbose" for detailed information'));
-      console.log(chalk.gray('  • Use "claude-good-hooks init --force" to regenerate configuration'));
-      
+      console.log(
+        chalk.gray('  • Run "claude-good-hooks validate --verbose" for detailed information')
+      );
+      console.log(
+        chalk.gray('  • Use "claude-good-hooks init --force" to regenerate configuration')
+      );
+
       if (options.fix) {
         console.log(chalk.blue('\n🔄 Auto-fix not implemented yet'));
         console.log(chalk.gray('  Manual fixes are required for hook configurations'));
       }
-      
+
       this.processService.exit(1);
     }
 
@@ -180,20 +213,22 @@ export class ValidateCheckCommand implements ValidateSubCommand {
    * Read settings without automatic conversion (for validation purposes)
    * This allows us to validate legacy settings as-is when migrate flag is false
    */
-  private async readSettingsWithoutConversion(scope: 'global' | 'project' | 'local'): Promise<VersionedClaudeSettings> {
+  private async readSettingsWithoutConversion(
+    scope: 'global' | 'project' | 'local'
+  ): Promise<VersionedClaudeSettings> {
     const path = this.settingsService.getSettingsPath(scope);
-    
+
     // Use atomic read operation
     const readResult = atomicReadFile(path, { defaultValue: '{}' });
-    
+
     if (!readResult.success) {
       console.error(`Error reading ${scope} settings:`, readResult.error);
       return createVersionedSettings(scope);
     }
-    
+
     try {
       const parsed = JSON.parse(readResult.content || '{}');
-      
+
       // If it's legacy format, just add minimal version info for validation
       // but don't do full conversion
       if (isLegacySettings(parsed)) {
@@ -203,12 +238,12 @@ export class ValidateCheckCommand implements ValidateSubCommand {
           $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
         } as VersionedClaudeSettings;
       }
-      
+
       // Ensure it has a version for validation
       if (!parsed.version) {
         parsed.version = '1.0.0';
       }
-      
+
       return parsed as VersionedClaudeSettings;
     } catch (error) {
       console.error(`Error parsing ${scope} settings:`, error);
@@ -220,7 +255,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
    * Provide recommendations based on validation results
    */
   private async provideRecommendations(
-    results: Array<{ scope: string; result: UtilsValidationResult; path: string }>, 
+    results: Array<{ scope: string; result: UtilsValidationResult; path: string }>,
     verbose: boolean
   ): Promise<void> {
     const allWarnings = results.flatMap(r => r.result.warnings);
@@ -233,17 +268,22 @@ export class ValidateCheckCommand implements ValidateSubCommand {
     console.log(chalk.blue.bold('\n🎯 Recommendations\n'));
 
     // Group warnings by type
-    const warningsByType = allWarnings.reduce((acc, warning) => {
-      if (!acc[warning.type]) acc[warning.type] = [];
-      acc[warning.type].push(warning);
-      return acc;
-    }, {} as Record<string, typeof allWarnings>);
+    const warningsByType = allWarnings.reduce(
+      (acc, warning) => {
+        if (!acc[warning.type]) acc[warning.type] = [];
+        acc[warning.type].push(warning);
+        return acc;
+      },
+      {} as Record<string, typeof allWarnings>
+    );
 
     // Security recommendations
     if (warningsByType.security) {
       console.log(chalk.red('🔒 Security:'));
       console.log(chalk.gray('  • Review commands for potentially dangerous operations'));
-      console.log(chalk.gray('  • Consider using safer alternatives or adding confirmation prompts'));
+      console.log(
+        chalk.gray('  • Consider using safer alternatives or adding confirmation prompts')
+      );
       console.log(chalk.gray('  • Avoid running commands with elevated privileges in hooks'));
       console.log();
     }

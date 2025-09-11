@@ -20,23 +20,25 @@ export function createMetadataTemplate(scope: SettingsScope): ClaudeGoodHooksMet
       source: scope,
       generator: {
         name: '@sammons/claude-good-hooks',
-        version: '1.0.0' // This should be dynamically set from package.json
-      }
+        version: '1.0.0', // This should be dynamically set from package.json
+      },
     },
-    hooks: {}
+    hooks: {},
   };
 }
 
 /**
  * Update the timestamps in metadata
  */
-export function updateMetadataTimestamp(metadata: ClaudeGoodHooksMetadata): ClaudeGoodHooksMetadata {
+export function updateMetadataTimestamp(
+  metadata: ClaudeGoodHooksMetadata
+): ClaudeGoodHooksMetadata {
   return {
     ...metadata,
     meta: {
       ...metadata.meta,
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    },
   };
 }
 
@@ -53,7 +55,7 @@ export function addMigrationRecord(
     version: fromVersion,
     appliedAt: new Date().toISOString(),
     description,
-    changes
+    changes,
   };
 
   return {
@@ -61,17 +63,17 @@ export function addMigrationRecord(
     meta: {
       ...metadata.meta,
       migrations: [...(metadata.meta.migrations || []), migrationRecord],
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    },
   };
 }
 
 /**
  * Validate metadata structure
  */
-export function validateMetadata(metadata: unknown): { 
-  valid: boolean; 
-  errors: string[]; 
+export function validateMetadata(metadata: unknown): {
+  valid: boolean;
+  errors: string[];
 } {
   const errors: string[] = [];
 

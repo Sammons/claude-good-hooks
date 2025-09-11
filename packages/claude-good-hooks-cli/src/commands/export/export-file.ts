@@ -53,7 +53,7 @@ export class ExportFileCommand implements ExportSubCommand {
     // Regular export is always valid
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -69,12 +69,13 @@ export class ExportFileCommand implements ExportSubCommand {
 
     // Collect settings based on scope
     const settingsData: Record<string, ClaudeSettings> = {};
-    const scopes = scope === 'all' ? ['global', 'project', 'local'] as const : [scope as SettingsScope];
+    const scopes =
+      scope === 'all' ? (['global', 'project', 'local'] as const) : [scope as SettingsScope];
 
     for (const currentScope of scopes) {
       console.log(chalk.blue(`Reading ${currentScope} settings...`));
       const settings = await this.settingsService.readSettings(currentScope);
-      
+
       if (settings.hooks && Object.keys(settings.hooks).length > 0) {
         settingsData[currentScope] = settings;
         console.log(chalk.green(`✅ Found hooks in ${currentScope} settings`));
@@ -96,9 +97,9 @@ export class ExportFileCommand implements ExportSubCommand {
         exported: new Date().toISOString(),
         source: Object.keys(settingsData),
         generator: 'claude-good-hooks-cli',
-        description: `Exported hooks configuration from ${Object.keys(settingsData).join(', ')} settings`
+        description: `Exported hooks configuration from ${Object.keys(settingsData).join(', ')} settings`,
       },
-      settings: scope === 'all' ? settingsData : settingsData[scope] || {}
+      settings: scope === 'all' ? settingsData : settingsData[scope] || {},
     };
 
     // Generate regular export filename if not provided
@@ -119,9 +120,9 @@ export class ExportFileCommand implements ExportSubCommand {
 
       switch (format) {
         case 'json':
-          outputContent = minify ? 
-            JSON.stringify(exportConfig) : 
-            JSON.stringify(exportConfig, null, 2);
+          outputContent = minify
+            ? JSON.stringify(exportConfig)
+            : JSON.stringify(exportConfig, null, 2);
           break;
 
         case 'yaml':
@@ -152,9 +153,15 @@ export class ExportFileCommand implements ExportSubCommand {
       // Show statistics
       const totalHooks = Object.values(settingsData).reduce((total, settings) => {
         if (!settings.hooks) return total;
-        return total + Object.values(settings.hooks).reduce((eventTotal, configs) => {
-          return eventTotal + configs.reduce((configTotal, config) => configTotal + config.hooks.length, 0);
-        }, 0);
+        return (
+          total +
+          Object.values(settings.hooks).reduce((eventTotal, configs) => {
+            return (
+              eventTotal +
+              configs.reduce((configTotal, config) => configTotal + config.hooks.length, 0)
+            );
+          }, 0)
+        );
       }, 0);
 
       const totalEvents = Object.values(settingsData).reduce((total, settings) => {
@@ -164,13 +171,16 @@ export class ExportFileCommand implements ExportSubCommand {
       console.log(chalk.gray(`\n📈 Statistics:`));
       console.log(chalk.gray(`   • Total hooks: ${totalHooks}`));
       console.log(chalk.gray(`   • Total events: ${totalEvents}`));
-      console.log(chalk.gray(`   • File size: ${Math.round(outputContent.length / 1024 * 100) / 100} KB`));
+      console.log(
+        chalk.gray(`   • File size: ${Math.round((outputContent.length / 1024) * 100) / 100} KB`)
+      );
 
       // Show usage instructions
       console.log(chalk.blue('\n🚀 Usage Instructions:'));
       console.log(chalk.gray(`   • Share this file with others: ${basename(outputPath)}`));
-      console.log(chalk.gray(`   • Import on another system: claude-good-hooks import ${outputPath}`));
-
+      console.log(
+        chalk.gray(`   • Import on another system: claude-good-hooks import ${outputPath}`)
+      );
     } catch (error) {
       console.error(chalk.red(`❌ Export failed: ${error}`));
       this.processService.exit(1);
@@ -183,12 +193,12 @@ export class ExportFileCommand implements ExportSubCommand {
   private convertToYaml(config: ExportedConfiguration, minify: boolean): string {
     // Simple YAML converter (for basic structure)
     // In a real implementation, you might want to use a YAML library
-    
+
     const indent = minify ? '' : '  ';
     const newline = minify ? '' : '\n';
-    
+
     let yaml = `version: "${config.version}"${newline}`;
-    
+
     if (config.metadata) {
       yaml += `metadata:${newline}`;
       yaml += `${indent}exported: "${config.metadata.exported}"${newline}`;
@@ -198,13 +208,13 @@ export class ExportFileCommand implements ExportSubCommand {
         yaml += `${indent}description: "${config.metadata.description}"${newline}`;
       }
     }
-    
+
     yaml += `settings:${newline}`;
     yaml += JSON.stringify(config.settings, null, minify ? 0 : 2)
       .replace(/^/gm, indent)
       .replace(/"/g, '')
       .replace(/,$/gm, '');
-    
+
     return yaml;
   }
 
@@ -213,7 +223,7 @@ export class ExportFileCommand implements ExportSubCommand {
    */
   private generateTemplate(config: ExportedConfiguration): string {
     let template = '';
-    
+
     template += '# Claude Good Hooks Configuration Template\n';
     template += `# Generated: ${config.metadata.exported}\n`;
     template += `# Source: ${config.metadata.source.join(', ')}\n`;
@@ -226,9 +236,9 @@ export class ExportFileCommand implements ExportSubCommand {
     template += '#   2. Save as .claude/settings.json in your project\n';
     template += '#   3. Or import with: claude-good-hooks import this-file\n';
     template += '\n';
-    
+
     const settings = config.settings as ClaudeSettings | Record<string, ClaudeSettings>;
-    
+
     if ('hooks' in settings) {
       // Single settings object
       template += this.generateHooksTemplate(settings);
@@ -241,7 +251,7 @@ export class ExportFileCommand implements ExportSubCommand {
         template += '\n';
       }
     }
-    
+
     return template;
   }
 
@@ -252,72 +262,72 @@ export class ExportFileCommand implements ExportSubCommand {
     if (!settings.hooks || Object.keys(settings.hooks).length === 0) {
       return '# No hooks configured\n';
     }
-    
+
     let template = '{\n  "hooks": {\n';
-    
+
     const eventDescriptions: Record<string, string> = {
-      'PreToolUse': 'Runs before Claude uses tools (validation, permission checks)',
-      'PostToolUse': 'Runs after Claude uses tools (formatting, testing, cleanup)',
-      'UserPromptSubmit': 'Runs when you submit a prompt (context injection)',
-      'SessionStart': 'Runs when Claude starts a session (environment setup)',
-      'Stop': 'Runs when Claude finishes responding (cleanup, notifications)',
-      'SubagentStop': 'Runs when a subagent finishes (task completion)',
-      'SessionEnd': 'Runs when session ends (cleanup, logging)',
-      'Notification': 'Runs on Claude notifications',
-      'PreCompact': 'Runs before conversation compaction'
+      PreToolUse: 'Runs before Claude uses tools (validation, permission checks)',
+      PostToolUse: 'Runs after Claude uses tools (formatting, testing, cleanup)',
+      UserPromptSubmit: 'Runs when you submit a prompt (context injection)',
+      SessionStart: 'Runs when Claude starts a session (environment setup)',
+      Stop: 'Runs when Claude finishes responding (cleanup, notifications)',
+      SubagentStop: 'Runs when a subagent finishes (task completion)',
+      SessionEnd: 'Runs when session ends (cleanup, logging)',
+      Notification: 'Runs on Claude notifications',
+      PreCompact: 'Runs before conversation compaction',
     };
-    
+
     const events = Object.keys(settings.hooks);
     events.forEach((event, eventIndex) => {
       const configs = settings.hooks![event as keyof ClaudeSettings['hooks']]! as any[];
-      
+
       template += `    # ${eventDescriptions[event] || 'Event hook'}\n`;
       template += `    "${event}": [\n`;
-      
+
       configs.forEach((config: any, configIndex: number) => {
         template += '      {\n';
-        
+
         if (config.matcher) {
           template += `        # Matches tools: ${config.matcher}\n`;
           template += `        "matcher": "${config.matcher}",\n`;
         }
-        
+
         template += '        "hooks": [\n';
-        
+
         config.hooks.forEach((hook: any, hookIndex: number) => {
           template += '          {\n';
           template += '            "type": "command",\n';
-          
+
           // Add comment for complex commands
           const lines = hook.command.split('\n');
           if (lines.length > 1) {
             template += `            # Multi-line command (${lines.length} lines)\n`;
           }
-          
+
           template += `            "command": ${JSON.stringify(hook.command)}`;
-          
+
           if (hook.timeout) {
             template += `,\n            "timeout": ${hook.timeout}`;
           }
-          
+
           template += '\n          }';
           if (hookIndex < config.hooks.length - 1) template += ',';
           template += '\n';
         });
-        
+
         template += '        ]\n';
         template += '      }';
         if (configIndex < configs.length - 1) template += ',';
         template += '\n';
       });
-      
+
       template += '    ]';
       if (eventIndex < events.length - 1) template += ',';
       template += '\n';
     });
-    
+
     template += '  }\n}\n';
-    
+
     return template;
   }
 }

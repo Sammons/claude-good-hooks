@@ -23,7 +23,7 @@ export class InitHelpCommand implements InitSubCommand {
     // Init help command is valid when help flag is set
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

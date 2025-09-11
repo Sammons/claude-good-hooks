@@ -57,17 +57,19 @@ function addBasicFileProtectionHooks(hooks: ClaudeSettings): void {
   if (!hooks.hooks.PreToolUse) hooks.hooks.PreToolUse = [];
 
   hooks.hooks.PreToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Protect sensitive files from modification
 if echo "$1" | grep -E '\\.(env|key|pem|p12|keystore)$' > /dev/null; then
   echo "Blocked modification of sensitive file: $1" >&2
   exit 2
 fi`,
-      timeout: 5
-    }]
+        timeout: 5,
+      },
+    ],
   });
 }
 
@@ -79,17 +81,19 @@ function addGitValidationHooks(hooks: ClaudeSettings): void {
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit|MultiEdit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit|MultiEdit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Validate that modified files don't break git status
 if [ -d .git ] && ! git status --porcelain > /dev/null 2>&1; then
   echo "Git repository appears to be corrupted after file modification" >&2
   exit 2
 fi`,
-      timeout: 10
-    }]
+        timeout: 10,
+      },
+    ],
   });
 }
 
@@ -102,10 +106,11 @@ function addReactHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
 
   // React component validation
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Basic React component syntax check
 file_path="$1"
 if [[ "$file_path" == *.tsx ]] || [[ "$file_path" == *.jsx ]]; then
@@ -116,25 +121,28 @@ if [[ "$file_path" == *.tsx ]] || [[ "$file_path" == *.jsx ]]; then
     }
   fi
 fi`,
-      timeout: 15
-    }]
+        timeout: 15,
+      },
+    ],
   });
 
   // Add build validation for production builds
   if (_projectInfo.features.includes('vite')) {
     hooks.hooks.PostToolUse.push({
-      matcher: "Write|Edit",
-      hooks: [{
-        type: "command",
-        command: `#!/bin/bash
+      matcher: 'Write|Edit',
+      hooks: [
+        {
+          type: 'command',
+          command: `#!/bin/bash
 # Run Vite type checking if available
 if [ -f "vite.config.ts" ] || [ -f "vite.config.js" ]; then
   if command -v ${_projectInfo.packageManager || 'npm'} > /dev/null; then
     ${_projectInfo.packageManager || 'npm'} run type-check 2>/dev/null || true
   fi
 fi`,
-        timeout: 30
-      }]
+          timeout: 30,
+        },
+      ],
     });
   }
 }
@@ -148,10 +156,11 @@ function addNodeHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
 
   // Node.js syntax validation
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Node.js syntax check
 file_path="$1"
 if [[ "$file_path" == *.js ]] || [[ "$file_path" == *.mjs ]]; then
@@ -162,17 +171,19 @@ if [[ "$file_path" == *.js ]] || [[ "$file_path" == *.mjs ]]; then
     }
   fi
 fi`,
-      timeout: 10
-    }]
+        timeout: 10,
+      },
+    ],
   });
 
   // TypeScript validation if applicable
   if (_projectInfo.hasTypescript) {
     hooks.hooks.PostToolUse.push({
-      matcher: "Write|Edit",
-      hooks: [{
-        type: "command",
-        command: `#!/bin/bash
+      matcher: 'Write|Edit',
+      hooks: [
+        {
+          type: 'command',
+          command: `#!/bin/bash
 # TypeScript syntax check
 file_path="$1"
 if [[ "$file_path" == *.ts ]] && command -v tsc > /dev/null; then
@@ -181,8 +192,9 @@ if [[ "$file_path" == *.ts ]] && command -v tsc > /dev/null; then
     exit 2
   }
 fi`,
-        timeout: 20
-      }]
+          timeout: 20,
+        },
+      ],
     });
   }
 }
@@ -195,10 +207,11 @@ function addPythonHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void 
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Python syntax check
 file_path="$1"
 if [[ "$file_path" == *.py ]] && command -v python3 > /dev/null; then
@@ -207,8 +220,9 @@ if [[ "$file_path" == *.py ]] && command -v python3 > /dev/null; then
     exit 2
   }
 fi`,
-      timeout: 15
-    }]
+        timeout: 15,
+      },
+    ],
   });
 }
 
@@ -220,10 +234,11 @@ function addGoHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Go syntax check
 file_path="$1"
 if [[ "$file_path" == *.go ]] && command -v go > /dev/null; then
@@ -232,8 +247,9 @@ if [[ "$file_path" == *.go ]] && command -v go > /dev/null; then
     exit 2
   }
 fi`,
-      timeout: 20
-    }]
+        timeout: 20,
+      },
+    ],
   });
 }
 
@@ -245,10 +261,11 @@ function addRustHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void {
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Rust syntax check
 file_path="$1"
 if [[ "$file_path" == *.rs ]] && command -v rustc > /dev/null; then
@@ -257,8 +274,9 @@ if [[ "$file_path" == *.rs ]] && command -v rustc > /dev/null; then
     exit 2
   }
 fi`,
-      timeout: 25
-    }]
+        timeout: 25,
+      },
+    ],
   });
 }
 
@@ -271,10 +289,11 @@ function addGenericHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void
 
   // Basic file validation
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Basic file validation
 file_path="$1"
 if [ -f "$file_path" ]; then
@@ -304,8 +323,9 @@ if [ -f "$file_path" ]; then
       ;;
   esac
 fi`,
-      timeout: 10
-    }]
+        timeout: 10,
+      },
+    ],
   });
 }
 
@@ -317,10 +337,11 @@ function addEslintHooks(hooks: ClaudeSettings): void {
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Run ESLint on modified files
 file_path="$1"
 if [[ "$file_path" == *.js ]] || [[ "$file_path" == *.jsx ]] || [[ "$file_path" == *.ts ]] || [[ "$file_path" == *.tsx ]]; then
@@ -331,8 +352,9 @@ if [[ "$file_path" == *.js ]] || [[ "$file_path" == *.jsx ]] || [[ "$file_path" 
     }
   fi
 fi`,
-      timeout: 30
-    }]
+        timeout: 30,
+      },
+    ],
   });
 }
 
@@ -344,10 +366,11 @@ function addPrettierHooks(hooks: ClaudeSettings): void {
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
   hooks.hooks.PostToolUse.push({
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `#!/bin/bash
+    matcher: 'Write|Edit',
+    hooks: [
+      {
+        type: 'command',
+        command: `#!/bin/bash
 # Auto-format with Prettier
 file_path="$1"
 if command -v npx > /dev/null; then
@@ -356,8 +379,9 @@ if command -v npx > /dev/null; then
     npx prettier --write "$file_path" --no-error-on-unmatched-pattern 2>/dev/null || true
   fi
 fi`,
-      timeout: 20
-    }]
+        timeout: 20,
+      },
+    ],
   });
 }
 
@@ -368,15 +392,19 @@ function addTestingHooks(hooks: ClaudeSettings, _projectInfo: ProjectInfo): void
   if (!hooks.hooks) hooks.hooks = {};
   if (!hooks.hooks.PostToolUse) hooks.hooks.PostToolUse = [];
 
-  const testCommand = _projectInfo.hasVitest ? 'vitest run --reporter=basic --no-coverage' : 
-                     _projectInfo.hasJest ? 'jest --passWithNoTests --silent' : null;
+  const testCommand = _projectInfo.hasVitest
+    ? 'vitest run --reporter=basic --no-coverage'
+    : _projectInfo.hasJest
+      ? 'jest --passWithNoTests --silent'
+      : null;
 
   if (testCommand) {
     hooks.hooks.PostToolUse.push({
-      matcher: "Write|Edit",
-      hooks: [{
-        type: "command",
-        command: `#!/bin/bash
+      matcher: 'Write|Edit',
+      hooks: [
+        {
+          type: 'command',
+          command: `#!/bin/bash
 # Run tests for modified files
 file_path="$1"
 if [[ "$file_path" == *test* ]] || [[ "$file_path" == *spec* ]]; then
@@ -387,8 +415,9 @@ if [[ "$file_path" == *test* ]] || [[ "$file_path" == *spec* ]]; then
     }
   fi
 fi`,
-        timeout: 60
-      }]
+          timeout: 60,
+        },
+      ],
     });
   }
 }
@@ -396,7 +425,10 @@ fi`,
 /**
  * Get hook templates by category for user selection
  */
-export function getAvailableTemplates(): Record<string, { name: string; description: string; hooks: ClaudeSettings }> {
+export function getAvailableTemplates(): Record<
+  string,
+  { name: string; description: string; hooks: ClaudeSettings }
+> {
   return {
     'file-protection': {
       name: 'File Protection',
@@ -405,7 +437,7 @@ export function getAvailableTemplates(): Record<string, { name: string; descript
         const hooks: ClaudeSettings = { hooks: {} };
         addBasicFileProtectionHooks(hooks);
         return hooks;
-      })()
+      })(),
     },
     'git-validation': {
       name: 'Git Validation',
@@ -414,25 +446,25 @@ export function getAvailableTemplates(): Record<string, { name: string; descript
         const hooks: ClaudeSettings = { hooks: {} };
         addGitValidationHooks(hooks);
         return hooks;
-      })()
+      })(),
     },
-    'eslint': {
+    eslint: {
       name: 'ESLint Integration',
       description: 'Runs ESLint on modified JavaScript/TypeScript files',
       hooks: (() => {
         const hooks: ClaudeSettings = { hooks: {} };
         addEslintHooks(hooks);
         return hooks;
-      })()
+      })(),
     },
-    'prettier': {
+    prettier: {
       name: 'Prettier Integration',
       description: 'Auto-formats files with Prettier after modification',
       hooks: (() => {
         const hooks: ClaudeSettings = { hooks: {} };
         addPrettierHooks(hooks);
         return hooks;
-      })()
-    }
+      })(),
+    },
   };
 }

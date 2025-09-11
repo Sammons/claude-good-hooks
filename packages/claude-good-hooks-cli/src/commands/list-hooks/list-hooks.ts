@@ -60,48 +60,51 @@ export class ListHooksCommand {
         {
           name: 'installed',
           description: 'Show only installed hooks',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'project',
           description: 'Show project-level hooks (default)',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'global',
           description: 'Show global hooks',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'json',
           description: 'Output in JSON format',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       examples: [
         'claude-good-hooks list-hooks',
         'claude-good-hooks list-hooks --installed',
-        'claude-good-hooks list-hooks --global'
-      ]
+        'claude-good-hooks list-hooks --global',
+      ],
     };
   }
 
   /**
    * Format hook configuration for display
    */
-  private async formatHookConfiguration(config: HookConfiguration, scope: 'global' | 'project'): Promise<string[]> {
+  private async formatHookConfiguration(
+    config: HookConfiguration,
+    scope: 'global' | 'project'
+  ): Promise<string[]> {
     const lines: string[] = [];
-    
+
     // Add description if it exists - check both new and old formats for backwards compatibility
     const description = config.claudegoodhooks?.description || (config as any).description;
     if (description) {
       lines.push(`  ${chalk.dim('Description:')} ${chalk.italic(description)}`);
     }
-    
+
     if (config.matcher) {
       lines.push(`  ${chalk.dim('Matcher:')} ${chalk.cyan(config.matcher)}`);
     }
-    
+
     if (config.hooks && config.hooks.length > 0) {
       config.hooks.forEach((hook, index) => {
         const prefix = config.hooks!.length > 1 ? `  ${chalk.dim(`[${index + 1}]`)} ` : '  ';
@@ -115,54 +118,71 @@ export class ListHooksCommand {
         }
       });
     }
-    
+
     // Check for module warnings if this is a managed hook
     const hookName = config.claudegoodhooks?.name || (config as any).name;
     if (hookName) {
       const moduleName = this.moduleService.extractModuleNameFromHookName(hookName);
       const isGlobal = scope === 'global';
-      
+
       // Check if module is installed
       const isModuleInstalled = await this.moduleService.isModuleInstalled(moduleName, isGlobal);
-      
+
       if (!isModuleInstalled) {
         // Check if it's a file path to provide a more helpful message
         const fileSystemService = (this.moduleService as any).fileSystem;
-        const isFile = moduleName.endsWith('.js') || moduleName.endsWith('.mjs') || moduleName.endsWith('.cjs') || 
-                      moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName.startsWith('/');
-        
+        const isFile =
+          moduleName.endsWith('.js') ||
+          moduleName.endsWith('.mjs') ||
+          moduleName.endsWith('.cjs') ||
+          moduleName.startsWith('./') ||
+          moduleName.startsWith('../') ||
+          moduleName.startsWith('/');
+
         if (isFile) {
-          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('File not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- File may have been moved or deleted')}`);
+          lines.push(
+            `  ${chalk.yellow('⚠')} ${chalk.dim('File not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- File may have been moved or deleted')}`
+          );
         } else {
-          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`);
+          lines.push(
+            `  ${chalk.yellow('⚠')} ${chalk.dim('Module not found:')} ${chalk.yellow(moduleName)} ${chalk.dim('- This hook may not work correctly')}`
+          );
         }
       } else {
         // Check if plugin is exported from the module
         // Pass the full hook name to check for the specific variant/export
         const isPluginExported = await this.moduleService.isPluginExported(hookName, isGlobal);
         if (!isPluginExported) {
-          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Plugin not found in module: The hook may have been removed or renamed')}`);
+          lines.push(
+            `  ${chalk.yellow('⚠')} ${chalk.dim('Plugin not found in module: The hook may have been removed or renamed')}`
+          );
         }
-        
+
         // Check version mismatch
         const hookVersion = config.claudegoodhooks?.version || (config as any).version;
         const moduleVersion = await this.moduleService.getModuleVersion(moduleName, isGlobal);
-        
+
         if (hookVersion && moduleVersion && hookVersion !== moduleVersion) {
-          lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Update available: Module version')} ${chalk.green(moduleVersion)} ${chalk.dim('is available (hook uses')} ${chalk.yellow(hookVersion)}${chalk.dim(')')}`);
+          lines.push(
+            `  ${chalk.yellow('⚠')} ${chalk.dim('Update available: Module version')} ${chalk.green(moduleVersion)} ${chalk.dim('is available (hook uses')} ${chalk.yellow(hookVersion)}${chalk.dim(')')}`
+          );
         }
       }
-      
+
       // Check for missing hookFactoryArguments
       const hookFactoryArguments = config.claudegoodhooks?.hookFactoryArguments;
       if (!hookFactoryArguments) {
-        lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('Cannot regenerate: Missing hookFactoryArguments (applied with older version)')}`);
+        lines.push(
+          `  ${chalk.yellow('⚠')} ${chalk.dim('Cannot regenerate: Missing hookFactoryArguments (applied with older version)')}`
+        );
       }
     } else {
       // Add warning for hooks without claudegoodhooks.name field (check old format too for backwards compatibility)
-      lines.push(`  ${chalk.yellow('⚠')} ${chalk.dim('This hook is not managed, and cannot be modified through claude-good-hooks')}`);
+      lines.push(
+        `  ${chalk.yellow('⚠')} ${chalk.dim('This hook is not managed, and cannot be modified through claude-good-hooks')}`
+      );
     }
-    
+
     return lines;
   }
 
@@ -171,7 +191,7 @@ export class ListHooksCommand {
    */
   async execute(_args: string[], options: ListHooksOptions): Promise<void> {
     const json = options.json || options.parent?.json;
-    
+
     // Handle help flag
     if (options.help) {
       if (json) {
@@ -180,10 +200,10 @@ export class ListHooksCommand {
       } else {
         const helpInfo = this.getHelp();
         console.log(chalk.bold(helpInfo.name) + ' - ' + helpInfo.description + '\n');
-        
+
         console.log(chalk.bold('USAGE'));
         console.log('  ' + helpInfo.usage + '\n');
-        
+
         if (helpInfo.options && helpInfo.options.length > 0) {
           console.log(chalk.bold('OPTIONS'));
           for (const option of helpInfo.options) {
@@ -194,7 +214,7 @@ export class ListHooksCommand {
           }
           console.log('');
         }
-        
+
         if (helpInfo.examples && helpInfo.examples.length > 0) {
           console.log(chalk.bold('EXAMPLES'));
           for (const example of helpInfo.examples) {
@@ -231,7 +251,7 @@ export class ListHooksCommand {
         const status = hook.installed ? chalk.green('✓') : chalk.red('✗');
         const version = hook.version === 'n/a' ? '' : ` v${hook.version}`;
         console.log(`${status} ${chalk.bold(hook.name)}${version}`);
-        
+
         // Show hook configuration details if available
         if (hook.hookConfiguration) {
           const configLines = await this.formatHookConfiguration(hook.hookConfiguration, scope);
@@ -243,7 +263,7 @@ export class ListHooksCommand {
         } else {
           console.log(`  ${hook.description}`);
         }
-        
+
         if (hook.packageName) {
           console.log(`  ${chalk.dim('Package:')} ${chalk.dim(hook.packageName)}`);
         }

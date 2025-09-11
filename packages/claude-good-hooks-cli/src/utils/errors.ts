@@ -11,42 +11,42 @@ export enum ErrorCode {
   MISSING_ARGUMENT = 1002,
   INVALID_OPTION = 1003,
   COMMAND_NOT_FOUND = 1004,
-  
+
   // File system errors (2000-2999)
   FILE_NOT_FOUND = 2000,
   FILE_ACCESS_DENIED = 2001,
   DIRECTORY_NOT_FOUND = 2002,
   PATH_INVALID = 2003,
   FILE_ALREADY_EXISTS = 2004,
-  
+
   // Configuration errors (3000-3999)
   CONFIG_NOT_FOUND = 3000,
   CONFIG_INVALID = 3001,
   CONFIG_PARSE_ERROR = 3002,
   SETTINGS_INVALID = 3003,
   HOOK_CONFIG_INVALID = 3004,
-  
+
   // Hook errors (4000-4999)
   HOOK_NOT_FOUND = 4000,
   HOOK_EXECUTION_FAILED = 4001,
   HOOK_VALIDATION_FAILED = 4002,
   HOOK_DEPENDENCY_MISSING = 4003,
   HOOK_TEMPLATE_INVALID = 4004,
-  
+
   NETWORK_ERROR = 5000,
-  
+
   // Validation errors (6000-6999)
   VALIDATION_FAILED = 6000,
   SCHEMA_INVALID = 6001,
   TYPE_MISMATCH = 6002,
   CONSTRAINT_VIOLATION = 6003,
-  
+
   // System errors (7000-7999)
   SYSTEM_ERROR = 7000,
   PERMISSION_DENIED = 7001,
   RESOURCE_UNAVAILABLE = 7002,
   DEPENDENCY_MISSING = 7003,
-  VERSION_INCOMPATIBLE = 7004
+  VERSION_INCOMPATIBLE = 7004,
 }
 
 export interface ErrorSuggestion {
@@ -133,131 +133,119 @@ export class EnhancedError extends Error {
  * Create common error types with predefined codes and suggestions
  */
 export const createError = {
-  fileNotFound: (path: string): EnhancedError => new EnhancedError(
-    `File not found: ${path}`,
-    {
+  fileNotFound: (path: string): EnhancedError =>
+    new EnhancedError(`File not found: ${path}`, {
       code: ErrorCode.FILE_NOT_FOUND,
       context: { path },
       suggestions: [
         {
           title: 'Check the file path',
-          description: 'Ensure the file exists and the path is correct'
+          description: 'Ensure the file exists and the path is correct',
         },
         {
           title: 'Use absolute path',
-          description: 'Try using an absolute path instead of relative'
-        }
-      ]
-    }
-  ),
+          description: 'Try using an absolute path instead of relative',
+        },
+      ],
+    }),
 
-  configNotFound: (configType: string): EnhancedError => new EnhancedError(
-    `${configType} configuration not found`,
-    {
+  configNotFound: (configType: string): EnhancedError =>
+    new EnhancedError(`${configType} configuration not found`, {
       code: ErrorCode.CONFIG_NOT_FOUND,
       context: { configType },
       suggestions: [
         {
           title: 'Initialize configuration',
           description: 'Run the init command to create a new configuration',
-          command: 'claude-good-hooks init'
+          command: 'claude-good-hooks init',
         },
         {
           title: 'Check documentation',
           description: 'See the documentation for configuration examples',
-          url: 'https://docs.claude.ai/code/hooks'
-        }
-      ]
-    }
-  ),
+          url: 'https://docs.claude.ai/code/hooks',
+        },
+      ],
+    }),
 
-  hookNotFound: (hookName: string): EnhancedError => new EnhancedError(
-    `Hook not found: ${hookName}`,
-    {
+  hookNotFound: (hookName: string): EnhancedError =>
+    new EnhancedError(`Hook not found: ${hookName}`, {
       code: ErrorCode.HOOK_NOT_FOUND,
       context: { hookName },
       suggestions: [
         {
           title: 'List available hooks',
           description: 'See all available hooks in your configuration',
-          command: 'claude-good-hooks list-hooks'
+          command: 'claude-good-hooks list-hooks',
         },
         {
           title: 'Check spelling',
-          description: 'Verify the hook name is spelled correctly'
+          description: 'Verify the hook name is spelled correctly',
         },
         {
           title: 'Install hook',
-          description: 'Ensure the hook module is installed locally or globally'
-        }
-      ]
-    }
-  ),
+          description: 'Ensure the hook module is installed locally or globally',
+        },
+      ],
+    }),
 
-  validationFailed: (details: string): EnhancedError => new EnhancedError(
-    `Validation failed: ${details}`,
-    {
+  validationFailed: (details: string): EnhancedError =>
+    new EnhancedError(`Validation failed: ${details}`, {
       code: ErrorCode.VALIDATION_FAILED,
       context: { details },
       suggestions: [
         {
           title: 'Run validation',
           description: 'Use the validate command to see detailed errors',
-          command: 'claude-good-hooks validate --verbose'
+          command: 'claude-good-hooks validate --verbose',
         },
         {
           title: 'Fix automatically',
           description: 'Try auto-fixing common issues',
-          command: 'claude-good-hooks validate --fix'
-        }
-      ]
-    }
-  ),
+          command: 'claude-good-hooks validate --fix',
+        },
+      ],
+    }),
 
-  networkError: (url: string, cause?: Error): EnhancedError => new EnhancedError(
-    `Network error accessing: ${url}`,
-    {
+  networkError: (url: string, cause?: Error): EnhancedError =>
+    new EnhancedError(`Network error accessing: ${url}`, {
       code: ErrorCode.NETWORK_ERROR,
       cause,
       context: { url },
       suggestions: [
         {
           title: 'Check internet connection',
-          description: 'Ensure you have a stable internet connection'
+          description: 'Ensure you have a stable internet connection',
         },
         {
           title: 'Verify URL',
-          description: 'Check if the URL is correct and accessible'
+          description: 'Check if the URL is correct and accessible',
         },
         {
           title: 'Try again later',
-          description: 'The service might be temporarily unavailable'
-        }
-      ]
-    }
-  ),
+          description: 'The service might be temporarily unavailable',
+        },
+      ],
+    }),
 
-  permissionDenied: (resource: string): EnhancedError => new EnhancedError(
-    `Permission denied: ${resource}`,
-    {
+  permissionDenied: (resource: string): EnhancedError =>
+    new EnhancedError(`Permission denied: ${resource}`, {
       code: ErrorCode.PERMISSION_DENIED,
       context: { resource },
       suggestions: [
         {
           title: 'Check permissions',
-          description: 'Ensure you have the necessary permissions'
+          description: 'Ensure you have the necessary permissions',
         },
         {
           title: 'Run as administrator',
-          description: 'Try running the command with elevated permissions'
+          description: 'Try running the command with elevated permissions',
         },
         {
           title: 'Change ownership',
-          description: 'You may need to change file or directory ownership'
-        }
-      ]
-    }
-  )
+          description: 'You may need to change file or directory ownership',
+        },
+      ],
+    }),
 };
 
 /**
@@ -265,7 +253,7 @@ export const createError = {
  */
 export function formatError(error: Error | EnhancedError): string {
   const output: string[] = [];
-  
+
   if (error instanceof EnhancedError) {
     // Error header with code
     output.push(chalk.red.bold('✗ Error'));
@@ -297,15 +285,15 @@ export function formatError(error: Error | EnhancedError): string {
       error.suggestions.forEach((suggestion, index) => {
         output.push(chalk.yellow(`${index + 1}. ${suggestion.title}\n`));
         output.push(chalk.gray(`   ${suggestion.description}\n`));
-        
+
         if (suggestion.command) {
           output.push(chalk.cyan(`   Run: ${suggestion.command}\n`));
         }
-        
+
         if (suggestion.url) {
           output.push(chalk.blue(`   See: ${suggestion.url}\n`));
         }
-        
+
         output.push('\n');
       });
     }
@@ -374,37 +362,40 @@ export function enhanceError(error: Error, options: EnhancedErrorOptions = {}): 
 
   return new EnhancedError(error.message, {
     ...options,
-    cause: error
+    cause: error,
   });
 }
 
 /**
  * Create error from common patterns
  */
-export function createCommonErrors(pattern: string, context: Record<string, unknown> = {}): EnhancedError {
+export function createCommonErrors(
+  pattern: string,
+  context: Record<string, unknown> = {}
+): EnhancedError {
   switch (pattern) {
     case 'ENOENT':
       return createError.fileNotFound(String(context.path || 'unknown'));
-    
+
     case 'EACCES':
       return createError.permissionDenied(String(context.path || 'resource'));
-    
+
     case 'ENOTDIR':
       return new EnhancedError('Path is not a directory', {
         code: ErrorCode.PATH_INVALID,
-        context
+        context,
       });
-    
+
     case 'EISDIR':
       return new EnhancedError('Path is a directory, expected a file', {
         code: ErrorCode.PATH_INVALID,
-        context
+        context,
       });
-    
+
     default:
       return new EnhancedError(`System error: ${pattern}`, {
         code: ErrorCode.SYSTEM_ERROR,
-        context
+        context,
       });
   }
 }

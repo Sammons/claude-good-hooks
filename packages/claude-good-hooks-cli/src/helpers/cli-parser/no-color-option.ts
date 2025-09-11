@@ -10,7 +10,7 @@ export class NoColorOption implements GlobalOptionProcessor {
       remainingArgs: args.slice(index + 1),
       value: true,
       key: 'noColor',
-      continueProcessing: true
+      continueProcessing: true,
     };
   }
 }

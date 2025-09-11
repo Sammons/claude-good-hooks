@@ -9,7 +9,7 @@ describe('ApplyOptions Zod validation', () => {
         global: true,
         help: false,
         regenerate: false,
-        parent: { json: false }
+        parent: { json: false },
       };
 
       const result = validateApplyCommand(args, options);
@@ -27,7 +27,7 @@ describe('ApplyOptions Zod validation', () => {
       const args: string[] = [];
       const options = {
         regenerate: true,
-        global: true
+        global: true,
       };
 
       const result = validateApplyCommand(args, options);
@@ -42,7 +42,7 @@ describe('ApplyOptions Zod validation', () => {
     it('should validate help command without hook name', () => {
       const args: string[] = [];
       const options = {
-        help: true
+        help: true,
       };
 
       const result = validateApplyCommand(args, options);
@@ -56,14 +56,16 @@ describe('ApplyOptions Zod validation', () => {
     it('should reject missing hook name without valid flags', () => {
       const args: string[] = [];
       const options = {
-        global: true
+        global: true,
       };
 
       const result = validateApplyCommand(args, options);
 
       expect(result.valid).toBe(false);
       if (!result.valid) {
-        expect(result.errors).toContain('Hook name is required unless using --regenerate or --help flag');
+        expect(result.errors).toContain(
+          'Hook name is required unless using --regenerate or --help flag'
+        );
       }
     });
 
@@ -71,14 +73,16 @@ describe('ApplyOptions Zod validation', () => {
       const args = ['test-hook'];
       const options = {
         global: true,
-        local: true
+        local: true,
       };
 
       const result = validateApplyCommand(args, options);
 
       expect(result.valid).toBe(false);
       if (!result.valid) {
-        expect(result.errors).toContain('Cannot specify both --global and --local flags simultaneously');
+        expect(result.errors).toContain(
+          'Cannot specify both --global and --local flags simultaneously'
+        );
       }
     });
 
@@ -86,7 +90,7 @@ describe('ApplyOptions Zod validation', () => {
       const args = ['test-hook'];
       const options = {
         global: true,
-        unknownProperty: true
+        unknownProperty: true,
       };
 
       const result = validateApplyCommand(args, options);
@@ -101,7 +105,7 @@ describe('ApplyOptions Zod validation', () => {
       const args = ['test-hook'];
       const options = {
         global: 'invalid-type', // Should be boolean
-        help: false
+        help: false,
       };
 
       const result = validateApplyCommand(args, options);
@@ -132,8 +136,8 @@ describe('ApplyOptions Zod validation', () => {
       const args = ['test-hook'];
       const options = {
         parent: {
-          json: true
-        }
+          json: true,
+        },
       };
 
       const result = validateApplyCommand(args, options);
@@ -149,8 +153,8 @@ describe('ApplyOptions Zod validation', () => {
       const options = {
         parent: {
           json: 'not-boolean', // Should be boolean
-          unknownNested: true
-        }
+          unknownNested: true,
+        },
       };
 
       const result = validateApplyCommand(args, options);
@@ -193,8 +197,8 @@ describe('ApplyOptions Zod validation', () => {
         help: false,
         regenerate: false,
         parent: {
-          json: true
-        }
+          json: true,
+        },
       };
 
       const result = ApplyOptionsSchema.safeParse(validOptions);
@@ -208,15 +212,17 @@ describe('ApplyOptions Zod validation', () => {
     it('should reject conflicting global and local flags', () => {
       const conflictingOptions = {
         global: true,
-        local: true
+        local: true,
       };
 
       const result = ApplyOptionsSchema.safeParse(conflictingOptions);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues.some(issue => 
-          issue.message.includes('Cannot specify both --global and --local flags simultaneously')
-        )).toBe(true);
+        expect(
+          result.error.issues.some(issue =>
+            issue.message.includes('Cannot specify both --global and --local flags simultaneously')
+          )
+        ).toBe(true);
       }
     });
 
@@ -228,7 +234,7 @@ describe('ApplyOptions Zod validation', () => {
     it('should reject extra properties', () => {
       const optionsWithExtra = {
         global: true,
-        extraProperty: 'not-allowed'
+        extraProperty: 'not-allowed',
       };
 
       const result = ApplyOptionsSchema.safeParse(optionsWithExtra);

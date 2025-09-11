@@ -9,13 +9,20 @@ type ChalkColor = 'green' | 'blue' | 'yellow' | 'red' | 'cyan' | 'magenta';
 // Type guard for chalk color functions
 function getChalkColor(color: ChalkColor): (text: string) => string {
   switch (color) {
-    case 'green': return chalk.green;
-    case 'blue': return chalk.blue;
-    case 'yellow': return chalk.yellow;
-    case 'red': return chalk.red;
-    case 'cyan': return chalk.cyan;
-    case 'magenta': return chalk.magenta;
-    default: return chalk.cyan;
+    case 'green':
+      return chalk.green;
+    case 'blue':
+      return chalk.blue;
+    case 'yellow':
+      return chalk.yellow;
+    case 'red':
+      return chalk.red;
+    case 'cyan':
+      return chalk.cyan;
+    case 'magenta':
+      return chalk.magenta;
+    default:
+      return chalk.cyan;
   }
 }
 
@@ -69,12 +76,12 @@ export class Spinner {
 
     this.interval = setInterval(() => {
       if (!this.isSpinning) return;
-      
+
       const frame = this.frames[this.currentFrame];
       const coloredFrame = getChalkColor(this.color)(frame);
-      
+
       process.stdout.write(`\r${coloredFrame} ${this.message}`);
-      
+
       this.currentFrame = (this.currentFrame + 1) % this.frames.length;
     }, 80);
 
@@ -85,7 +92,7 @@ export class Spinner {
     if (!this.isSpinning) return this;
 
     this.isSpinning = false;
-    
+
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = undefined;
@@ -93,7 +100,7 @@ export class Spinner {
 
     // Clear the line
     process.stdout.write('\r\x1B[K');
-    
+
     if (finalMessage !== undefined) {
       const finalSymbol = symbol || '✓';
       const coloredSymbol = chalk.green(finalSymbol);
@@ -192,7 +199,7 @@ export class ProgressBar {
     const bar = getChalkColor(this.color)(filledBar) + chalk.gray(emptyBar);
 
     let output = `\r[${bar}]`;
-    
+
     if (this.showPercent) {
       output += ` ${percent}%`;
     }
@@ -206,7 +213,7 @@ export class ProgressBar {
       const rate = this.current / elapsed;
       const remaining = this.total - this.current;
       const eta = remaining / rate;
-      
+
       if (isFinite(eta) && eta > 0) {
         const etaSeconds = Math.ceil(eta / 1000);
         output += ` ETA: ${this.formatTime(etaSeconds)}`;
@@ -214,7 +221,7 @@ export class ProgressBar {
     }
 
     output += ` (${this.current}/${this.total})`;
-    
+
     process.stdout.write(output);
   }
 
@@ -256,7 +263,7 @@ export async function withSpinner<T>(
   options: SpinnerOptions = {}
 ): Promise<T> {
   const spinner = new Spinner({ ...options, message });
-  
+
   try {
     spinner.start();
     const result = await operation();
@@ -278,7 +285,7 @@ export async function withProgressBar<T>(
   options: ProgressOptions = {}
 ): Promise<T> {
   const progress = new ProgressBar(total, { ...options, message });
-  
+
   try {
     const result = await operation(progress);
     progress.complete();
@@ -302,13 +309,13 @@ export function makeCancelable<T>(
   operation: (signal: AbortSignal) => Promise<T>
 ): CancelableOperation<T> {
   const abortController = new AbortController();
-  
+
   const promise = operation(abortController.signal);
-  
+
   return {
     promise,
     cancel: () => abortController.abort(),
-    isCanceled: () => abortController.signal.aborted
+    isCanceled: () => abortController.signal.aborted,
   };
 }
 
@@ -322,15 +329,15 @@ export async function withCancelableSpinner<T>(
 ): Promise<T> {
   const spinner = new Spinner({ ...options, message });
   const cancelable = makeCancelable(operation);
-  
+
   // Setup Ctrl+C handler
   const sigintHandler = () => {
     spinner.stop(chalk.yellow('Operation canceled'));
     cancelable.cancel();
   };
-  
+
   process.on('SIGINT', sigintHandler);
-  
+
   try {
     spinner.start();
     const result = await cancelable.promise;

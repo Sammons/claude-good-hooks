@@ -43,7 +43,7 @@ export class RemoveCommand {
     if (args.length === 0) {
       return {
         valid: false,
-        error: 'Hook name is required. Usage: claude-good-hooks remove <hook-name>'
+        error: 'Hook name is required. Usage: claude-good-hooks remove <hook-name>',
       };
     }
     return true;
@@ -61,35 +61,35 @@ export class RemoveCommand {
         {
           name: 'global',
           description: 'Remove from global settings',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'project',
           description: 'Remove from project settings (default)',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'local',
           description: 'Remove from local settings',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'all',
           description: 'Remove all instances of this hook',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'json',
           description: 'Output result in JSON format',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       examples: [
         'claude-good-hooks remove @sammons/dirty-good-claude-hook',
         'claude-good-hooks remove --global @sammons/dirty-good-claude-hook',
         'claude-good-hooks remove ./test-hook.js',
-        'claude-good-hooks remove --all @sammons/dirty-good-claude-hook'
-      ]
+        'claude-good-hooks remove --all @sammons/dirty-good-claude-hook',
+      ],
     };
   }
 
@@ -113,14 +113,16 @@ export class RemoveCommand {
     try {
       // Load current settings to find the hook
       const settings = await this.settingsService.readSettings(scope);
-      
+
       if (!settings.hooks) {
         if (json) {
-          console.log(JSON.stringify({ 
-            success: false, 
-            error: 'No hooks configured',
-            scope 
-          }));
+          console.log(
+            JSON.stringify({
+              success: false,
+              error: 'No hooks configured',
+              scope,
+            })
+          );
         } else {
           console.log(chalk.yellow(`No hooks configured in ${scope} settings`));
         }
@@ -136,18 +138,18 @@ export class RemoveCommand {
 
         for (let i = matchers.length - 1; i >= 0; i--) {
           const matcher = matchers[i];
-          
+
           // Check if this matcher contains our hook
           const claudeGoodHooks = matcher.claudegoodhooks || (matcher as any).claudeGoodHooks;
           if (claudeGoodHooks?.name === hookName) {
             foundCount++;
-            
+
             if (options.all || foundCount === 1) {
               // Remove this matcher
               matchers.splice(i, 1);
-              removedHooks.push({ 
-                event: eventName, 
-                matcher: matcher.matcher 
+              removedHooks.push({
+                event: eventName,
+                matcher: matcher.matcher,
               });
             }
           }
@@ -161,11 +163,13 @@ export class RemoveCommand {
 
       if (foundCount === 0) {
         if (json) {
-          console.log(JSON.stringify({ 
-            success: false, 
-            error: `Hook '${hookName}' not found in ${scope} settings`,
-            scope 
-          }));
+          console.log(
+            JSON.stringify({
+              success: false,
+              error: `Hook '${hookName}' not found in ${scope} settings`,
+              scope,
+            })
+          );
         } else {
           console.log(chalk.yellow(`Hook '${hookName}' not found in ${scope} settings`));
         }
@@ -174,14 +178,18 @@ export class RemoveCommand {
 
       if (removedHooks.length === 0) {
         if (json) {
-          console.log(JSON.stringify({ 
-            success: false, 
-            error: `Found ${foundCount} instance(s) of '${hookName}' but none were removed. Use --all to remove all instances.`,
-            scope,
-            foundCount 
-          }));
+          console.log(
+            JSON.stringify({
+              success: false,
+              error: `Found ${foundCount} instance(s) of '${hookName}' but none were removed. Use --all to remove all instances.`,
+              scope,
+              foundCount,
+            })
+          );
         } else {
-          console.log(chalk.yellow(`Found ${foundCount} instance(s) of '${hookName}' but none were removed.`));
+          console.log(
+            chalk.yellow(`Found ${foundCount} instance(s) of '${hookName}' but none were removed.`)
+          );
           console.log(chalk.dim('Use --all flag to remove all instances.'));
         }
         return;
@@ -191,36 +199,53 @@ export class RemoveCommand {
       await this.settingsService.writeSettings(scope, settings);
 
       if (json) {
-        console.log(JSON.stringify({ 
-          success: true, 
-          removed: removedHooks,
-          scope,
-          message: `Removed ${removedHooks.length} instance(s) of '${hookName}'`
-        }));
+        console.log(
+          JSON.stringify({
+            success: true,
+            removed: removedHooks,
+            scope,
+            message: `Removed ${removedHooks.length} instance(s) of '${hookName}'`,
+          })
+        );
       } else {
-        console.log(chalk.green(`✓ Removed ${removedHooks.length} instance(s) of '${hookName}' from ${scope} settings`));
-        
+        console.log(
+          chalk.green(
+            `✓ Removed ${removedHooks.length} instance(s) of '${hookName}' from ${scope} settings`
+          )
+        );
+
         if (removedHooks.length > 0) {
           console.log(chalk.dim('\nRemoved from:'));
           for (const hook of removedHooks) {
-            const eventInfo = hook.matcher ? `${hook.event} (matcher: ${hook.matcher})` : hook.event;
+            const eventInfo = hook.matcher
+              ? `${hook.event} (matcher: ${hook.matcher})`
+              : hook.event;
             console.log(chalk.dim(`  - ${eventInfo}`));
           }
         }
 
         if (foundCount > removedHooks.length) {
-          console.log(chalk.dim(`\n${foundCount - removedHooks.length} instance(s) remaining. Use --all to remove all.`));
+          console.log(
+            chalk.dim(
+              `\n${foundCount - removedHooks.length} instance(s) remaining. Use --all to remove all.`
+            )
+          );
         }
       }
     } catch (error) {
       if (json) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: error instanceof Error ? error.message : String(error),
-          scope 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            scope,
+          })
+        );
       } else {
-        console.error(chalk.red('Error removing hook:'), error instanceof Error ? error.message : String(error));
+        console.error(
+          chalk.red('Error removing hook:'),
+          error instanceof Error ? error.message : String(error)
+        );
       }
       process.exit(1);
     }

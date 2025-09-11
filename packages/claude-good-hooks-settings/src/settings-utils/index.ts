@@ -1,6 +1,6 @@
 /**
  * Settings utilities barrel export
- * 
+ *
  * Import all utility functions from one place:
  * ```ts
  * import { validateSettings, migrateSettings, atomicWriteFile } from '@sammons/claude-good-hooks-settings/settings-utils';

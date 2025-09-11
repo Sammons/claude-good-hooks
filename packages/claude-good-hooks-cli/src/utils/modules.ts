@@ -5,7 +5,10 @@ import { detectPackageManager } from './detect-package-manager.js';
 import { PackageManagerHelper } from '../helpers/package-manager-helper.js';
 import { ProcessService } from '../services/process.service.js';
 
-export async function isModuleInstalled(moduleName: string, global: boolean = false): Promise<boolean> {
+export async function isModuleInstalled(
+  moduleName: string,
+  global: boolean = false
+): Promise<boolean> {
   try {
     if (global) {
       const packageManager = detectPackageManager();
@@ -62,4 +65,3 @@ export async function getInstalledHookModules(global: boolean = false): Promise<
     return [];
   }
 }
-

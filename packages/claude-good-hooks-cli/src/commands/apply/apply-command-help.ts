@@ -11,11 +11,11 @@ export function showApplyHelp(isJson?: boolean): void {
   console.log(chalk.bold('\nApply Command'));
   console.log('Apply a hook to the configuration (globally, per-project, or locally)');
   console.log('');
-  
+
   console.log(chalk.bold('Usage:'));
   console.log('  claude-good-hooks apply [options] [<hook-name>] [args...]');
   console.log('');
-  
+
   console.log(chalk.bold('Options:'));
   console.log('  --global      Apply globally (~/.claude/settings.json)');
   console.log('  --project     Apply to project (./.claude/settings.json) [default]');
@@ -24,7 +24,7 @@ export function showApplyHelp(isJson?: boolean): void {
   console.log('  --help        Show help for the apply command or specific hook');
   console.log('  --json        Output in JSON format');
   console.log('');
-  
+
   console.log(chalk.bold('Examples:'));
   console.log('  # Apply default hook from package');
   console.log('  claude-good-hooks apply @sammons/dirty-good-claude-hook');
@@ -46,7 +46,7 @@ export function showApplyHelp(isJson?: boolean): void {
   console.log('  claude-good-hooks apply --regenerate');
   console.log('  claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook');
   console.log('');
-  
+
   console.log(chalk.bold('Help:'));
   console.log('  apply --help              Show this help message');
   console.log('  apply <hook-name> --help  Show help for a specific hook');
@@ -61,41 +61,42 @@ export function getApplyHelpInfo(): HelpInfo {
       {
         name: 'global',
         description: 'Apply globally',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'project',
         description: 'Apply to project (default)',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'local',
         description: 'Apply locally (settings.local.json)',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'help',
         description: 'Show hook-specific help',
-        type: 'boolean'
+        type: 'boolean',
       },
       {
         name: 'regenerate',
         description: 'Regenerate existing hooks to latest version',
-        type: 'boolean'
-      }
+        type: 'boolean',
+      },
     ],
     arguments: [
       {
         name: 'hook-name',
-        description: 'Name or path of the hook to apply (e.g., @org/package or @org/package/variant)',
-        required: false
+        description:
+          'Name or path of the hook to apply (e.g., @org/package or @org/package/variant)',
+        required: false,
       },
       {
         name: 'args',
         description: 'Hook-specific arguments',
         required: false,
-        variadic: true
-      }
+        variadic: true,
+      },
     ],
     examples: [
       'claude-good-hooks apply @sammons/dirty-good-claude-hook',
@@ -103,7 +104,7 @@ export function getApplyHelpInfo(): HelpInfo {
       'claude-good-hooks apply @sammons/claude-good-hooks-code-outline/minimal',
       'claude-good-hooks apply @sammons/dirty-good-claude-hook --staged --filenames',
       'claude-good-hooks apply --regenerate',
-      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook'
-    ]
+      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook',
+    ],
   };
 }

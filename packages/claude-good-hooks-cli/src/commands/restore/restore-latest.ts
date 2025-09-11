@@ -19,10 +19,7 @@ export class RestoreLatestCommand implements RestoreSubCommand {
   private settingsService: SettingsService;
   private importCommand = new ImportCommand();
 
-  constructor(
-    fileSystemService: FileSystemService,
-    processService: ProcessService
-  ) {
+  constructor(fileSystemService: FileSystemService, processService: ProcessService) {
     this.fileSystemService = fileSystemService;
     this.processService = processService;
     this.settingsService = new SettingsService();
@@ -42,13 +39,13 @@ export class RestoreLatestCommand implements RestoreSubCommand {
     if (args.length > 0) {
       return {
         valid: false,
-        errors: ['Cannot specify filename when using --latest flag']
+        errors: ['Cannot specify filename when using --latest flag'],
       };
     }
 
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -72,10 +69,12 @@ export class RestoreLatestCommand implements RestoreSubCommand {
       }
     } catch (error) {
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: String(error) 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: String(error),
+          })
+        );
       } else {
         console.error(chalk.red(`❌ ${error}`));
       }
@@ -97,13 +96,18 @@ export class RestoreLatestCommand implements RestoreSubCommand {
         console.log(chalk.blue('\n📋 Backup Information:'));
         console.log(chalk.gray(`   • File: ${basename(backupFile)}`));
         console.log(chalk.gray(`   • Path: ${backupFile}`));
-        console.log(chalk.gray(`   • Size: ${Math.round(stats.size / 1024 * 100) / 100} KB`));
+        console.log(chalk.gray(`   • Size: ${Math.round((stats.size / 1024) * 100) / 100} KB`));
         console.log(chalk.gray(`   • Created: ${stats.mtime.toLocaleString()}`));
-        
+
         // Try to extract timestamp from filename
         const timestampMatch = basename(backupFile).match(/\.backup\.(.+)$/);
         if (timestampMatch) {
-          const timestamp = timestampMatch[1]?.replace(/-/g, ':').replace(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}):(\d{3})Z/, '$1-$2-$3T$4:$5:$6.$7Z');
+          const timestamp = timestampMatch[1]
+            ?.replace(/-/g, ':')
+            .replace(
+              /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}):(\d{3})Z/,
+              '$1-$2-$3T$4:$5:$6.$7Z'
+            );
           try {
             const backupDate = new Date(timestamp);
             if (!isNaN(backupDate.getTime())) {
@@ -121,10 +125,12 @@ export class RestoreLatestCommand implements RestoreSubCommand {
     // Use the import command to restore the backup
     if (!isJson) {
       console.log(chalk.blue('\n📥 Restoring from backup...'));
-      console.log(chalk.gray('   Safe mode: only claude-good-hooks managed hooks will be affected'));
+      console.log(
+        chalk.gray('   Safe mode: only claude-good-hooks managed hooks will be affected')
+      );
       console.log(chalk.gray('   This will show detailed hook-level changes:\n'));
     }
-    
+
     try {
       // Pass the backup file to the import command with appropriate options
       // Import now safely uses selective replacement by default
@@ -135,32 +141,39 @@ export class RestoreLatestCommand implements RestoreSubCommand {
         dryRun: false,
         validate: true,
         yes: options.yes || false,
-        parent: options.parent
+        parent: options.parent,
       };
 
       // The import command will show detailed hook-level deltas
       await this.importCommand.execute([backupFile], importOptions);
 
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: true, 
-          message: 'Backup restored successfully',
-          backupFile: basename(backupFile)
-        }));
+        console.log(
+          JSON.stringify({
+            success: true,
+            message: 'Backup restored successfully',
+            backupFile: basename(backupFile),
+          })
+        );
       } else {
         console.log(chalk.green('\n✅ Backup restored successfully!'));
         console.log(chalk.blue('\n🎉 Next Steps:'));
-        console.log(chalk.gray('   • Run "claude-good-hooks validate" to verify the restored configuration'));
-        console.log(chalk.gray('   • Use "claude-good-hooks list-hooks --installed" to see active hooks'));
+        console.log(
+          chalk.gray('   • Run "claude-good-hooks validate" to verify the restored configuration')
+        );
+        console.log(
+          chalk.gray('   • Use "claude-good-hooks list-hooks --installed" to see active hooks')
+        );
         console.log(chalk.gray('   • Test your hooks with Claude Code'));
       }
-
     } catch (error) {
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: `Restore failed: ${String(error)}` 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Restore failed: ${String(error)}`,
+          })
+        );
       } else {
         console.error(chalk.red(`❌ Restore failed: ${error}`));
       }
@@ -182,7 +195,9 @@ export class RestoreLatestCommand implements RestoreSubCommand {
 
       try {
         const files = readdirSync(dir);
-        const backupFiles = files.filter(f => f.includes('.backup.') && f.startsWith('settings.json.backup.'));
+        const backupFiles = files.filter(
+          f => f.includes('.backup.') && f.startsWith('settings.json.backup.')
+        );
 
         for (const file of backupFiles) {
           const filePath = join(dir, file);

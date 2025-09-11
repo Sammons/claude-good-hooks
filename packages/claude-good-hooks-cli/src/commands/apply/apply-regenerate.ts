@@ -19,10 +19,7 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
   private hookService: HookService;
   private processService: ProcessService;
 
-  constructor(
-    hookService: HookService,
-    processService: ProcessService
-  ) {
+  constructor(hookService: HookService, processService: ProcessService) {
     this.hookService = hookService;
     this.processService = processService;
   }
@@ -41,7 +38,7 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
     // Regenerate command is valid with or without hook name
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -56,7 +53,7 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
     await this.handleRegenerate({
       hookName,
       scope,
-      isJson
+      isJson,
     });
   }
 
@@ -72,7 +69,7 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
 
   private async handleRegenerate(params: HandleRegenerateParams): Promise<void> {
     const { hookName, scope, isJson } = params;
-    
+
     try {
       const result = await this.hookService.regenerateHooks(hookName, scope);
 
@@ -84,7 +81,11 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
       // Show results
       if (result.totalProcessed === 0) {
         if (hookName) {
-          console.log(chalk.yellow(`No hooks found matching '${hookName}'${scope ? ` in ${scope} scope` : ''}`));
+          console.log(
+            chalk.yellow(
+              `No hooks found matching '${hookName}'${scope ? ` in ${scope} scope` : ''}`
+            )
+          );
         } else {
           console.log(chalk.yellow('No regenerable hooks found in any settings'));
         }
@@ -99,14 +100,20 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
 
       // Show detailed results
       for (const hookResult of result.results) {
-        const scopeLabel = hookResult.scope === 'global' ? 'global' : 
-                          hookResult.scope === 'local' ? 'local' : 'project';
-        const prefix = hookResult.success ? 
-          (hookResult.updated ? chalk.green('✓') : chalk.yellow('⚠')) : 
-          chalk.red('✗');
-        
+        const scopeLabel =
+          hookResult.scope === 'global'
+            ? 'global'
+            : hookResult.scope === 'local'
+              ? 'local'
+              : 'project';
+        const prefix = hookResult.success
+          ? hookResult.updated
+            ? chalk.green('✓')
+            : chalk.yellow('⚠')
+          : chalk.red('✗');
+
         console.log(`${prefix} ${hookResult.hookName} (${scopeLabel}/${hookResult.eventName})`);
-        
+
         if (hookResult.error) {
           console.log(`  ${chalk.dim(hookResult.error)}`);
         }
@@ -117,10 +124,12 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
       }
     } catch (error: unknown) {
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: `Failed to regenerate hooks: ${String(error)}` 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: `Failed to regenerate hooks: ${String(error)}`,
+          })
+        );
       } else {
         console.error(chalk.red(`Failed to regenerate hooks: ${String(error)}`));
       }

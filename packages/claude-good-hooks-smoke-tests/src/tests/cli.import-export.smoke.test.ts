@@ -264,7 +264,7 @@ describe('Claude Good Hooks CLI - Import/Export Cycle Tests', () => {
       // Detailed verification of PreToolUse hooks (most complex)
       const originalPreToolUse = originalSettings.hooks?.PreToolUse;
       const exportedPreToolUse = exportedSettings.hooks?.PreToolUse;
-      
+
       if (!originalPreToolUse || !exportedPreToolUse) {
         throw new Error('PreToolUse hooks not found in original or exported settings');
       }
@@ -274,7 +274,7 @@ describe('Claude Good Hooks CLI - Import/Export Cycle Tests', () => {
       for (let i = 0; i < originalPreToolUse.length; i++) {
         const originalConfig = originalPreToolUse[i];
         const exportedConfig = exportedPreToolUse[i];
-        
+
         if (!originalConfig || !exportedConfig) {
           throw new Error(`Hook config not found at index ${i}`);
         }
@@ -285,7 +285,7 @@ describe('Claude Good Hooks CLI - Import/Export Cycle Tests', () => {
         for (let j = 0; j < originalConfig.hooks.length; j++) {
           const originalHook = originalConfig.hooks[j];
           const exportedHook = exportedConfig.hooks[j];
-          
+
           if (!originalHook || !exportedHook) {
             throw new Error(`Hook not found at config ${i}, hook ${j}`);
           }

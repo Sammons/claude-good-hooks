@@ -31,7 +31,7 @@ const DEFAULT_CONFIG: Required<GitWorkflowConfig> = {
   branchPatterns: ['feature/*', 'bugfix/*', 'hotfix/*'],
   maxFiles: 10,
   commitMessagePattern: '^(feat|fix|docs|style|refactor|test|chore)(\\(.+\\))?: .{1,50}',
-  autoStash: false
+  autoStash: false,
 };
 
 class GitWorkflowHook {
@@ -59,16 +59,16 @@ class GitWorkflowHook {
    * Get formatted git status information
    */
   async getGitStatus(): Promise<string> {
-    if (!await this.isGitRepository()) {
+    if (!(await this.isGitRepository())) {
       return 'Not in a git repository';
     }
 
     try {
       const status = await this.git.status();
       const branch = status.current || 'unknown';
-      
+
       let output = `📍 Current branch: ${branch}\\n`;
-      
+
       // Check if on protected branch
       if (this.config.protectedBranches.includes(branch)) {
         output += `⚠️  WARNING: You are on a protected branch (${branch})\\n`;
@@ -155,28 +155,26 @@ class GitWorkflowHook {
    * Validate branch name against patterns
    */
   async validateBranchName(): Promise<{ valid: boolean; message: string }> {
-    if (!await this.isGitRepository()) {
+    if (!(await this.isGitRepository())) {
       return { valid: true, message: 'Not in git repository' };
     }
 
     const status = await this.git.status();
     const branch = status.current || 'unknown';
-    
+
     // Skip validation for protected branches
     if (this.config.protectedBranches.includes(branch)) {
       return { valid: true, message: 'Protected branch' };
     }
 
     // Check against patterns
-    const isValid = this.config.branchPatterns.some(pattern => 
-      minimatch(branch, pattern)
-    );
+    const isValid = this.config.branchPatterns.some(pattern => minimatch(branch, pattern));
 
     return {
       valid: isValid,
-      message: isValid 
+      message: isValid
         ? `Branch name '${branch}' follows naming conventions`
-        : `Branch name '${branch}' does not match patterns: ${this.config.branchPatterns.join(', ')}`
+        : `Branch name '${branch}' does not match patterns: ${this.config.branchPatterns.join(', ')}`,
     };
   }
 
@@ -195,7 +193,7 @@ class GitWorkflowHook {
       valid: isValid,
       message: isValid
         ? 'Commit message follows conventions'
-        : `Commit message does not match pattern: ${this.config.commitMessagePattern}`
+        : `Commit message does not match pattern: ${this.config.commitMessagePattern}`,
     };
   }
 
@@ -203,7 +201,7 @@ class GitWorkflowHook {
    * Auto-stash changes if configured
    */
   async handleAutoStash(): Promise<string> {
-    if (!this.config.autoStash || !await this.isGitRepository()) {
+    if (!this.config.autoStash || !(await this.isGitRepository())) {
       return '';
     }
 
@@ -230,45 +228,47 @@ const gitWorkflowHook: HookPlugin = {
     showStatus: {
       description: 'Show git status information',
       type: 'boolean',
-      default: true
+      default: true,
     },
     showFilenames: {
       description: 'Include filenames in status output',
-      type: 'boolean', 
-      default: true
+      type: 'boolean',
+      default: true,
     },
     stagedOnly: {
       description: 'Show only staged changes',
       type: 'boolean',
-      default: false
+      default: false,
     },
     maxFiles: {
       description: 'Maximum number of files to display',
       type: 'number',
-      default: 10
+      default: 10,
     },
     autoStash: {
       description: 'Automatically stash changes when needed',
       type: 'boolean',
-      default: false
-    }
+      default: false,
+    },
   },
-  makeHook: (args) => {
+  makeHook: args => {
     const config: GitWorkflowConfig = {
       showStatus: args.showStatus as boolean,
       showFilenames: args.showFilenames as boolean,
       stagedOnly: args.stagedOnly as boolean,
       maxFiles: args.maxFiles as number,
-      autoStash: args.autoStash as boolean
+      autoStash: args.autoStash as boolean,
     };
 
     const hook = new GitWorkflowHook(config);
 
     return {
-      UserPromptSubmit: [{
-        hooks: [{
-          type: 'command',
-          command: `node -e "
+      UserPromptSubmit: [
+        {
+          hooks: [
+            {
+              type: 'command',
+              command: `node -e "
             (async () => {
               try {
                 const { GitWorkflowHook } = require('./dist/index.js');
@@ -283,14 +283,18 @@ const gitWorkflowHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 5000
-        }]
-      }],
-      PreToolUse: [{
-        matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command',
-          command: `node -e "
+              timeout: 5000,
+            },
+          ],
+        },
+      ],
+      PreToolUse: [
+        {
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [
+            {
+              type: 'command',
+              command: `node -e "
             (async () => {
               try {
                 const { GitWorkflowHook } = require('./dist/index.js');
@@ -312,14 +316,18 @@ const gitWorkflowHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 3000
-        }]
-      }],
-      PostToolUse: [{
-        matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command',
-          command: `node -e "
+              timeout: 3000,
+            },
+          ],
+        },
+      ],
+      PostToolUse: [
+        {
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [
+            {
+              type: 'command',
+              command: `node -e "
             (async () => {
               try {
                 const { GitWorkflowHook } = require('./dist/index.js');
@@ -336,11 +344,13 @@ const gitWorkflowHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 3000
-        }]
-      }]
+              timeout: 3000,
+            },
+          ],
+        },
+      ],
     };
-  }
+  },
 };
 
 export default gitWorkflowHook;

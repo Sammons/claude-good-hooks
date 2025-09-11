@@ -26,11 +26,11 @@ const DEFAULT_CONFIG: Required<PerformanceConfig> = {
   trackMemoryUsage: true,
   thresholds: {
     buildTimeMs: 30000, // 30 seconds
-    bundleSizeMB: 5,    // 5 MB
-    memoryUsageMB: 512  // 512 MB
+    bundleSizeMB: 5, // 5 MB
+    memoryUsageMB: 512, // 512 MB
   },
   outputFile: '.performance-metrics.json',
-  alertOnThresholdExceeded: true
+  alertOnThresholdExceeded: true,
 };
 
 const performanceMonitorHook: HookPlugin = {
@@ -41,14 +41,20 @@ const performanceMonitorHook: HookPlugin = {
     enabled: { description: 'Enable performance monitoring', type: 'boolean', default: true },
     trackBuildTime: { description: 'Track build execution time', type: 'boolean', default: true },
     trackBundleSize: { description: 'Track bundle size changes', type: 'boolean', default: true },
-    alertOnThresholdExceeded: { description: 'Alert when thresholds are exceeded', type: 'boolean', default: true }
+    alertOnThresholdExceeded: {
+      description: 'Alert when thresholds are exceeded',
+      type: 'boolean',
+      default: true,
+    },
   },
-  makeHook: (args) => ({
-    PreToolUse: [{
-      matcher: 'Bash',
-      hooks: [{
-        type: 'command',
-        command: `node -e "
+  makeHook: args => ({
+    PreToolUse: [
+      {
+        matcher: 'Bash',
+        hooks: [
+          {
+            type: 'command',
+            command: `node -e "
           const startTime = Date.now();
           const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
           const command = input.tool_input?.command || '';
@@ -57,14 +63,18 @@ const performanceMonitorHook: HookPlugin = {
             console.log('⏱️ Starting build performance tracking...');
             require('fs').writeFileSync('.build-start-time', startTime.toString());
           }
-        "`
-      }]
-    }],
-    PostToolUse: [{
-      matcher: 'Bash',
-      hooks: [{
-        type: 'command',
-        command: `node -e "
+        "`,
+          },
+        ],
+      },
+    ],
+    PostToolUse: [
+      {
+        matcher: 'Bash',
+        hooks: [
+          {
+            type: 'command',
+            command: `node -e "
           const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
           const command = input.tool_input?.command || '';
           
@@ -81,10 +91,12 @@ const performanceMonitorHook: HookPlugin = {
               require('fs').unlinkSync('.build-start-time');
             } catch (e) {}
           }
-        "`
-      }]
-    }]
-  })
+        "`,
+          },
+        ],
+      },
+    ],
+  }),
 };
 
 export default performanceMonitorHook;

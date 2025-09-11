@@ -1,8 +1,9 @@
-export type ValidationResult<T> = {
-    valid: false;
-    errors: string[];
-  } | {
-    valid: true;
-    result: T
-  }
-  
+export type ValidationResult<T> =
+  | {
+      valid: false;
+      errors: string[];
+    }
+  | {
+      valid: true;
+      result: T;
+    };

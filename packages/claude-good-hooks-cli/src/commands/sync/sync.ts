@@ -33,19 +33,19 @@ export class SyncCommand implements CommandLike {
       syncOptions.global,
       syncOptions.project,
       syncOptions.local,
-      syncOptions.all
+      syncOptions.all,
     ].filter(Boolean).length;
 
     if (scopeCount > 1) {
       return {
         valid: false,
-        error: 'Only one scope option (--global, --project, --local, --all) can be specified'
+        error: 'Only one scope option (--global, --project, --local, --all) can be specified',
       };
     }
 
     return {
       valid: true,
-      data: syncOptions
+      data: syncOptions,
     };
   }
 
@@ -57,27 +57,31 @@ export class SyncCommand implements CommandLike {
       if (syncOptions.all) {
         // Sync all scopes
         const results = await this.settingsService.synchronizeAll();
-        
+
         if (isJson) {
           console.log(JSON.stringify(results, null, 2));
         } else {
           console.log(chalk.bold('\nSynchronization Results:\n'));
-          
+
           if (results.totalDuplicatesRemoved > 0) {
             console.log(chalk.yellow(`✓ Removed ${results.totalDuplicatesRemoved} duplicate(s)`));
           }
-          
+
           if (results.totalOrphansFixed > 0) {
             console.log(chalk.green(`✓ Fixed ${results.totalOrphansFixed} orphaned entries`));
           }
-          
+
           if (results.totalDuplicatesRemoved === 0 && results.totalOrphansFixed === 0) {
             console.log(chalk.green('✓ All files are already synchronized'));
           }
-          
+
           // Show per-scope details if there were issues
           for (const [scope, result] of Object.entries(results.scopeResults)) {
-            if (result.duplicatesRemoved > 0 || result.orphansFixed > 0 || result.errors.length > 0) {
+            if (
+              result.duplicatesRemoved > 0 ||
+              result.orphansFixed > 0 ||
+              result.errors.length > 0
+            ) {
               console.log(chalk.dim(`\n  ${scope}:`));
               if (result.duplicatesRemoved > 0) {
                 console.log(chalk.dim(`    - Duplicates removed: ${result.duplicatesRemoved}`));
@@ -96,33 +100,33 @@ export class SyncCommand implements CommandLike {
         let scope: 'global' | 'project' | 'local' = 'project';
         if (syncOptions.global) scope = 'global';
         else if (syncOptions.local) scope = 'local';
-        
+
         const result = await this.settingsService.synchronize(scope);
-        
+
         if (isJson) {
           console.log(JSON.stringify({ scope, ...result }, null, 2));
         } else {
           console.log(chalk.bold(`\nSynchronizing ${scope} settings:\n`));
-          
+
           if (result.duplicatesRemoved > 0) {
             console.log(chalk.yellow(`✓ Removed ${result.duplicatesRemoved} duplicate(s)`));
           }
-          
+
           if (result.orphansFixed > 0) {
             console.log(chalk.green(`✓ Fixed ${result.orphansFixed} orphaned entries`));
           }
-          
+
           if (result.duplicatesRemoved === 0 && result.orphansFixed === 0) {
             console.log(chalk.green('✓ Files are already synchronized'));
           }
-          
+
           if (result.warnings && result.warnings.length > 0) {
             console.log(chalk.yellow('\n⚠️  Warnings:'));
             for (const warning of result.warnings) {
               console.log(chalk.yellow(`  - ${warning}`));
             }
           }
-          
+
           if (result.errors.length > 0) {
             console.log(chalk.red('\nErrors:'));
             for (const error of result.errors) {
@@ -150,35 +154,35 @@ export class SyncCommand implements CommandLike {
         {
           name: '--global',
           description: 'Sync global settings',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: '--project',
           description: 'Sync project settings (default)',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: '--local',
           description: 'Sync local settings',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: '--all',
           description: 'Sync all scopes (global, project, and local)',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: '--json',
           description: 'Output results in JSON format',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       examples: [
         'claude-good-hooks sync                  # Sync project settings',
         'claude-good-hooks sync --global         # Sync global settings',
         'claude-good-hooks sync --all            # Sync all scopes',
-        'claude-good-hooks sync --all --json     # Output results as JSON'
-      ]
+        'claude-good-hooks sync --all --json     # Output results as JSON',
+      ],
     };
   }
 }

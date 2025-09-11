@@ -10,12 +10,12 @@ class MockProcessService {
 // Mock successful process execution
 const mockSuccessfulExec = {
   stdout: 'mock output',
-  stderr: ''
+  stderr: '',
 };
 
 describe('PackageManagerHelper', () => {
   let mockProcessService: MockProcessService;
-  
+
   beforeEach(() => {
     mockProcessService = new MockProcessService();
   });
@@ -36,7 +36,9 @@ describe('PackageManagerHelper', () => {
     it('should generate correct install commands', () => {
       expect(helper.installCommand('express')).toBe('npm install express');
       expect(helper.installCommand('express', { global: true })).toBe('npm install -g express');
-      expect(helper.installCommand('express', { saveDev: true })).toBe('npm install --save-dev express');
+      expect(helper.installCommand('express', { saveDev: true })).toBe(
+        'npm install --save-dev express'
+      );
       expect(helper.installCommand()).toBe('npm install');
     });
 
@@ -98,7 +100,9 @@ describe('PackageManagerHelper', () => {
 
     it('should generate correct uninstall commands', () => {
       expect(helper.uninstallCommand('express')).toBe('yarn remove express');
-      expect(helper.uninstallCommand('express', { global: true })).toBe('yarn global remove express');
+      expect(helper.uninstallCommand('express', { global: true })).toBe(
+        'yarn global remove express'
+      );
     });
 
     it('should generate correct version command', () => {
@@ -110,19 +114,25 @@ describe('PackageManagerHelper', () => {
     it('should generate correct exec commands for npm', () => {
       const helper = new PackageManagerHelper('npm');
       expect(helper.execCommand('typescript')).toBe('npx typescript');
-      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe('npx typescript --version');
+      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe(
+        'npx typescript --version'
+      );
     });
 
     it('should generate correct exec commands for pnpm', () => {
       const helper = new PackageManagerHelper('pnpm');
       expect(helper.execCommand('typescript')).toBe('pnpm exec typescript');
-      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe('pnpm exec typescript --version');
+      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe(
+        'pnpm exec typescript --version'
+      );
     });
 
     it('should generate correct exec commands for yarn', () => {
       const helper = new PackageManagerHelper('yarn');
       expect(helper.execCommand('typescript')).toBe('yarn exec typescript');
-      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe('yarn exec typescript --version');
+      expect(helper.execCommand('typescript', { args: ['--version'] })).toBe(
+        'yarn exec typescript --version'
+      );
     });
   });
 
@@ -148,11 +158,14 @@ describe('PackageManagerHelper', () => {
 
   describe('async execution methods', () => {
     it('should execute getGlobalRoot successfully', async () => {
-      mockProcessService.exec.mockResolvedValue({ stdout: '/usr/local/lib/node_modules\n', stderr: '' });
+      mockProcessService.exec.mockResolvedValue({
+        stdout: '/usr/local/lib/node_modules\n',
+        stderr: '',
+      });
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.getGlobalRoot();
-      
+
       expect(result).toBe('/usr/local/lib/node_modules');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm root -g');
     });
@@ -160,25 +173,25 @@ describe('PackageManagerHelper', () => {
     it('should handle getGlobalRoot failure', async () => {
       mockProcessService.exec.mockRejectedValue(new Error('Command failed'));
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       await expect(helper.getGlobalRoot()).rejects.toThrow('Failed to get global root directory');
     });
 
     it('should execute listModules successfully', async () => {
       const mockData = {
         dependencies: {
-          'express': { version: '4.18.0' },
-          'lodash': { version: '4.17.21' }
-        }
+          express: { version: '4.18.0' },
+          lodash: { version: '4.17.21' },
+        },
       };
-      mockProcessService.exec.mockResolvedValue({ 
-        stdout: JSON.stringify(mockData), 
-        stderr: '' 
+      mockProcessService.exec.mockResolvedValue({
+        stdout: JSON.stringify(mockData),
+        stderr: '',
       });
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.listModules({ depth: 0, global: false });
-      
+
       expect(result).toEqual(mockData);
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm ls --json --depth=0');
     });
@@ -186,16 +199,16 @@ describe('PackageManagerHelper', () => {
     it('should handle listModules failure', async () => {
       mockProcessService.exec.mockRejectedValue(new Error('Command failed'));
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       await expect(helper.listModules()).rejects.toThrow('Failed to list modules');
     });
 
     it('should execute install successfully', async () => {
       mockProcessService.exec.mockResolvedValue(mockSuccessfulExec);
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.install('express');
-      
+
       expect(result.success).toBe(true);
       expect(result.output).toBe('mock output');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm install express');
@@ -204,9 +217,9 @@ describe('PackageManagerHelper', () => {
     it('should handle install failure', async () => {
       mockProcessService.exec.mockRejectedValue(new Error('Install failed'));
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.install('express');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('Install failed');
     });
@@ -214,9 +227,9 @@ describe('PackageManagerHelper', () => {
     it('should execute getVersion successfully', async () => {
       mockProcessService.exec.mockResolvedValue({ stdout: '9.5.0\n', stderr: '' });
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.getVersion();
-      
+
       expect(result).toBe('9.5.0');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm --version');
     });
@@ -224,16 +237,16 @@ describe('PackageManagerHelper', () => {
     it('should handle getVersion failure', async () => {
       mockProcessService.exec.mockRejectedValue(new Error('Command failed'));
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       await expect(helper.getVersion()).rejects.toThrow('Failed to get package manager version');
     });
 
     it('should execute update successfully', async () => {
       mockProcessService.exec.mockResolvedValue(mockSuccessfulExec);
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.update('express');
-      
+
       expect(result.success).toBe(true);
       expect(result.output).toBe('mock output');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm update express');
@@ -242,9 +255,9 @@ describe('PackageManagerHelper', () => {
     it('should execute uninstall successfully', async () => {
       mockProcessService.exec.mockResolvedValue(mockSuccessfulExec);
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.uninstall('express');
-      
+
       expect(result.success).toBe(true);
       expect(result.output).toBe('mock output');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm uninstall express');
@@ -253,9 +266,9 @@ describe('PackageManagerHelper', () => {
     it('should execute runScript successfully', async () => {
       mockProcessService.exec.mockResolvedValue(mockSuccessfulExec);
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.runScript('build');
-      
+
       expect(result.success).toBe(true);
       expect(result.output).toBe('mock output');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npm run build');
@@ -264,9 +277,9 @@ describe('PackageManagerHelper', () => {
     it('should execute exec successfully', async () => {
       mockProcessService.exec.mockResolvedValue(mockSuccessfulExec);
       const helper = new PackageManagerHelper('npm', mockProcessService as any);
-      
+
       const result = await helper.exec('typescript', { args: ['--version'] });
-      
+
       expect(result.success).toBe(true);
       expect(result.output).toBe('mock output');
       expect(mockProcessService.exec).toHaveBeenCalledWith('npx typescript --version');

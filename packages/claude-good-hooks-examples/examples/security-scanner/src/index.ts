@@ -26,9 +26,17 @@ const DEFAULT_SECRET_PATTERNS = [
   { name: 'AWS Access Key', pattern: 'AKIA[0-9A-Z]{16}', severity: 'high' as const },
   { name: 'AWS Secret Key', pattern: '[0-9a-zA-Z/+]{40}', severity: 'high' as const },
   { name: 'GitHub Token', pattern: 'ghp_[0-9a-zA-Z]{36}', severity: 'high' as const },
-  { name: 'Generic API Key', pattern: 'api[_-]?key[\\s]*[:=][\\s]*["\']?[0-9a-zA-Z]{20,}', severity: 'medium' as const },
-  { name: 'Password in Code', pattern: 'password[\\s]*[:=][\\s]*["\'][^"\'\\s]{8,}', severity: 'medium' as const },
-  { name: 'Private Key', pattern: '-----BEGIN [A-Z]+ PRIVATE KEY-----', severity: 'high' as const }
+  {
+    name: 'Generic API Key',
+    pattern: 'api[_-]?key[\\s]*[:=][\\s]*["\']?[0-9a-zA-Z]{20,}',
+    severity: 'medium' as const,
+  },
+  {
+    name: 'Password in Code',
+    pattern: 'password[\\s]*[:=][\\s]*["\'][^"\'\\s]{8,}',
+    severity: 'medium' as const,
+  },
+  { name: 'Private Key', pattern: '-----BEGIN [A-Z]+ PRIVATE KEY-----', severity: 'high' as const },
 ];
 
 const DEFAULT_CONFIG: Required<SecurityScannerConfig> = {
@@ -38,7 +46,7 @@ const DEFAULT_CONFIG: Required<SecurityScannerConfig> = {
   codeAnalysisTools: ['eslint --ext .js,.ts --config .eslintrc-security.js', 'bandit', 'semgrep'],
   excludePatterns: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/test/**', '**/tests/**'],
   failOnIssues: true,
-  minSeverity: 'medium'
+  minSeverity: 'medium',
 };
 
 class SecurityScannerHook {
@@ -48,7 +56,7 @@ class SecurityScannerHook {
     this.config = {
       ...DEFAULT_CONFIG,
       ...config,
-      secretPatterns: [...DEFAULT_SECRET_PATTERNS, ...(config.secretPatterns || [])]
+      secretPatterns: [...DEFAULT_SECRET_PATTERNS, ...(config.secretPatterns || [])],
     };
   }
 
@@ -73,18 +81,18 @@ class SecurityScannerHook {
       // Scan for secrets
       for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
         const line = lines[lineIndex];
-        
+
         for (const pattern of this.config.secretPatterns) {
           const regex = new RegExp(pattern.pattern, 'gi');
           let match;
-          
+
           while ((match = regex.exec(line)) !== null) {
             issues.push({
               type: 'secret',
               severity: pattern.severity,
               message: `Potential ${pattern.name} detected`,
               line: lineIndex + 1,
-              column: match.index + 1
+              column: match.index + 1,
             });
           }
         }
@@ -92,7 +100,6 @@ class SecurityScannerHook {
 
       // Additional security checks
       await this.performAdditionalChecks(filePath, content, issues);
-
     } catch (error) {
       // File might not exist or be readable
       console.warn(`Could not scan file ${filePath}:`, error);
@@ -104,7 +111,11 @@ class SecurityScannerHook {
   /**
    * Perform additional security checks
    */
-  private async performAdditionalChecks(filePath: string, content: string, issues: any[]): Promise<void> {
+  private async performAdditionalChecks(
+    filePath: string,
+    content: string,
+    issues: any[]
+  ): Promise<void> {
     const ext = path.extname(filePath);
 
     // JavaScript/TypeScript specific checks
@@ -114,7 +125,7 @@ class SecurityScannerHook {
         issues.push({
           type: 'vulnerability',
           severity: 'high',
-          message: 'Use of eval() detected - potential code injection risk'
+          message: 'Use of eval() detected - potential code injection risk',
         });
       }
 
@@ -123,7 +134,7 @@ class SecurityScannerHook {
         issues.push({
           type: 'vulnerability',
           severity: 'medium',
-          message: 'Use of innerHTML detected - potential XSS risk'
+          message: 'Use of innerHTML detected - potential XSS risk',
         });
       }
 
@@ -132,7 +143,7 @@ class SecurityScannerHook {
         issues.push({
           type: 'vulnerability',
           severity: 'medium',
-          message: 'Use of document.write detected - potential XSS risk'
+          message: 'Use of document.write detected - potential XSS risk',
         });
       }
     }
@@ -144,7 +155,7 @@ class SecurityScannerHook {
         issues.push({
           type: 'vulnerability',
           severity: 'high',
-          message: 'Potential command injection or code execution detected'
+          message: 'Potential command injection or code execution detected',
         });
       }
 
@@ -153,7 +164,7 @@ class SecurityScannerHook {
         issues.push({
           type: 'vulnerability',
           severity: 'high',
-          message: 'Potential SQL injection - use parameterized queries'
+          message: 'Potential SQL injection - use parameterized queries',
         });
       }
     }
@@ -163,7 +174,7 @@ class SecurityScannerHook {
       issues.push({
         type: 'secret',
         severity: 'medium',
-        message: 'Hardcoded password detected'
+        message: 'Hardcoded password detected',
       });
     }
   }
@@ -185,7 +196,7 @@ class SecurityScannerHook {
           tool,
           success: result.exitCode === 0,
           output: result.output,
-          error: result.error
+          error: result.error,
         });
       } catch (error) {
         // Tool might not be available
@@ -200,9 +211,10 @@ class SecurityScannerHook {
     for (const result of results) {
       if (result.output) {
         output += `\\n${result.tool} results:\\n${result.output}`;
-        
+
         // Count issues (simplified parsing)
-        const vulnerabilities = (result.output.match(/vulnerability|vulnerable|risk/gi) || []).length;
+        const vulnerabilities = (result.output.match(/vulnerability|vulnerable|risk/gi) || [])
+          .length;
         totalIssues += vulnerabilities;
       }
     }
@@ -210,7 +222,7 @@ class SecurityScannerHook {
     return {
       success: results.some(r => r.success),
       output,
-      issues: totalIssues
+      issues: totalIssues,
     };
   }
 
@@ -227,24 +239,24 @@ class SecurityScannerHook {
    */
   formatResults(fileResults: any[], auditResults?: any): string {
     let output = '\\n🔒 Security Scan Results:\\n';
-    
+
     let totalIssues = 0;
     let highSeverityIssues = 0;
 
     for (const result of fileResults) {
       if (result.issues.length > 0) {
         output += `\\n📄 ${path.basename(result.file)}:\\n`;
-        
+
         for (const issue of result.issues) {
           const icon = issue.severity === 'high' ? '🚨' : issue.severity === 'medium' ? '⚠️' : '💡';
           output += `  ${icon} ${issue.message}`;
-          
+
           if (issue.line) {
             output += ` (line ${issue.line})`;
           }
-          
+
           output += '\\n';
-          
+
           totalIssues++;
           if (issue.severity === 'high') {
             highSeverityIssues++;
@@ -292,19 +304,14 @@ class SecurityScannerHook {
    * Check if file should be scanned
    */
   private shouldScanFile(filePath: string): boolean {
-    return !this.config.excludePatterns.some(pattern =>
-      this.matchesPattern(filePath, pattern)
-    );
+    return !this.config.excludePatterns.some(pattern => this.matchesPattern(filePath, pattern));
   }
 
   /**
    * Simple pattern matching
    */
   private matchesPattern(filePath: string, pattern: string): boolean {
-    const regex = pattern
-      .replace(/\./g, '\\.')
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*');
+    const regex = pattern.replace(/\./g, '\\.').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     return new RegExp(`^${regex}$`).test(filePath);
   }
 
@@ -316,35 +323,35 @@ class SecurityScannerHook {
     output: string;
     error: string;
   }> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const child = spawn('sh', ['-c', command], {
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       let output = '';
       let error = '';
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         output += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         error += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         resolve({
           exitCode: code || 0,
           output: output.trim(),
-          error: error.trim()
+          error: error.trim(),
         });
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         resolve({
           exitCode: 1,
           output: '',
-          error: err.message
+          error: err.message,
         });
       });
     });
@@ -360,34 +367,36 @@ const securityScannerHook: HookPlugin = {
     enabled: {
       description: 'Enable security scanning',
       type: 'boolean',
-      default: true
+      default: true,
     },
     failOnIssues: {
       description: 'Fail hook execution if security issues are found',
       type: 'boolean',
-      default: true
+      default: true,
     },
     minSeverity: {
       description: 'Minimum severity level to report (low, medium, high)',
       type: 'string',
-      default: 'medium'
-    }
+      default: 'medium',
+    },
   },
-  makeHook: (args) => {
+  makeHook: args => {
     const config: SecurityScannerConfig = {
       enabled: args.enabled as boolean,
       failOnIssues: args.failOnIssues as boolean,
-      minSeverity: args.minSeverity as 'low' | 'medium' | 'high'
+      minSeverity: args.minSeverity as 'low' | 'medium' | 'high',
     };
 
     const scanner = new SecurityScannerHook(config);
 
     return {
-      PreToolUse: [{
-        matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command' as const,
-          command: `node -e "
+      PreToolUse: [
+        {
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [
+            {
+              type: 'command' as const,
+              command: `node -e "
             const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
             const { SecurityScannerHook } = require('./dist/index.js');
             const scanner = new SecurityScannerHook(${JSON.stringify(config)});
@@ -422,14 +431,18 @@ const securityScannerHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 15000
-        }]
-      }],
-      PostToolUse: [{
-        matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command' as const,
-          command: `node -e "
+              timeout: 15000,
+            },
+          ],
+        },
+      ],
+      PostToolUse: [
+        {
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [
+            {
+              type: 'command' as const,
+              command: `node -e "
             const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
             const { SecurityScannerHook } = require('./dist/index.js');
             const scanner = new SecurityScannerHook(${JSON.stringify(config)});
@@ -458,11 +471,13 @@ const securityScannerHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 15000
-        }]
-      }]
+              timeout: 15000,
+            },
+          ],
+        },
+      ],
     };
-  }
+  },
 };
 
 export default securityScannerHook;

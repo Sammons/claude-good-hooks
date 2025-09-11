@@ -50,9 +50,9 @@ export class HelpCommand {
         {
           name: 'command',
           description: 'Command to show help for',
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     };
   }
 
@@ -82,10 +82,13 @@ export class HelpCommand {
       // Show general help
       if (isJson) {
         const generalHelp = commandRegistry.getGeneralHelp();
-        const commandsObj = generalHelp.commands.reduce((acc, cmd) => {
-          acc[cmd.name] = cmd.description;
-          return acc;
-        }, {} as Record<string, string>);
+        const commandsObj = generalHelp.commands.reduce(
+          (acc, cmd) => {
+            acc[cmd.name] = cmd.description;
+            return acc;
+          },
+          {} as Record<string, string>
+        );
 
         console.log(JSON.stringify({ commands: commandsObj }));
       } else {
@@ -102,23 +105,23 @@ export class HelpCommand {
     const generalHelp = commandRegistry.getGeneralHelp();
 
     console.log(chalk.bold('claude-good-hooks') + ' - CLI for managing Claude Code hooks\n');
-    
+
     console.log(chalk.bold('USAGE'));
     console.log('  claude-good-hooks <command> [options]\n');
-    
+
     console.log(chalk.bold('COMMANDS'));
     for (const cmd of generalHelp.commands) {
       const padding = ' '.repeat(Math.max(0, 42 - cmd.name.length));
       console.log(`  ${chalk.cyan(cmd.name)}${padding}${cmd.description}`);
     }
     console.log('');
-    
+
     console.log(chalk.bold('GLOBAL OPTIONS'));
     console.log('  --json                                 Output in JSON format');
     console.log('  --verbose                              Enable verbose logging');
     console.log('  --quiet                                Enable quiet mode (errors only)');
     console.log('  --no-color                             Disable colored output\n');
-    
+
     console.log(chalk.bold('EXAMPLES'));
     console.log(`  ${chalk.dim('# List all available hooks')}`);
     console.log(`  claude-good-hooks list-hooks`);
@@ -129,12 +132,16 @@ export class HelpCommand {
     console.log(`  ${installCmd}`);
     console.log(`  claude-good-hooks apply --global @sammons/dirty-good-claude-hook`);
     console.log(`  ${chalk.dim('# Apply hook with custom arguments')}`);
-    console.log(`  claude-good-hooks apply --project @sammons/dirty-good-claude-hook --staged --filenames`);
+    console.log(
+      `  claude-good-hooks apply --project @sammons/dirty-good-claude-hook --staged --filenames`
+    );
     console.log(`  ${chalk.dim('# Apply a specific hook variant via deep import')}`);
-    console.log(`  claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/minimal`);
+    console.log(
+      `  claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/minimal`
+    );
     console.log(`  ${chalk.dim('# Check system configuration')}`);
     console.log(`  claude-good-hooks doctor\n`);
-    
+
     console.log("Run 'claude-good-hooks help <command>' for more information on a command.");
   }
 
@@ -143,22 +150,24 @@ export class HelpCommand {
    */
   private formatHelpInfo(help: HelpInfo): void {
     console.log(chalk.bold(help.name) + ' - ' + help.description + '\n');
-    
+
     console.log(chalk.bold('USAGE'));
     console.log('  ' + help.usage + '\n');
-    
+
     if (help.options && help.options.length > 0) {
       console.log(chalk.bold('OPTIONS'));
       for (const option of help.options) {
         const optionName = `--${option.name}`;
         const typeInfo = option.type === 'string' ? ' <value>' : '';
         const shortInfo = option.short ? `, -${option.short}` : '';
-        const padding = ' '.repeat(Math.max(0, 20 - optionName.length - typeInfo.length - shortInfo.length));
+        const padding = ' '.repeat(
+          Math.max(0, 20 - optionName.length - typeInfo.length - shortInfo.length)
+        );
         console.log(`  ${optionName}${typeInfo}${shortInfo}${padding}${option.description}`);
       }
       console.log('');
     }
-    
+
     if (help.arguments && help.arguments.length > 0) {
       console.log(chalk.bold('ARGUMENTS'));
       for (const arg of help.arguments) {
@@ -169,7 +178,7 @@ export class HelpCommand {
       }
       console.log('');
     }
-    
+
     if (help.examples && help.examples.length > 0) {
       console.log(chalk.bold('EXAMPLES'));
       for (const example of help.examples) {

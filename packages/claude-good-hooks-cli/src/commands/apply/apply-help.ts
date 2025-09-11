@@ -13,8 +13,10 @@ export class ApplyHelpCommand implements ApplySubCommand {
    */
   match(args: string[], options: ApplyOptions): boolean {
     // Match when help flag is set and no hook name provided, or when no args and no special flags
-    return (Boolean(options.help) && args.length === 0) || 
-           (args.length === 0 && !options.regenerate && !options.help);
+    return (
+      (Boolean(options.help) && args.length === 0) ||
+      (args.length === 0 && !options.regenerate && !options.help)
+    );
   }
 
   /**
@@ -24,7 +26,7 @@ export class ApplyHelpCommand implements ApplySubCommand {
     // Apply help command is valid when help flag is set
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

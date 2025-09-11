@@ -1,6 +1,6 @@
 /**
  * Utility function for properly typed Object.entries
- * 
+ *
  * This function preserves the exact key types from objects rather than
  * returning them as generic strings, enabling type-safe iteration over
  * object entries.

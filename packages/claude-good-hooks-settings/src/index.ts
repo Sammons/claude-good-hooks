@@ -1,6 +1,6 @@
 /**
  * @sammons/claude-good-hooks-settings
- * 
+ *
  * Settings management utilities for Claude Good Hooks, including validation,
  * atomic operations, migrations, and version tracking.
  */

@@ -20,7 +20,7 @@ export class ValidateOptions implements CommandOptionProcessor {
           help: { type: 'boolean' },
         },
         allowPositionals: false,
-        strict: false
+        strict: false,
       });
 
       // Convert kebab-case to camelCase
@@ -37,7 +37,7 @@ export class ValidateOptions implements CommandOptionProcessor {
 
       return {
         args: [],
-        options
+        options,
       };
     } catch {
       return { args, options: {} };

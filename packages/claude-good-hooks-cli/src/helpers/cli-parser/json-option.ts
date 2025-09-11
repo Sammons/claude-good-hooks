@@ -10,7 +10,7 @@ export class JsonOption implements GlobalOptionProcessor {
       remainingArgs: args.slice(index + 1),
       value: true,
       key: 'json',
-      continueProcessing: true
+      continueProcessing: true,
     };
   }
 }

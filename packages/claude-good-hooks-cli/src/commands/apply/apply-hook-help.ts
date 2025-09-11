@@ -35,16 +35,18 @@ export async function showHookHelp(
   console.log(chalk.bold(`\n${helpInfo.name} v${helpInfo.version}`));
   console.log(helpInfo.description);
   console.log('');
-  
-  const isValidArgDef = (argDef: unknown): argDef is {required?: boolean; default?: unknown; description: string;} => {
-    return typeof argDef === 'object' && argDef != null && 'description' in argDef
-  } 
-  
+
+  const isValidArgDef = (
+    argDef: unknown
+  ): argDef is { required?: boolean; default?: unknown; description: string } => {
+    return typeof argDef === 'object' && argDef != null && 'description' in argDef;
+  };
+
   if (helpInfo.customArgs && Object.keys(helpInfo.customArgs).length > 0) {
     console.log(chalk.bold('Options:'));
     for (const [argName, argDef] of Object.entries(helpInfo.customArgs)) {
-      if (!isValidArgDef (argDef))  {
-        console.warn(`Skipping invalid argDef for argument ${argName}`)
+      if (!isValidArgDef(argDef)) {
+        console.warn(`Skipping invalid argDef for argument ${argName}`);
         continue;
       }
       const required = argDef.required ? ' (required)' : '';
@@ -93,13 +95,13 @@ export class HookHelpCommand implements ApplySubCommand {
     if (args.length === 0) {
       return {
         valid: false,
-        errors: ['Hook name is required for hook-specific help']
+        errors: ['Hook name is required for hook-specific help'],
       };
     }
 
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -114,7 +116,7 @@ export class HookHelpCommand implements ApplySubCommand {
     await showHookHelp(this.hookService, {
       hookName,
       global: scope === 'global',
-      isJson
+      isJson,
     });
   }
 

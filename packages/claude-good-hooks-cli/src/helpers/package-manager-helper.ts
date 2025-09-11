@@ -20,8 +20,8 @@ export interface ExecOptions {
 }
 
 export interface ModuleListResult {
-  dependencies?: Record<string, { version: string; resolved?: string; }>;
-  devDependencies?: Record<string, { version: string; resolved?: string; }>;
+  dependencies?: Record<string, { version: string; resolved?: string }>;
+  devDependencies?: Record<string, { version: string; resolved?: string }>;
 }
 
 export interface InstallResult {
@@ -77,7 +77,7 @@ export class PackageManagerHelper {
    */
   listModulesCommand(options: ListModulesOptions = {}): string {
     const { depth = 0, global = false } = options;
-    
+
     switch (this.packageManager) {
       case 'pnpm':
         if (global) {
@@ -111,13 +111,13 @@ export class PackageManagerHelper {
     try {
       const command = this.listModulesCommand(options);
       const result = await this.processService.exec(command);
-      
+
       // Handle different package manager output formats
       if (this.packageManager === 'yarn' && options.global) {
         // Yarn global list has different format
         return { dependencies: {} };
       }
-      
+
       return JSON.parse(result.stdout);
     } catch (error) {
       throw new Error(`Failed to list modules: ${String(error)}`);
@@ -132,7 +132,7 @@ export class PackageManagerHelper {
    */
   installCommand(packageName?: string, options: InstallOptions = {}): string {
     const { global = false, saveDev = false } = options;
-    
+
     switch (this.packageManager) {
       case 'pnpm':
         if (global) {
@@ -170,15 +170,15 @@ export class PackageManagerHelper {
     try {
       const command = this.installCommand(packageName, options);
       const result = await this.processService.exec(command);
-      
+
       return {
         success: true,
-        output: result.stdout + result.stderr
+        output: result.stdout + result.stderr,
       };
     } catch (error) {
       return {
         success: false,
-        error: String(error)
+        error: String(error),
       };
     }
   }
@@ -191,7 +191,7 @@ export class PackageManagerHelper {
    */
   uninstallCommand(packageName: string, options: UninstallOptions = {}): string {
     const { global = false } = options;
-    
+
     switch (this.packageManager) {
       case 'pnpm':
         return global ? `pnpm remove -g ${packageName}` : `pnpm remove ${packageName}`;
@@ -213,15 +213,15 @@ export class PackageManagerHelper {
     try {
       const command = this.uninstallCommand(packageName, options);
       const result = await this.processService.exec(command);
-      
+
       return {
         success: true,
-        output: result.stdout + result.stderr
+        output: result.stdout + result.stderr,
       };
     } catch (error) {
       return {
         success: false,
-        error: String(error)
+        error: String(error),
       };
     }
   }
@@ -252,15 +252,15 @@ export class PackageManagerHelper {
     try {
       const command = this.runScriptCommand(scriptName);
       const result = await this.processService.exec(command);
-      
+
       return {
         success: true,
-        output: result.stdout + result.stderr
+        output: result.stdout + result.stderr,
       };
     } catch (error) {
       return {
         success: false,
-        error: String(error)
+        error: String(error),
       };
     }
   }
@@ -274,7 +274,7 @@ export class PackageManagerHelper {
   execCommand(packageName: string, options: ExecOptions = {}): string {
     const { args = [] } = options;
     const argsStr = args.length > 0 ? ` ${args.join(' ')}` : '';
-    
+
     switch (this.packageManager) {
       case 'pnpm':
         return `pnpm exec ${packageName}${argsStr}`;
@@ -296,15 +296,15 @@ export class PackageManagerHelper {
     try {
       const command = this.execCommand(packageName, options);
       const result = await this.processService.exec(command);
-      
+
       return {
         success: true,
-        output: result.stdout + result.stderr
+        output: result.stdout + result.stderr,
       };
     } catch (error) {
       return {
         success: false,
-        error: String(error)
+        error: String(error),
       };
     }
   }
@@ -339,7 +339,7 @@ export class PackageManagerHelper {
    */
   updateCommand(packageName: string, options: InstallOptions = {}): string {
     const { global = false } = options;
-    
+
     switch (this.packageManager) {
       case 'pnpm':
         return global ? `pnpm update -g ${packageName}` : `pnpm update ${packageName}`;
@@ -361,15 +361,15 @@ export class PackageManagerHelper {
     try {
       const command = this.updateCommand(packageName, options);
       const result = await this.processService.exec(command);
-      
+
       return {
         success: true,
-        output: result.stdout + result.stderr
+        output: result.stdout + result.stderr,
       };
     } catch (error) {
       return {
         success: false,
-        error: String(error)
+        error: String(error),
       };
     }
   }

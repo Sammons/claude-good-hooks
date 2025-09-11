@@ -3,7 +3,11 @@ import { join, isAbsolute } from 'path';
 import { spawn } from 'child_process';
 import chalk from 'chalk';
 import type { ClaudeSettings } from '@sammons/claude-good-hooks-types';
-import { isClaudeSettings, isHookConfiguration, isHookCommand } from '@sammons/claude-good-hooks-types';
+import {
+  isClaudeSettings,
+  isHookConfiguration,
+  isHookCommand,
+} from '@sammons/claude-good-hooks-types';
 
 export interface ValidationResult {
   valid: boolean;
@@ -34,7 +38,7 @@ export function validateSettings(settings: unknown, filePath?: string): Validati
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   // Basic structure validation
@@ -44,7 +48,7 @@ export function validateSettings(settings: unknown, filePath?: string): Validati
       type: 'structure',
       message: 'Invalid ClaudeSettings structure',
       location: filePath,
-      details: 'Settings must be a valid ClaudeSettings object with optional hooks property'
+      details: 'Settings must be a valid ClaudeSettings object with optional hooks property',
     });
     return result;
   }
@@ -74,14 +78,21 @@ export function validateHooks(hooks: ClaudeSettings['hooks'], filePath?: string)
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   if (!hooks) return result;
 
   const validEvents = [
-    'PreToolUse', 'PostToolUse', 'UserPromptSubmit', 'Notification',
-    'Stop', 'SubagentStop', 'SessionEnd', 'SessionStart', 'PreCompact'
+    'PreToolUse',
+    'PostToolUse',
+    'UserPromptSubmit',
+    'Notification',
+    'Stop',
+    'SubagentStop',
+    'SessionEnd',
+    'SessionStart',
+    'PreCompact',
   ];
 
   // Validate event names
@@ -92,7 +103,7 @@ export function validateHooks(hooks: ClaudeSettings['hooks'], filePath?: string)
         type: 'structure',
         message: `Invalid hook event: ${event}`,
         location: filePath,
-        details: `Valid events are: ${validEvents.join(', ')}`
+        details: `Valid events are: ${validEvents.join(', ')}`,
       });
     }
   }
@@ -104,7 +115,7 @@ export function validateHooks(hooks: ClaudeSettings['hooks'], filePath?: string)
       result.errors.push({
         type: 'structure',
         message: `Hook event ${event} must be an array`,
-        location: filePath
+        location: filePath,
       });
       continue;
     }
@@ -129,7 +140,7 @@ export function validateHookConfiguration(config: unknown, location?: string): V
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   if (!isHookConfiguration(config)) {
@@ -138,7 +149,7 @@ export function validateHookConfiguration(config: unknown, location?: string): V
       type: 'structure',
       message: 'Invalid HookConfiguration structure',
       location,
-      details: 'Configuration must have hooks array and optional matcher string'
+      details: 'Configuration must have hooks array and optional matcher string',
     });
     return result;
   }
@@ -171,7 +182,7 @@ export function validateMatcher(matcher: string, location?: string): ValidationR
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   if (!matcher || typeof matcher !== 'string') {
@@ -179,7 +190,7 @@ export function validateMatcher(matcher: string, location?: string): ValidationR
     result.errors.push({
       type: 'structure',
       message: 'Matcher must be a non-empty string',
-      location
+      location,
     });
     return result;
   }
@@ -192,14 +203,24 @@ export function validateMatcher(matcher: string, location?: string): ValidationR
       type: 'compatibility',
       message: `Matcher pattern may be invalid regex: ${matcher}`,
       location,
-      suggestion: 'Use simple tool names or basic regex patterns'
+      suggestion: 'Use simple tool names or basic regex patterns',
     });
   }
 
   // Check for common tool names
   const knownTools = [
-    'Bash', 'Read', 'Write', 'Edit', 'MultiEdit', 'Glob', 'Grep',
-    'WebFetch', 'WebSearch', 'TodoWrite', 'Task', 'NotebookEdit'
+    'Bash',
+    'Read',
+    'Write',
+    'Edit',
+    'MultiEdit',
+    'Glob',
+    'Grep',
+    'WebFetch',
+    'WebSearch',
+    'TodoWrite',
+    'Task',
+    'NotebookEdit',
   ];
 
   const hasKnownTool = knownTools.some(tool => matcher.includes(tool));
@@ -208,7 +229,7 @@ export function validateMatcher(matcher: string, location?: string): ValidationR
       type: 'best-practice',
       message: `Matcher pattern doesn't match known tools: ${matcher}`,
       location,
-      suggestion: `Consider using known tool names: ${knownTools.join(', ')}, or "*" for all tools`
+      suggestion: `Consider using known tool names: ${knownTools.join(', ')}, or "*" for all tools`,
     });
   }
 
@@ -223,7 +244,7 @@ export function validateHookCommand(hook: unknown, location?: string): Validatio
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   if (!isHookCommand(hook)) {
@@ -232,7 +253,7 @@ export function validateHookCommand(hook: unknown, location?: string): Validatio
       type: 'structure',
       message: 'Invalid HookCommand structure',
       location,
-      details: 'Hook must have type "command" and command string, with optional timeout number'
+      details: 'Hook must have type "command" and command string, with optional timeout number',
     });
     return result;
   }
@@ -244,14 +265,14 @@ export function validateHookCommand(hook: unknown, location?: string): Validatio
       result.errors.push({
         type: 'timeout',
         message: 'Timeout must be positive',
-        location
+        location,
       });
     } else if (hook.timeout > 600) {
       result.warnings.push({
         type: 'performance',
         message: `Timeout is very high (${hook.timeout}s)`,
         location,
-        suggestion: 'Consider reducing timeout to avoid hanging hooks'
+        suggestion: 'Consider reducing timeout to avoid hanging hooks',
       });
     }
   }
@@ -274,7 +295,7 @@ export function validateCommand(command: string, location?: string): ValidationR
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   if (!command || typeof command !== 'string') {
@@ -282,7 +303,7 @@ export function validateCommand(command: string, location?: string): ValidationR
     result.errors.push({
       type: 'command',
       message: 'Command must be a non-empty string',
-      location
+      location,
     });
     return result;
   }
@@ -293,7 +314,7 @@ export function validateCommand(command: string, location?: string): ValidationR
       type: 'best-practice',
       message: 'Multi-line commands should start with shebang',
       location,
-      suggestion: 'Add "#!/bin/bash" or appropriate shebang at the start'
+      suggestion: 'Add "#!/bin/bash" or appropriate shebang at the start',
     });
   }
 
@@ -313,7 +334,7 @@ export function validateCommand(command: string, location?: string): ValidationR
         type: 'security',
         message: 'Command contains potentially dangerous operations',
         location,
-        suggestion: 'Review command for security implications'
+        suggestion: 'Review command for security implications',
       });
       break;
     }
@@ -334,46 +355,49 @@ export function validateCommand(command: string, location?: string): ValidationR
 /**
  * Test command execution (dry run)
  */
-export async function testCommand(command: string, timeout: number = 30): Promise<ValidationResult> {
+export async function testCommand(
+  command: string,
+  timeout: number = 30
+): Promise<ValidationResult> {
   const result: ValidationResult = {
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // Create a safe test version of the command
     const testCommand = `set -n; ${command}`;
-    
+
     const child = spawn('/bin/bash', ['-c', testCommand], {
       stdio: 'pipe',
-      timeout: timeout * 1000
+      timeout: timeout * 1000,
     });
 
     let stderr = '';
-    child.stderr?.on('data', (data) => {
+    child.stderr?.on('data', data => {
       stderr += data.toString();
     });
 
-    child.on('close', (code) => {
+    child.on('close', code => {
       if (code !== 0) {
         result.valid = false;
         result.errors.push({
           type: 'syntax',
           message: 'Command has syntax errors',
-          details: stderr.trim() || 'Command failed syntax check'
+          details: stderr.trim() || 'Command failed syntax check',
         });
       }
       resolve(result);
     });
 
-    child.on('error', (error) => {
+    child.on('error', error => {
       result.valid = false;
       result.errors.push({
         type: 'command',
         message: 'Command execution failed',
-        details: error.message
+        details: error.message,
       });
       resolve(result);
     });
@@ -383,19 +407,22 @@ export async function testCommand(command: string, timeout: number = 30): Promis
 /**
  * Validate file paths referenced in commands
  */
-export function validateCommandPaths(command: string, basePath: string = process.cwd()): ValidationResult {
+export function validateCommandPaths(
+  command: string,
+  basePath: string = process.cwd()
+): ValidationResult {
   const result: ValidationResult = {
     valid: true,
     errors: [],
     warnings: [],
-    suggestions: []
+    suggestions: [],
   };
 
   // Extract file paths from command (basic pattern matching)
   const pathPatterns = [
     /["']([^"']+\.(?:sh|py|js|ts|json|yaml|yml|toml))["']/g,
     /\$CLAUDE_PROJECT_DIR\/([^\s]+)/g,
-    /([\.\/][^\s]+)/g
+    /([\.\/][^\s]+)/g,
   ];
 
   const foundPaths = new Set<string>();
@@ -421,7 +448,7 @@ export function validateCommandPaths(command: string, basePath: string = process
       result.warnings.push({
         type: 'compatibility',
         message: `Referenced file does not exist: ${path}`,
-        suggestion: 'Ensure the file exists or add existence checks to your hook'
+        suggestion: 'Ensure the file exists or add existence checks to your hook',
       });
     } else {
       // Check if file is executable for .sh files
@@ -432,7 +459,7 @@ export function validateCommandPaths(command: string, basePath: string = process
           result.warnings.push({
             type: 'permission',
             message: `Script file is not executable: ${path}`,
-            suggestion: `Run 'chmod +x ${path}' to make it executable`
+            suggestion: `Run 'chmod +x ${path}' to make it executable`,
           });
         }
       }

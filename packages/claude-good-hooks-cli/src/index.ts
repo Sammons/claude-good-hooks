@@ -6,7 +6,7 @@ import { CommandRegistry } from './commands/command-registry.js';
 async function main(): Promise<void> {
   const parsed = parseCliArgs(process.argv);
   const { command, args, options, globalOptions } = parsed;
-  
+
   // Create options object with parent reference for compatibility
   const commandOptions = createOptionsWithParent(options, globalOptions);
 
@@ -16,11 +16,11 @@ async function main(): Promise<void> {
   try {
     // Try to find a class-based command
     const commandInstance = commandRegistry.findCommand(command);
-    
+
     if (commandInstance) {
       // Validate the command arguments
       const validationResult = commandInstance.validate(args, commandOptions);
-      
+
       if (typeof validationResult === 'object' && !validationResult.valid) {
         console.error('Error: Invalid command arguments');
         if (validationResult.error) {
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
         }
         process.exit(1);
       }
-      
+
       // Execute the command
       await commandInstance.execute(args, commandOptions);
       return;
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('Unexpected error:', error);
   process.exit(1);
 });

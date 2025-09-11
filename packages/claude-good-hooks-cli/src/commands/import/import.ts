@@ -19,20 +19,17 @@ import { ImportFileCommand } from './import-file.js';
 export class ImportCommand {
   name = 'import';
   description = 'Import Claude hooks configuration from file or URL';
-  
+
   private settingsService: SettingsService;
   private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ImportSubCommand[];
 
-  constructor(
-    settingsService: SettingsService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService, processService: ProcessService) {
     this.settingsService = settingsService;
     this.processService = processService;
-    
+
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
@@ -62,11 +59,11 @@ export class ImportCommand {
 
     // Find matching sub-command and delegate validation
     const subCommand = this.subCommands.find(cmd => cmd.match(args, importOptions));
-    
+
     if (!subCommand) {
       return {
         valid: false,
-        errors: ['No matching sub-command found for the provided arguments and options']
+        errors: ['No matching sub-command found for the provided arguments and options'],
       };
     }
 
@@ -87,15 +84,17 @@ export class ImportCommand {
   async execute(args: string[], options: ImportOptions): Promise<void> {
     // Find matching sub-command using polymorphic pattern
     const subCommand = this.subCommands.find(cmd => cmd.match(args, options));
-    
+
     if (!subCommand) {
       // shouldn't be possible because validation should have been run by the consumer first
       const isJson = options.parent?.json;
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: 'No matching sub-command found for the provided arguments and options' 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: 'No matching sub-command found for the provided arguments and options',
+          })
+        );
       } else {
         console.error(chalk.red('Error: No matching sub-command found'));
       }
@@ -106,5 +105,4 @@ export class ImportCommand {
     // Execute the matched sub-command
     await subCommand.execute(args, options);
   }
-
 }

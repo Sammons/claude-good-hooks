@@ -48,8 +48,8 @@ export class VersionCommand {
       examples: [
         'claude-good-hooks version',
         'claude-good-hooks --version',
-        'claude-good-hooks -v'
-      ]
+        'claude-good-hooks -v',
+      ],
     };
   }
 
@@ -58,7 +58,7 @@ export class VersionCommand {
    */
   async execute(_args: string[], options: VersionOptions): Promise<void> {
     const isJson = options.parent?.json;
-    
+
     const packageInfo = this.packageService.getPackageInfo();
 
     if (!packageInfo) {

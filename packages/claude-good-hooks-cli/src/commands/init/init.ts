@@ -18,20 +18,17 @@ import { InitCreateCommand } from './init-create.js';
 export class InitCommand {
   name = 'init';
   description = 'Initialize Claude hooks configuration for a project';
-  
+
   private settingsService: SettingsService;
   private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: InitSubCommand[];
 
-  constructor(
-    settingsService: SettingsService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService, processService: ProcessService) {
     this.settingsService = settingsService;
     this.processService = processService;
-    
+
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
@@ -61,11 +58,11 @@ export class InitCommand {
 
     // Find matching sub-command and delegate validation
     const subCommand = this.subCommands.find(cmd => cmd.match(args, initOptions));
-    
+
     if (!subCommand) {
       return {
         valid: false,
-        errors: ['No matching sub-command found for the provided arguments and options']
+        errors: ['No matching sub-command found for the provided arguments and options'],
       };
     }
 
@@ -86,15 +83,17 @@ export class InitCommand {
   async execute(args: string[], options: InitOptions): Promise<void> {
     // Find matching sub-command using polymorphic pattern
     const subCommand = this.subCommands.find(cmd => cmd.match(args, options));
-    
+
     if (!subCommand) {
       // shouldn't be possible because validation should have been run by the consumer first
       const isJson = options.parent?.json;
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: 'No matching sub-command found for the provided arguments and options' 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: 'No matching sub-command found for the provided arguments and options',
+          })
+        );
       } else {
         console.error('Error: No matching sub-command found');
       }

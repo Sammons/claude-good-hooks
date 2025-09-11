@@ -15,12 +15,12 @@ export class UpdateOptions implements CommandOptionProcessor {
           json: { type: 'boolean' },
         },
         allowPositionals: false,
-        strict: false
+        strict: false,
       });
 
       return {
         args: [],
-        options: parsed.values
+        options: parsed.values,
       };
     } catch {
       return { args, options: {} };

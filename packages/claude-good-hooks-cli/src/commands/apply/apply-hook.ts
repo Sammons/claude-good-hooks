@@ -14,10 +14,7 @@ export class ApplyHookCommand implements ApplySubCommand {
   private hookService: HookService;
   private processService: ProcessService;
 
-  constructor(
-    hookService: HookService,
-    processService: ProcessService
-  ) {
+  constructor(hookService: HookService, processService: ProcessService) {
     this.hookService = hookService;
     this.processService = processService;
   }
@@ -37,13 +34,13 @@ export class ApplyHookCommand implements ApplySubCommand {
     if (args.length === 0) {
       return {
         valid: false,
-        errors: ['Hook name is required']
+        errors: ['Hook name is required'],
       };
     }
 
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

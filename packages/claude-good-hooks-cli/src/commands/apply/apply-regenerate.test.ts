@@ -5,11 +5,11 @@ import type { ProcessService } from '../../services/process.service.js';
 
 // Mock the services
 const mockHookService = {
-  regenerateHooks: vi.fn()
+  regenerateHooks: vi.fn(),
 } as unknown as HookService;
 
 const mockProcessService = {
-  exit: vi.fn()
+  exit: vi.fn(),
 } as unknown as ProcessService;
 
 describe('ApplyCommand --regenerate', () => {
@@ -24,7 +24,7 @@ describe('ApplyCommand --regenerate', () => {
     const validation = applyCommand.validate([], { regenerate: true });
     expect(validation).toEqual({
       valid: true,
-      result: { regenerate: true }
+      result: { regenerate: true },
     });
   });
 
@@ -32,15 +32,17 @@ describe('ApplyCommand --regenerate', () => {
     const validation = applyCommand.validate([], {});
     expect(validation).toEqual({
       valid: false,
-      errors: ['Hook name is required unless using --regenerate or --help flag']
+      errors: ['Hook name is required unless using --regenerate or --help flag'],
     });
   });
 
   it('should accept hook name with --regenerate flag', () => {
-    const validation = applyCommand.validate(['@sammons/dirty-good-claude-hook/dirty'], { regenerate: true });
+    const validation = applyCommand.validate(['@sammons/dirty-good-claude-hook/dirty'], {
+      regenerate: true,
+    });
     expect(validation).toEqual({
       valid: true,
-      result: { regenerate: true }
+      result: { regenerate: true },
     });
   });
 
@@ -50,9 +52,9 @@ describe('ApplyCommand --regenerate', () => {
       totalProcessed: 0,
       successCount: 0,
       skippedCount: 0,
-      errorCount: 0
+      errorCount: 0,
     };
-    
+
     (mockHookService.regenerateHooks as any).mockResolvedValue(mockResult);
 
     // Mock console.log to prevent output during test
@@ -62,7 +64,7 @@ describe('ApplyCommand --regenerate', () => {
 
     expect(mockHookService.regenerateHooks).toHaveBeenCalledWith(undefined, 'project');
     expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify(mockResult));
-    
+
     consoleSpy.mockRestore();
   });
 
@@ -73,25 +75,29 @@ describe('ApplyCommand --regenerate', () => {
       totalProcessed: 0,
       successCount: 0,
       skippedCount: 0,
-      errorCount: 0
+      errorCount: 0,
     };
-    
+
     (mockHookService.regenerateHooks as any).mockResolvedValue(mockResult);
 
     // Mock console.log to prevent output during test
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await applyCommand.execute([hookName], { regenerate: true, global: true, parent: { json: true } });
+    await applyCommand.execute([hookName], {
+      regenerate: true,
+      global: true,
+      parent: { json: true },
+    });
 
     expect(mockHookService.regenerateHooks).toHaveBeenCalledWith(hookName, 'global');
     expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify(mockResult));
-    
+
     consoleSpy.mockRestore();
   });
 
   it('should include --regenerate in help options', () => {
     const help = applyCommand.getHelp();
-    
+
     const regenerateOption = help.options?.find(opt => opt.name === 'regenerate');
     expect(regenerateOption).toBeDefined();
     expect(regenerateOption?.description).toBe('Regenerate existing hooks to latest version');
@@ -100,8 +106,10 @@ describe('ApplyCommand --regenerate', () => {
 
   it('should include --regenerate examples in help', () => {
     const help = applyCommand.getHelp();
-    
+
     expect(help.examples).toContain('claude-good-hooks apply --regenerate');
-    expect(help.examples).toContain('claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook/dirty');
+    expect(help.examples).toContain(
+      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook/dirty'
+    );
   });
 });

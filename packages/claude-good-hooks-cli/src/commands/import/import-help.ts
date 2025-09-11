@@ -23,7 +23,7 @@ export class ImportHelpCommand implements ImportSubCommand {
     // Import help command is valid when help flag is set
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

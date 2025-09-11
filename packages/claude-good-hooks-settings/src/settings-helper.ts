@@ -1,4 +1,8 @@
-import type { ClaudeSettings, HookConfiguration, VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
+import type {
+  ClaudeSettings,
+  HookConfiguration,
+  VersionedClaudeSettings,
+} from '@sammons/claude-good-hooks-types';
 import { ensureVersionedSettings } from './settings-utils/migrations.js';
 
 export type SettingsScope = 'global' | 'project' | 'local';
@@ -54,10 +58,10 @@ export class SettingsHelper {
    */
   async readSettings(scope: SettingsScope): Promise<ClaudeSettings> {
     const path = this.getSettingsPath(scope);
-    
+
     // Use the filesystem provider with atomicReadFile pattern
     const readResult = await this.atomicReadFileWithFileSystem(path);
-    
+
     if (!readResult.success) {
       console.error(`Error reading ${scope} settings:`, readResult.error?.message);
       return {};
@@ -65,15 +69,15 @@ export class SettingsHelper {
 
     try {
       const parsed = JSON.parse(readResult.content || '{}');
-      
+
       // Convert legacy settings if needed
       const versionedSettings = ensureVersionedSettings(parsed, scope);
-      
+
       // If conversion happened, save the converted settings
       if (parsed !== versionedSettings && Object.keys(parsed).length > 0) {
         await this.writeVersionedSettings(scope, versionedSettings);
       }
-      
+
       return versionedSettings;
     } catch (error: unknown) {
       console.error(`Error parsing ${scope} settings:`, String(error));
@@ -84,12 +88,14 @@ export class SettingsHelper {
   /**
    * Helper method to use atomicReadFile with our FileSystemProvider
    */
-  private async atomicReadFileWithFileSystem(filePath: string): Promise<{ success: boolean; content?: string; error?: Error }> {
+  private async atomicReadFileWithFileSystem(
+    filePath: string
+  ): Promise<{ success: boolean; content?: string; error?: Error }> {
     try {
       if (!(await this.fileSystem.exists(filePath))) {
         return { success: true, content: '{}' };
       }
-      
+
       const content = await this.fileSystem.readFile(filePath, 'utf-8');
       return { success: true, content };
     } catch (error) {
@@ -110,9 +116,12 @@ export class SettingsHelper {
   /**
    * Write versioned settings to the specified scope
    */
-  private async writeVersionedSettings(scope: SettingsScope, settings: VersionedClaudeSettings): Promise<void> {
+  private async writeVersionedSettings(
+    scope: SettingsScope,
+    settings: VersionedClaudeSettings
+  ): Promise<void> {
     const path = this.getSettingsPath(scope);
-    
+
     // Ensure directory exists
     const dir = this.fileSystem.dirname(path);
     if (!(await this.fileSystem.exists(dir))) {
@@ -168,10 +177,16 @@ export class SettingsHelper {
         if (lastSlash !== -1) {
           const pathPart = name.substring(0, lastSlash);
           const pluginPart = name.substring(lastSlash + 1);
-          
+
           // If the path part looks like a file (has extension or starts with ./ or ../ or /)
-          if (pathPart.endsWith('.js') || pathPart.endsWith('.mjs') || pathPart.endsWith('.cjs') ||
-              pathPart.startsWith('./') || pathPart.startsWith('../') || pathPart.startsWith('/')) {
+          if (
+            pathPart.endsWith('.js') ||
+            pathPart.endsWith('.mjs') ||
+            pathPart.endsWith('.cjs') ||
+            pathPart.startsWith('./') ||
+            pathPart.startsWith('../') ||
+            pathPart.startsWith('/')
+          ) {
             // For file-based hooks, use just the plugin name for deduplication
             return pluginPart;
           }
@@ -179,14 +194,14 @@ export class SettingsHelper {
         // For npm packages, use the full name
         return name;
       };
-      
+
       const comparableName = getComparableName(hookName);
-      
+
       settings.hooks[eventName] = settings.hooks[eventName]!.filter(
         (existingConfig: HookConfiguration) => {
           const existingName = existingConfig.claudegoodhooks?.name || (existingConfig as any).name;
           if (!existingName) return true; // Keep configs without names
-          
+
           const existingComparableName = getComparableName(existingName);
           return existingComparableName !== comparableName;
         }
@@ -229,14 +244,14 @@ export class SettingsHelper {
    */
   async importSettings(scope: SettingsScope, externalSettings: ClaudeSettings): Promise<void> {
     const currentSettings = await this.readSettings(scope);
-    
+
     // Merge the external settings with current settings
     const mergedSettings: ClaudeSettings = {
       ...currentSettings,
       hooks: {
         ...currentSettings.hooks,
-        ...externalSettings.hooks
-      }
+        ...externalSettings.hooks,
+      },
     };
 
     await this.writeSettings(scope, mergedSettings);

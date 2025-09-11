@@ -23,7 +23,7 @@ export class ValidateHelpCommand implements ValidateSubCommand {
     // Validate help command is always valid when help flag is set
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 

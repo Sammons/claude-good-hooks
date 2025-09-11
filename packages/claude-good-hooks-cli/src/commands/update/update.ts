@@ -53,12 +53,10 @@ export class UpdateCommand {
         {
           name: 'help',
           description: 'Show help for this command',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
-      examples: [
-        'claude-good-hooks update'
-      ]
+      examples: ['claude-good-hooks update'],
     };
   }
 
@@ -87,22 +85,26 @@ export class UpdateCommand {
       // For simplicity in this refactor, we'll use a basic update approach
       // The original complex detection logic could be moved to a dedicated UpdateService
       // if more sophisticated update handling is needed
-      
+
       if (!isJson) {
         console.log(chalk.cyan('Updating @sammons/claude-good-hooks...'));
       }
 
       // Try global update first, then local if it fails
       try {
-        const globalResult = await helper.update('@sammons/claude-good-hooks@latest', { global: true });
-        
+        const globalResult = await helper.update('@sammons/claude-good-hooks@latest', {
+          global: true,
+        });
+
         if (globalResult.success) {
           if (isJson) {
-            console.log(JSON.stringify({
-              success: true,
-              message: 'Successfully updated to latest version',
-              installationType: 'global'
-            }));
+            console.log(
+              JSON.stringify({
+                success: true,
+                message: 'Successfully updated to latest version',
+                installationType: 'global',
+              })
+            );
           } else {
             console.log(chalk.green('✓ Successfully updated to latest version (global)'));
           }
@@ -113,14 +115,16 @@ export class UpdateCommand {
         // Try local update if global fails
         try {
           const localResult = await helper.update('@sammons/claude-good-hooks@latest');
-          
+
           if (localResult.success) {
             if (isJson) {
-              console.log(JSON.stringify({
-                success: true,
-                message: 'Successfully updated to latest version',
-                installationType: 'local'
-              }));
+              console.log(
+                JSON.stringify({
+                  success: true,
+                  message: 'Successfully updated to latest version',
+                  installationType: 'local',
+                })
+              );
             } else {
               console.log(chalk.green('✓ Successfully updated to latest version (local)'));
             }
@@ -137,32 +141,42 @@ export class UpdateCommand {
 
       let suggestion = '';
       if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
-        suggestion = 'The package may not be published to npm yet. Check if the package name is correct.';
+        suggestion =
+          'The package may not be published to npm yet. Check if the package name is correct.';
       } else if (errorMessage.includes('EACCES') || errorMessage.includes('permission denied')) {
-        suggestion = 'Permission denied. Try running with sudo for global install or check file permissions.';
+        suggestion =
+          'Permission denied. Try running with sudo for global install or check file permissions.';
       } else if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('network')) {
         suggestion = 'Network error. Check your internet connection and registry configuration.';
       }
 
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: message,
-          suggestion: suggestion || undefined
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: message,
+            suggestion: suggestion || undefined,
+          })
+        );
       } else {
         console.error(chalk.red(message));
-        
+
         if (suggestion) {
           console.error(chalk.cyan(`💡 Suggestion: ${suggestion}`));
         }
-        
-        const globalInstallCmd = helper.getInstallInstructions('@sammons/claude-good-hooks@latest', true);
-        const localInstallCmd = helper.getInstallInstructions('@sammons/claude-good-hooks@latest', false);
+
+        const globalInstallCmd = helper.getInstallInstructions(
+          '@sammons/claude-good-hooks@latest',
+          true
+        );
+        const localInstallCmd = helper.getInstallInstructions(
+          '@sammons/claude-good-hooks@latest',
+          false
+        );
         console.error(chalk.gray(`Try running: ${globalInstallCmd}`));
         console.error(chalk.gray(`Or locally: ${localInstallCmd}`));
       }
-      
+
       processService.exit(1);
     }
   }
@@ -172,12 +186,12 @@ export class UpdateCommand {
    */
   private showUpdateHelp(): void {
     const helpInfo = this.getHelp();
-    
+
     console.log(chalk.bold(helpInfo.name) + ' - ' + helpInfo.description + '\n');
-    
+
     console.log(chalk.bold('USAGE'));
     console.log('  ' + helpInfo.usage + '\n');
-    
+
     if (helpInfo.options && helpInfo.options.length > 0) {
       console.log(chalk.bold('OPTIONS'));
       for (const option of helpInfo.options) {
@@ -188,7 +202,7 @@ export class UpdateCommand {
       }
       console.log('');
     }
-    
+
     if (helpInfo.examples && helpInfo.examples.length > 0) {
       console.log(chalk.bold('EXAMPLES'));
       for (const example of helpInfo.examples) {

@@ -14,12 +14,12 @@ export interface RestoreSubCommand {
    * Check if this sub-command handles the given arguments and options
    */
   match(args: string[], options: RestoreOptions): boolean;
-  
+
   /**
    * Validate the arguments and options for this sub-command
    */
   validate(args: string[], options: RestoreOptions): ValidationResult<any>;
-  
+
   /**
    * Execute this sub-command
    */

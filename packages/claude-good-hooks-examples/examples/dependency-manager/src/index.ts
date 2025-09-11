@@ -8,15 +8,25 @@ const dependencyManagerHook: HookPlugin = {
   version: '1.0.0',
   customArgs: {
     enabled: { description: 'Enable dependency management', type: 'boolean', default: true },
-    autoUpdate: { description: 'Automatically update dependencies', type: 'boolean', default: false },
-    checkSecurity: { description: 'Check for security vulnerabilities', type: 'boolean', default: true }
+    autoUpdate: {
+      description: 'Automatically update dependencies',
+      type: 'boolean',
+      default: false,
+    },
+    checkSecurity: {
+      description: 'Check for security vulnerabilities',
+      type: 'boolean',
+      default: true,
+    },
   },
-  makeHook: (args) => ({
-    PostToolUse: [{
-      matcher: 'Write|Edit',
-      hooks: [{
-        type: 'command',
-        command: `node -e "
+  makeHook: args => ({
+    PostToolUse: [
+      {
+        matcher: 'Write|Edit',
+        hooks: [
+          {
+            type: 'command',
+            command: `node -e "
           const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
           const filePath = input.tool_input?.file_path || '';
           
@@ -24,10 +34,12 @@ const dependencyManagerHook: HookPlugin = {
             console.log('📦 Dependency file updated - checking for issues...');
             // In real implementation: run npm audit, check versions, etc.
           }
-        "`
-      }]
-    }]
-  })
+        "`,
+          },
+        ],
+      },
+    ],
+  }),
 };
 
 export default dependencyManagerHook;

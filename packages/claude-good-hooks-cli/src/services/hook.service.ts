@@ -67,7 +67,7 @@ export class HookService {
     if (!hookConfiguration) {
       return {
         success: false,
-        error: 'makeHook returned undefined or null'
+        error: 'makeHook returned undefined or null',
       };
     }
 
@@ -81,10 +81,10 @@ export class HookService {
               name: `${hookName}/${plugin.name}`,
               description: plugin.description,
               version: plugin.version,
-              hookFactoryArguments: parsedArgs
-            }
+              hookFactoryArguments: parsedArgs,
+            },
           };
-          
+
           // eventName is guaranteed to be a key of the hook configuration object
           // which matches the structure of ClaudeSettings['hooks']
           await this.settingsService.addHookToSettings(
@@ -130,7 +130,7 @@ export class HookService {
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       if (arg == null) {
-        throw new Error("Unexpectedly nullish arg, this is a bug")
+        throw new Error('Unexpectedly nullish arg, this is a bug');
       }
       if (arg.startsWith('--')) {
         const argName = arg.slice(2);
@@ -198,21 +198,24 @@ export class HookService {
       for (const hookWithMeta of hookArray) {
         const metadata = hookWithMeta.metadata;
         const config = hookWithMeta.configuration;
-        
+
         // Use metadata if available, otherwise fall back to config properties for backwards compatibility
-        const name = metadata?.identifier.name || 
-                     (config as any).claudegoodhooks?.name ||
-                     (config as any).name || 
-                     `${eventName}${config.matcher ? `:${config.matcher}` : ''}`;
-        const description = metadata?.description || 
-                           (config as any).claudegoodhooks?.description ||
-                           (config as any).description || 
-                           `Configured ${eventName} hook`;
-        const version = metadata?.identifier.version || 
-                       (config as any).claudegoodhooks?.version ||
-                       (config as any).version || 
-                       'n/a';
-        
+        const name =
+          metadata?.identifier.name ||
+          (config as any).claudegoodhooks?.name ||
+          (config as any).name ||
+          `${eventName}${config.matcher ? `:${config.matcher}` : ''}`;
+        const description =
+          metadata?.description ||
+          (config as any).claudegoodhooks?.description ||
+          (config as any).description ||
+          `Configured ${eventName} hook`;
+        const version =
+          metadata?.identifier.version ||
+          (config as any).claudegoodhooks?.version ||
+          (config as any).version ||
+          'n/a';
+
         hooks.push({
           name,
           description,
@@ -230,8 +233,6 @@ export class HookService {
   async listAvailableHooks(global: boolean): Promise<HookMetadata[]> {
     const hooks: HookMetadata[] = [];
 
-
-
     try {
       const installedModules = await this.moduleService.getInstalledHookModules(global);
       for (const moduleName of installedModules) {
@@ -244,11 +245,13 @@ export class HookService {
             source: global ? 'global' : 'local',
             packageName: moduleName,
             installed: true,
-        });
+          });
         }
       }
     } catch (error: unknown) {
-      console.warn(`Warning: Could not list installed hook modules (global: ${global}): ${String(error)}`);
+      console.warn(
+        `Warning: Could not list installed hook modules (global: ${global}): ${String(error)}`
+      );
     }
 
     return hooks;
@@ -267,7 +270,7 @@ export class HookService {
       for (const [eventName, hookArray] of Object.entries(hooksWithMetadata)) {
         for (const hookWithMeta of hookArray) {
           const metadata = hookWithMeta.metadata;
-          
+
           // Skip if no metadata or missing required fields
           if (!metadata || !metadata.identifier.name || !metadata.hookFactoryArguments) {
             continue;
@@ -299,7 +302,7 @@ export class HookService {
       totalProcessed: results.length,
       successCount,
       skippedCount,
-      errorCount
+      errorCount,
     };
   }
 
@@ -317,19 +320,24 @@ export class HookService {
       // Check if the module is still installed
       if (!(await this.moduleService.isModuleInstalled(moduleName, isGlobal))) {
         // Check if it's a file path to provide a more helpful error message
-        const isFile = moduleName.endsWith('.js') || moduleName.endsWith('.mjs') || moduleName.endsWith('.cjs') || 
-                      moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName.startsWith('/');
-        
-        const errorMessage = isFile 
+        const isFile =
+          moduleName.endsWith('.js') ||
+          moduleName.endsWith('.mjs') ||
+          moduleName.endsWith('.cjs') ||
+          moduleName.startsWith('./') ||
+          moduleName.startsWith('../') ||
+          moduleName.startsWith('/');
+
+        const errorMessage = isFile
           ? `File ${moduleName} not found - it may have been moved or deleted`
           : `Module ${moduleName} is not installed ${isGlobal ? 'globally' : 'locally'}`;
-        
+
         return {
           success: false,
           hookName,
           scope,
           eventName,
-          error: errorMessage
+          error: errorMessage,
         };
       }
 
@@ -341,14 +349,14 @@ export class HookService {
           hookName,
           scope,
           eventName,
-          error: `Failed to load plugin from module ${moduleName}`
+          error: `Failed to load plugin from module ${moduleName}`,
         };
       }
 
       // Parse the saved arguments using the current plugin definition
       const parsedArgs = this.parseHookArgsFromSaved(savedArgs, plugin);
       const settingsDirectoryPath = this.getSettingsDirectoryPath(scope);
-      
+
       // Generate the new hook configuration
       const hookConfiguration = plugin.makeHook(parsedArgs, { settingsDirectoryPath });
 
@@ -360,7 +368,7 @@ export class HookService {
           hookName,
           scope,
           eventName,
-          error: `Hook ${hookName} no longer provides configuration for event ${eventName}`
+          error: `Hook ${hookName} no longer provides configuration for event ${eventName}`,
         };
       }
 
@@ -372,8 +380,8 @@ export class HookService {
             name: hookName,
             description: plugin.description,
             version: plugin.version,
-            hookFactoryArguments: parsedArgs
-          }
+            hookFactoryArguments: parsedArgs,
+          },
         };
 
         await this.settingsService.addHookToSettings(scope, eventName, enhancedConfig);
@@ -384,7 +392,7 @@ export class HookService {
         hookName,
         scope,
         eventName,
-        updated: true
+        updated: true,
       };
     } catch (error: unknown) {
       return {
@@ -392,7 +400,7 @@ export class HookService {
         hookName,
         scope,
         eventName,
-        error: `Unexpected error: ${String(error)}`
+        error: `Unexpected error: ${String(error)}`,
       };
     }
   }
@@ -413,9 +421,11 @@ export class HookService {
       if (argName in plugin.customArgs) {
         const argDef = plugin.customArgs[argName];
         if (!argDef) {
-          throw new Error(`Unexpectedly missing argDef for ${argName} for plugin ${plugin.name}. This is a bug.`)
+          throw new Error(
+            `Unexpectedly missing argDef for ${argName} for plugin ${plugin.name}. This is a bug.`
+          );
         }
-        
+
         // Validate and convert the saved value based on current plugin definition
         if (argDef.type === 'boolean' && typeof value === 'boolean') {
           parsed[argName] = value;

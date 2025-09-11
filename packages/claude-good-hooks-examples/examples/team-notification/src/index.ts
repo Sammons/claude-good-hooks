@@ -25,15 +25,21 @@ const teamNotificationHook: HookPlugin = {
   customArgs: {
     enabled: { description: 'Enable team notifications', type: 'boolean', default: true },
     slackWebhook: { description: 'Slack webhook URL', type: 'string', default: '' },
-    notifyOnLargeChanges: { description: 'Notify on large changes', type: 'boolean', default: true },
-    notifyOnErrors: { description: 'Notify on errors', type: 'boolean', default: true }
+    notifyOnLargeChanges: {
+      description: 'Notify on large changes',
+      type: 'boolean',
+      default: true,
+    },
+    notifyOnErrors: { description: 'Notify on errors', type: 'boolean', default: true },
   },
-  makeHook: (args) => ({
-    PostToolUse: [{
-      matcher: 'Write|Edit',
-      hooks: [{
-        type: 'command',
-        command: `node -e "
+  makeHook: args => ({
+    PostToolUse: [
+      {
+        matcher: 'Write|Edit',
+        hooks: [
+          {
+            type: 'command',
+            command: `node -e "
           const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
           const webhook = '${args.slackWebhook || ''}';
           
@@ -46,10 +52,12 @@ const teamNotificationHook: HookPlugin = {
             // In real implementation, send webhook notification
             console.log('📢 Team notification sent for file:', input.tool_input.file_path);
           }
-        "`
-      }]
-    }]
-  })
+        "`,
+          },
+        ],
+      },
+    ],
+  }),
 };
 
 export default teamNotificationHook;

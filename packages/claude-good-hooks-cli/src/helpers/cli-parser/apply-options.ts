@@ -10,14 +10,14 @@ export class ApplyOptions implements CommandOptionProcessor {
     let hookName = '';
     const remainingArgs: string[] = [];
     const options: Record<string, unknown> = {};
-    
+
     let i = 0;
     while (i < args.length) {
       const arg = args[i];
       if (arg == null) {
-        throw new Error("Unexpected null value in arg array. This is a bug.")
+        throw new Error('Unexpected null value in arg array. This is a bug.');
       }
-      
+
       if (arg.startsWith('--')) {
         if (arg === '--global') {
           options.global = true;
@@ -56,10 +56,10 @@ export class ApplyOptions implements CommandOptionProcessor {
     }
 
     const finalArgs = hookName ? [hookName, ...remainingArgs] : remainingArgs;
-    
+
     return {
       args: finalArgs,
-      options
+      options,
     };
   }
 }

@@ -1,10 +1,10 @@
 /**
  * Dual Settings Helper for managing both Claude settings.json and claude-good-hooks.json files
- * 
+ *
  * This helper implements the new architecture where:
  * - settings.json contains only clean hook configurations (no metadata)
  * - claude-good-hooks.json contains all our custom metadata
- * 
+ *
  * This separation resolves validation conflicts with Claude Code.
  */
 
@@ -12,7 +12,6 @@ import type {
   ClaudeSettings,
   CleanHookConfiguration,
   HookConfiguration,
-  LegacyClaudeSettings
 } from '@sammons/claude-good-hooks-types';
 
 import type {
@@ -21,7 +20,7 @@ import type {
   HookIdentifier,
   SettingsMetadataPair,
   MigrationStatus,
-  HookWithMetadata
+  HookWithMetadata,
 } from '@sammons/claude-good-hooks-types';
 
 import { generateHookId } from './utils/hook-id.js';
@@ -73,7 +72,11 @@ export class DualSettingsHelper {
       case 'project':
         return this.fileSystem.join(this.fileSystem.cwd(), '.claude', 'claude-good-hooks.json');
       case 'local':
-        return this.fileSystem.join(this.fileSystem.cwd(), '.claude', 'claude-good-hooks.local.json');
+        return this.fileSystem.join(
+          this.fileSystem.cwd(),
+          '.claude',
+          'claude-good-hooks.local.json'
+        );
     }
   }
 
@@ -86,7 +89,7 @@ export class DualSettingsHelper {
 
     const [settingsResult, metadataResult] = await Promise.all([
       this.atomicReadFile(settingsPath),
-      this.atomicReadFile(metadataPath)
+      this.atomicReadFile(metadataPath),
     ]);
 
     const pair: SettingsMetadataPair = {
@@ -94,8 +97,8 @@ export class DualSettingsHelper {
       metadataPath,
       exists: {
         settings: settingsResult.success && settingsResult.content !== '{}',
-        metadata: metadataResult.success && metadataResult.content !== '{}'
-      }
+        metadata: metadataResult.success && metadataResult.content !== '{}',
+      },
     };
 
     // Parse settings
@@ -146,7 +149,7 @@ export class DualSettingsHelper {
     // Write both files
     await Promise.all([
       this.atomicWriteFile(settingsPath, JSON.stringify(settings, null, 2)),
-      this.atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2))
+      this.atomicWriteFile(metadataPath, JSON.stringify(metadata, null, 2)),
     ]);
   }
 
@@ -196,19 +199,19 @@ export class DualSettingsHelper {
     // Synchronize: ensure settings and metadata arrays have same length
     const settingsArray = pair.settings.hooks[eventName]!;
     const metadataArray = pair.metadata.hooks[eventName].claudegoodhooks;
-    
+
     // Handle divergence: if metadata has more entries than settings, pad settings
     while (settingsArray.length < metadataArray.length) {
       // Reconstruct the settings entry from metadata
       const orphanedMetadata = metadataArray[settingsArray.length];
       const reconstructedConfig: CleanHookConfiguration = {
         matcher: orphanedMetadata.customConfig?.matcher as string | undefined,
-        hooks: orphanedMetadata.customConfig?.hooks as any || [],
-        enabled: orphanedMetadata.enabled
+        hooks: (orphanedMetadata.customConfig?.hooks as any) || [],
+        enabled: orphanedMetadata.enabled,
       };
       settingsArray.push(reconstructedConfig);
     }
-    
+
     // Handle divergence: if settings has more entries than metadata, remove extras
     while (settingsArray.length > metadataArray.length) {
       settingsArray.pop();
@@ -223,7 +226,7 @@ export class DualSettingsHelper {
     } else {
       // Add new hook to both arrays
       settingsArray.push(cleanConfig);
-      
+
       if (metadata) {
         metadataArray.push(metadata);
       }
@@ -234,7 +237,7 @@ export class DualSettingsHelper {
       metadata.customConfig = {
         matcher: cleanConfig.matcher,
         hooks: cleanConfig.hooks,
-        ...metadata.customConfig
+        ...metadata.customConfig,
       };
     }
 
@@ -245,14 +248,14 @@ export class DualSettingsHelper {
   /**
    * Synchronize settings and metadata files to resolve divergence
    * This method ensures both files are in sync and removes duplicates
-   * 
+   *
    * IMPORTANT LIMITATION: This method assumes that for any given event type (e.g., PreToolUse),
    * either ALL hooks are managed by claude-good-hooks OR none are. It does NOT support
    * mixing managed and unmanaged hooks within the same event type.
-   * 
+   *
    * If you have both managed and unmanaged hooks in the same event type, the sync
    * will replace ALL hooks in that event type with only the managed ones.
-   * 
+   *
    * To preserve unmanaged hooks, they should be in different event types from managed ones.
    */
   async synchronize(scope: SettingsScope): Promise<{
@@ -268,7 +271,12 @@ export class DualSettingsHelper {
     const warnings: string[] = [];
 
     if (!pair.metadata) {
-      return { duplicatesRemoved: 0, orphansFixed: 0, errors: ['No metadata file exists'], warnings: [] };
+      return {
+        duplicatesRemoved: 0,
+        orphansFixed: 0,
+        errors: ['No metadata file exists'],
+        warnings: [],
+      };
     }
 
     if (!pair.settings) {
@@ -280,21 +288,21 @@ export class DualSettingsHelper {
 
     // First, process hooks that have metadata (claude-good-hooks managed)
     const processedEventNames = new Set<string>();
-    
+
     for (const [eventName, eventMetadata] of Object.entries(pair.metadata.hooks)) {
       if (!eventMetadata?.claudegoodhooks) continue;
 
       processedEventNames.add(eventName);
       const metadataArray = eventMetadata.claudegoodhooks;
-      
+
       // Remove duplicates in metadata
       const seen = new Map<string, number>();
       const uniqueMetadata: typeof metadataArray = [];
-      
+
       for (let i = 0; i < metadataArray.length; i++) {
         const meta = metadataArray[i];
         const key = meta.identifier.name;
-        
+
         if (seen.has(key)) {
           duplicatesRemoved++;
           // Keep the newer one (compare lastModified)
@@ -307,26 +315,26 @@ export class DualSettingsHelper {
           uniqueMetadata.push(meta);
         }
       }
-      
+
       // Update metadata array
       eventMetadata.claudegoodhooks = uniqueMetadata;
 
       // Reconstruct managed hooks from metadata
       const managedHooks: CleanHookConfiguration[] = [];
-      
+
       for (const meta of uniqueMetadata) {
         if (meta.customConfig?.hooks) {
           // Use stored config if available
           managedHooks.push({
             matcher: meta.customConfig.matcher as string | undefined,
             hooks: meta.customConfig.hooks as any,
-            enabled: meta.enabled
+            enabled: meta.enabled,
           });
         } else {
           // Create minimal config as we lost the original
           managedHooks.push({
             hooks: [],
-            enabled: meta.enabled
+            enabled: meta.enabled,
           });
           orphansFixed++;
           errors.push(`Reconstructed minimal config for ${meta.identifier.name}`);
@@ -335,10 +343,14 @@ export class DualSettingsHelper {
 
       // Check if there are existing hooks in settings for this event
       const existingHooks = pair.settings.hooks[eventName as keyof typeof pair.settings.hooks];
-      if (existingHooks && Array.isArray(existingHooks) && existingHooks.length > managedHooks.length) {
+      if (
+        existingHooks &&
+        Array.isArray(existingHooks) &&
+        existingHooks.length > managedHooks.length
+      ) {
         warnings.push(
           `WARNING: Event type '${eventName}' has ${existingHooks.length} hooks in settings but only ${managedHooks.length} managed hooks. ` +
-          `Sync will replace ALL hooks in this event. Non-managed hooks will be lost!`
+            `Sync will replace ALL hooks in this event. Non-managed hooks will be lost!`
         );
       }
 
@@ -347,7 +359,7 @@ export class DualSettingsHelper {
       // This is intentional as we track managed hooks by event type
       pair.settings.hooks[eventName as keyof typeof pair.settings.hooks] = managedHooks as any;
     }
-    
+
     // CRITICAL: Preserve any event types that exist in settings but NOT in metadata
     // These are completely unmanaged hooks that we should never touch
     if (pair.settings.hooks) {
@@ -388,11 +400,11 @@ export class DualSettingsHelper {
     }
 
     const hookName = typeof identifier === 'string' ? identifier : identifier.name;
-    
+
     // Find hook by name in metadata
     const metadataArray = pair.metadata.hooks[eventName].claudegoodhooks;
-    const hookIndex = metadataArray.findIndex(meta => 
-      meta.identifier.name === hookName || meta.identifier.id === hookName
+    const hookIndex = metadataArray.findIndex(
+      meta => meta.identifier.name === hookName || meta.identifier.id === hookName
     );
 
     if (hookIndex === -1) {
@@ -434,10 +446,10 @@ export class DualSettingsHelper {
 
       result[eventName] = configurations.map((config, index) => {
         const metadata = pair.metadata?.hooks[eventName]?.claudegoodhooks[index];
-        
+
         return {
           configuration: config,
-          metadata
+          metadata,
         };
       });
     }
@@ -456,45 +468,46 @@ export class DualSettingsHelper {
       return {
         needsMigration: false,
         blockingIssues: [],
-        warnings: []
+        warnings: [],
       };
     }
 
     try {
       const parsed = JSON.parse(readResult.content);
-      
+
       // Check if it's legacy format (has $schema, version, meta, or claudegoodhooks)
-      const hasLegacyMarkers = (
+      const hasLegacyMarkers =
         '$schema' in parsed ||
         'version' in parsed ||
         'meta' in parsed ||
-        this.hasClaudeGoodHooksMetadata(parsed)
-      );
+        this.hasClaudeGoodHooksMetadata(parsed);
 
       if (!hasLegacyMarkers) {
         return {
           needsMigration: false,
           blockingIssues: [],
-          warnings: []
+          warnings: [],
         };
       }
 
       // Extract clean settings and metadata
-      const { cleanSettings, extractedMetadata, issues, warnings } = this.extractFromLegacy(parsed, scope);
+      const { cleanSettings, extractedMetadata, issues, warnings } = this.extractFromLegacy(
+        parsed,
+        scope
+      );
 
       return {
         needsMigration: true,
         blockingIssues: issues,
         warnings,
         extractedMetadata,
-        cleanSettings
+        cleanSettings,
       };
-
     } catch (error) {
       return {
         needsMigration: false,
         blockingIssues: [`Invalid JSON in settings file: ${error}`],
-        warnings: []
+        warnings: [],
       };
     }
   }
@@ -511,16 +524,16 @@ export class DualSettingsHelper {
       }
 
       if (migrationStatus.blockingIssues.length > 0) {
-        return { 
-          success: false, 
-          error: `Migration blocked: ${migrationStatus.blockingIssues.join(', ')}` 
+        return {
+          success: false,
+          error: `Migration blocked: ${migrationStatus.blockingIssues.join(', ')}`,
         };
       }
 
       if (!migrationStatus.cleanSettings || !migrationStatus.extractedMetadata) {
-        return { 
-          success: false, 
-          error: 'Migration analysis failed to extract clean settings or metadata' 
+        return {
+          success: false,
+          error: 'Migration analysis failed to extract clean settings or metadata',
         };
       }
 
@@ -533,9 +546,9 @@ export class DualSettingsHelper {
 
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: `Migration failed: ${error}` 
+      return {
+        success: false,
+        error: `Migration failed: ${error}`,
       };
     }
   }
@@ -550,27 +563,30 @@ export class DualSettingsHelper {
     const cleanConfig: CleanHookConfiguration = {
       matcher: hookConfig.matcher,
       hooks: hookConfig.hooks,
-      enabled: hookConfig.enabled
+      enabled: hookConfig.enabled,
     };
 
     let metadata: HookInstanceMetadata | undefined;
 
     if (hookConfig.claudegoodhooks) {
-      const id = generateHookId(hookConfig.claudegoodhooks.name, hookConfig.claudegoodhooks.version);
+      const id = generateHookId(
+        hookConfig.claudegoodhooks.name,
+        hookConfig.claudegoodhooks.version
+      );
       const now = new Date().toISOString();
 
       metadata = {
         identifier: {
           id,
           name: hookConfig.claudegoodhooks.name,
-          version: hookConfig.claudegoodhooks.version
+          version: hookConfig.claudegoodhooks.version,
         },
         description: hookConfig.claudegoodhooks.description,
         source: 'local', // Default, can be updated by caller
         installedAt: now,
         lastModified: now,
         hookFactoryArguments: hookConfig.claudegoodhooks.hookFactoryArguments,
-        enabled: hookConfig.enabled ?? true
+        enabled: hookConfig.enabled ?? true,
       };
     }
 
@@ -585,7 +601,7 @@ export class DualSettingsHelper {
 
     for (const eventConfigs of Object.values(parsed.hooks)) {
       if (!Array.isArray(eventConfigs)) continue;
-      
+
       for (const config of eventConfigs) {
         if (config && typeof config === 'object' && 'claudegoodhooks' in config) {
           return true;
@@ -599,7 +615,10 @@ export class DualSettingsHelper {
   /**
    * Extract clean settings and metadata from legacy format
    */
-  private extractFromLegacy(parsed: any, scope: SettingsScope): {
+  private extractFromLegacy(
+    parsed: any,
+    scope: SettingsScope
+  ): {
     cleanSettings: ClaudeSettings;
     extractedMetadata: ClaudeGoodHooksMetadata;
     issues: string[];
@@ -636,7 +655,9 @@ export class DualSettingsHelper {
             continue;
           }
 
-          const { cleanConfig, metadata } = this.extractCleanConfigAndMetadata(config as HookConfiguration);
+          const { cleanConfig, metadata } = this.extractCleanConfigAndMetadata(
+            config as HookConfiguration
+          );
           cleanConfigs.push(cleanConfig);
 
           if (metadata) {
@@ -660,12 +681,14 @@ export class DualSettingsHelper {
   /**
    * Atomic read file operation
    */
-  private async atomicReadFile(filePath: string): Promise<{ success: boolean; content?: string; error?: Error }> {
+  private async atomicReadFile(
+    filePath: string
+  ): Promise<{ success: boolean; content?: string; error?: Error }> {
     try {
       if (!(await this.fileSystem.exists(filePath))) {
         return { success: true, content: '{}' };
       }
-      
+
       const content = await this.fileSystem.readFile(filePath, 'utf-8');
       return { success: true, content };
     } catch (error) {

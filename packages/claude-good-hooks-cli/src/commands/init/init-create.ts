@@ -7,7 +7,11 @@ import { join } from 'path';
 import { createInterface } from 'readline';
 import chalk from 'chalk';
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
-import { detectProject, getProjectTypeName, getFeatureDescription } from '../../utils/project-detector.js';
+import {
+  detectProject,
+  getProjectTypeName,
+  getFeatureDescription,
+} from '../../utils/project-detector.js';
 import { generateStarterHooks, getAvailableTemplates } from '../../utils/hook-templates.js';
 import { SettingsService } from '../../services/settings.service.js';
 import { ProcessService } from '../../services/process.service.js';
@@ -21,10 +25,7 @@ export class InitCreateCommand implements InitSubCommand {
   private settingsService: SettingsService;
   private processService: ProcessService;
 
-  constructor(
-    settingsService: SettingsService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService, processService: ProcessService) {
     this.settingsService = settingsService;
     this.processService = processService;
   }
@@ -45,13 +46,13 @@ export class InitCreateCommand implements InitSubCommand {
     if (args.length > 0) {
       return {
         valid: false,
-        errors: ['Init command does not accept arguments']
+        errors: ['Init command does not accept arguments'],
       };
     }
 
     return {
       valid: true,
-      result: options
+      result: options,
     };
   }
 
@@ -72,13 +73,15 @@ export class InitCreateCommand implements InitSubCommand {
     if (existsSync(settingsPath) && !options.force) {
       const errorMsg = `Settings file already exists: ${settingsPath}`;
       const suggestion = 'Use --force to overwrite existing configuration';
-      
+
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: errorMsg,
-          suggestion: suggestion
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: errorMsg,
+            suggestion: suggestion,
+          })
+        );
       } else {
         console.error(chalk.red(errorMsg));
         console.error(chalk.yellow(suggestion));
@@ -101,11 +104,13 @@ export class InitCreateCommand implements InitSubCommand {
       // Non-interactive mode - use auto-detected settings
       const projectInfo = detectProject();
       settings = generateStarterHooks(projectInfo);
-      
+
       if (!isJson) {
         console.log(chalk.blue('Auto-detected project configuration:'));
         console.log(chalk.gray(`  Project Type: ${getProjectTypeName(projectInfo.type)}`));
-        console.log(chalk.gray(`  Features: ${projectInfo.features.map(getFeatureDescription).join(', ')}`));
+        console.log(
+          chalk.gray(`  Features: ${projectInfo.features.map(getFeatureDescription).join(', ')}`)
+        );
         console.log();
       }
     } else {
@@ -115,30 +120,38 @@ export class InitCreateCommand implements InitSubCommand {
 
     // Write settings to file
     await this.settingsService.writeSettings(scope, settings);
-    
+
     if (isJson) {
       const totalEvents = Object.keys(settings.hooks || {}).length;
       const totalHooks = Object.values(settings.hooks || {})
         .flat()
-        .reduce((count: number, config: HookConfiguration) => count + (config.hooks?.length || 0), 0);
+        .reduce(
+          (count: number, config: HookConfiguration) => count + (config.hooks?.length || 0),
+          0
+        );
 
-      console.log(JSON.stringify({
-        success: true,
-        path: settingsPath,
-        scope: scope,
-        summary: {
-          events: totalEvents,
-          hooks: totalHooks
-        }
-      }));
+      console.log(
+        JSON.stringify({
+          success: true,
+          path: settingsPath,
+          scope: scope,
+          summary: {
+            events: totalEvents,
+            hooks: totalHooks,
+          },
+        })
+      );
     } else {
       console.log(chalk.green(`✅ Configuration created successfully at: ${settingsPath}`));
-      
+
       // Show what was created
       const totalEvents = Object.keys(settings.hooks || {}).length;
       const totalHooks = Object.values(settings.hooks || {})
         .flat()
-        .reduce((count: number, config: HookConfiguration) => count + (config.hooks?.length || 0), 0);
+        .reduce(
+          (count: number, config: HookConfiguration) => count + (config.hooks?.length || 0),
+          0
+        );
 
       console.log(chalk.blue('\n📊 Configuration Summary:'));
       console.log(chalk.gray(`   • Events configured: ${totalEvents}`));
@@ -154,7 +167,9 @@ export class InitCreateCommand implements InitSubCommand {
       console.log(chalk.gray('   • Apply hooks: claude-good-hooks apply <hook-name>'));
       console.log(chalk.gray('   • List available hooks: claude-good-hooks list-hooks'));
       console.log(chalk.gray('   • Validate configuration: claude-good-hooks validate'));
-      console.log(chalk.gray('   • Get help for specific commands: claude-good-hooks help <command>'));
+      console.log(
+        chalk.gray('   • Get help for specific commands: claude-good-hooks help <command>')
+      );
     }
   }
 
@@ -163,17 +178,22 @@ export class InitCreateCommand implements InitSubCommand {
    */
   private async runInteractiveSetup(options: InitOptions): Promise<ClaudeSettings> {
     console.log(chalk.blue('Welcome to Claude Good Hooks setup wizard!\n'));
-    
+
     // Auto-detect project information
     const projectInfo = detectProject();
     console.log(chalk.blue('Project Detection:'));
     console.log(chalk.gray(`  Type: ${getProjectTypeName(projectInfo.type)}`));
-    console.log(chalk.gray(`  Features: ${projectInfo.features.map(getFeatureDescription).join(', ')}`));
+    console.log(
+      chalk.gray(`  Features: ${projectInfo.features.map(getFeatureDescription).join(', ')}`)
+    );
     console.log();
 
     // Ask about templates
     const availableTemplatesRecord = getAvailableTemplates();
-    const availableTemplates = Object.entries(availableTemplatesRecord).map(([key, value]) => ({ key, ...value }));
+    const availableTemplates = Object.entries(availableTemplatesRecord).map(([key, value]) => ({
+      key,
+      ...value,
+    }));
     if (availableTemplates.length > 0 && !options.template) {
       console.log(chalk.blue('Available Templates:'));
       availableTemplates.forEach((template, index) => {
@@ -200,8 +220,11 @@ export class InitCreateCommand implements InitSubCommand {
     this.displaySettings(settings);
     console.log();
 
-    const customize = await this.askYesNo('Would you like to customize this configuration? (y/N): ', false);
-    
+    const customize = await this.askYesNo(
+      'Would you like to customize this configuration? (y/N): ',
+      false
+    );
+
     if (customize) {
       return await this.customizeSettings(settings);
     }
@@ -235,7 +258,7 @@ export class InitCreateCommand implements InitSubCommand {
   private async customizeSettings(settings: ClaudeSettings): Promise<ClaudeSettings> {
     console.log(chalk.yellow('Configuration customization is available in future versions.'));
     console.log(chalk.gray('For now, you can edit the generated settings file manually.'));
-    
+
     return settings;
   }
 
@@ -243,13 +266,13 @@ export class InitCreateCommand implements InitSubCommand {
    * Ask yes/no question with default value
    */
   private askYesNo(question: string, defaultValue: boolean): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const rl = createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
       });
 
-      rl.question(question, (answer) => {
+      rl.question(question, answer => {
         rl.close();
         if (!answer.trim()) {
           resolve(defaultValue);
@@ -264,13 +287,13 @@ export class InitCreateCommand implements InitSubCommand {
    * Ask a question and return the response
    */
   private askQuestion(question: string): Promise<string> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const rl = createInterface({
         input: process.stdin,
-        output: process.stdout
+        output: process.stdout,
       });
 
-      rl.question(question, (answer) => {
+      rl.question(question, answer => {
         rl.close();
         resolve(answer.trim());
       });

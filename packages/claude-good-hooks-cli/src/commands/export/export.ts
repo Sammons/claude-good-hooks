@@ -20,7 +20,7 @@ import { ExportFileCommand } from './export-file.js';
 export class ExportCommand {
   name = 'export';
   description = 'Export Claude hooks configuration to shareable format';
-  
+
   private settingsService: SettingsService;
   private fileSystemService: FileSystemService;
   private processService: ProcessService;
@@ -36,7 +36,7 @@ export class ExportCommand {
     this.settingsService = settingsService;
     this.fileSystemService = fileSystemService;
     this.processService = processService;
-    
+
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
@@ -67,11 +67,11 @@ export class ExportCommand {
 
     // Find matching sub-command and delegate validation
     const subCommand = this.subCommands.find(cmd => cmd.match(args, exportOptions));
-    
+
     if (!subCommand) {
       return {
         valid: false,
-        errors: ['No matching sub-command found for the provided arguments and options']
+        errors: ['No matching sub-command found for the provided arguments and options'],
       };
     }
 
@@ -91,46 +91,46 @@ export class ExportCommand {
         {
           name: 'output',
           description: 'Output file path',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'scope',
           description: 'Configuration scope to export (project|global|local|all)',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'format',
           description: 'Export format (json|yaml|template)',
-          type: 'string'
+          type: 'string',
         },
         {
           name: 'minify',
           description: 'Minify output',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'include-metadata',
           description: 'Include export metadata',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'backup',
           description: 'Save as timestamped backup in .claude directory',
-          type: 'boolean'
+          type: 'boolean',
         },
         {
           name: 'help',
           description: 'Show help for this command',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
       examples: [
         'claude-good-hooks export',
         'claude-good-hooks export --scope=all --format=yaml',
         'claude-good-hooks export --output=my-hooks.json --scope=project',
         'claude-good-hooks export --format=template --output=hooks-template.json',
-        'claude-good-hooks export --backup --scope=project'
-      ]
+        'claude-good-hooks export --backup --scope=project',
+      ],
     };
   }
 
@@ -140,15 +140,17 @@ export class ExportCommand {
   async execute(args: string[], options: ExportOptions): Promise<void> {
     // Find matching sub-command using polymorphic pattern
     const subCommand = this.subCommands.find(cmd => cmd.match(args, options));
-    
+
     if (!subCommand) {
       // shouldn't be possible because validation should have been run by the consumer first
       const isJson = options.parent?.json;
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: 'No matching sub-command found for the provided arguments and options' 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: 'No matching sub-command found for the provided arguments and options',
+          })
+        );
       } else {
         console.error(chalk.red('Error: No matching sub-command found'));
       }
@@ -159,5 +161,4 @@ export class ExportCommand {
     // Execute the matched sub-command
     await subCommand.execute(args, options);
   }
-
 }

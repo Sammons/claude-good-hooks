@@ -1,15 +1,15 @@
 /**
  * Settings service using the new dual-file architecture
- * 
+ *
  * This service replaces the old SettingsService and uses DualSettingsHelper
  * to manage both Claude settings.json and claude-good-hooks.json files.
  */
 
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
-import { 
-  DualSettingsHelper, 
+import {
+  DualSettingsHelper,
   MigrationUtility,
-  type SettingsScope 
+  type SettingsScope,
 } from '@sammons/claude-good-hooks-settings';
 import { FileSystemService } from './file-system.service.js';
 
@@ -103,7 +103,7 @@ export class DualSettingsService {
   ): Promise<void> {
     // Check if migration is needed first
     await this.ensureMigrated(scope);
-    
+
     // Add the hook using the dual helper
     await this.dualHelper.addHook(scope, eventName, hookConfig);
   }
@@ -152,11 +152,7 @@ export class DualSettingsService {
   /**
    * Perform migration for all scopes
    */
-  async migrateAll(options?: { 
-    backup?: boolean; 
-    force?: boolean; 
-    continueOnError?: boolean; 
-  }) {
+  async migrateAll(options?: { backup?: boolean; force?: boolean; continueOnError?: boolean }) {
     return await this.migrationUtility.migrateAllScopes(options);
   }
 
@@ -190,13 +186,17 @@ export class DualSettingsService {
     const results = {
       global: await this.synchronize('global'),
       project: await this.synchronize('project'),
-      local: await this.synchronize('local')
+      local: await this.synchronize('local'),
     };
-    
+
     return {
-      totalDuplicatesRemoved: results.global.duplicatesRemoved + results.project.duplicatesRemoved + results.local.duplicatesRemoved,
-      totalOrphansFixed: results.global.orphansFixed + results.project.orphansFixed + results.local.orphansFixed,
-      scopeResults: results
+      totalDuplicatesRemoved:
+        results.global.duplicatesRemoved +
+        results.project.duplicatesRemoved +
+        results.local.duplicatesRemoved,
+      totalOrphansFixed:
+        results.global.orphansFixed + results.project.orphansFixed + results.local.orphansFixed,
+      scopeResults: results,
     };
   }
 
@@ -206,14 +206,14 @@ export class DualSettingsService {
    */
   private async ensureMigrated(scope: SettingsScope): Promise<void> {
     const status = await this.checkMigrationStatus(scope);
-    
+
     if (status.needsMigration) {
       if (status.blockingIssues.length > 0) {
         throw new Error(`Migration required but blocked: ${status.blockingIssues.join(', ')}`);
       }
-      
+
       const result = await this.migrate(scope, { backup: true });
-      
+
       if (!result.success) {
         throw new Error(`Auto-migration failed: ${result.error}`);
       }
@@ -235,14 +235,14 @@ export class DualSettingsService {
    */
   async importSettings(scope: SettingsScope, importedSettings: ClaudeSettings): Promise<void> {
     await this.ensureMigrated(scope);
-    
+
     // Get current settings to preserve unmanaged hooks
     const currentPair = await this.dualHelper.readSettingsAndMetadata(scope);
     const currentSettings = currentPair.settings || {};
-    
+
     // Create result settings starting with current unmanaged hooks
     const resultSettings: ClaudeSettings = { hooks: {} };
-    
+
     // Copy unmanaged hooks from current settings
     if (currentSettings.hooks) {
       for (const [eventName, configs] of Object.entries(currentSettings.hooks)) {
@@ -250,20 +250,20 @@ export class DualSettingsService {
           // Keep hooks that are NOT managed by claude-good-hooks
           return !config.claudegoodhooks?.name && !(config as any).name;
         });
-        
+
         if (unmanagedConfigs.length > 0) {
           (resultSettings.hooks as any)[eventName] = unmanagedConfigs;
         }
       }
     }
-    
+
     // Add imported hooks
     if (importedSettings.hooks) {
       for (const [eventName, configs] of Object.entries(importedSettings.hooks)) {
         if (!(resultSettings.hooks as any)[eventName]) {
           (resultSettings.hooks as any)[eventName] = [];
         }
-        
+
         // Add all imported hook configurations
         for (const config of configs as any[]) {
           // Use addHook method to properly separate clean config from metadata

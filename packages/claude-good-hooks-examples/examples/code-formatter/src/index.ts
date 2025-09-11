@@ -39,7 +39,7 @@ const DEFAULT_FORMATTERS: Record<string, string> = {
   '.rs': 'rustfmt',
   '.java': 'google-java-format --replace',
   '.cpp': 'clang-format -i',
-  '.c': 'clang-format -i'
+  '.c': 'clang-format -i',
 };
 
 const DEFAULT_CONFIG: Required<CodeFormatterConfig> = {
@@ -50,17 +50,17 @@ const DEFAULT_CONFIG: Required<CodeFormatterConfig> = {
   formatOnPreUse: false,
   formatOnPostUse: true,
   showResults: true,
-  failOnError: false
+  failOnError: false,
 };
 
 class CodeFormatterHook {
   private config: Required<CodeFormatterConfig>;
 
   constructor(config: CodeFormatterConfig = {}) {
-    this.config = { 
-      ...DEFAULT_CONFIG, 
+    this.config = {
+      ...DEFAULT_CONFIG,
       ...config,
-      formatters: { ...DEFAULT_FORMATTERS, ...config.formatters }
+      formatters: { ...DEFAULT_FORMATTERS, ...config.formatters },
     };
   }
 
@@ -85,10 +85,7 @@ class CodeFormatterHook {
    * Simple pattern matching (supports basic wildcards)
    */
   private matchesPattern(filePath: string, pattern: string): boolean {
-    const regex = pattern
-      .replace(/\./g, '\\.')
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*');
+    const regex = pattern.replace(/\./g, '\\.').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
     return new RegExp(`^${regex}$`).test(filePath);
   }
 
@@ -96,7 +93,7 @@ class CodeFormatterHook {
    * Format a single file
    */
   async formatFile(filePath: string): Promise<{ success: boolean; message: string }> {
-    if (!await this.fileExists(filePath)) {
+    if (!(await this.fileExists(filePath))) {
       return { success: false, message: `File does not exist: ${filePath}` };
     }
 
@@ -121,22 +118,22 @@ class CodeFormatterHook {
 
     try {
       const result = await this.runCommand(command);
-      
+
       if (result.exitCode === 0) {
-        return { 
-          success: true, 
-          message: `✅ Formatted: ${path.basename(filePath)}${result.output ? '\\n' + result.output : ''}`
+        return {
+          success: true,
+          message: `✅ Formatted: ${path.basename(filePath)}${result.output ? '\\n' + result.output : ''}`,
         };
       } else {
-        return { 
-          success: false, 
-          message: `❌ Format failed: ${path.basename(filePath)}\\n${result.error || result.output}`
+        return {
+          success: false,
+          message: `❌ Format failed: ${path.basename(filePath)}\\n${result.error || result.output}`,
         };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        message: `❌ Format error: ${path.basename(filePath)}\\n${error}`
+      return {
+        success: false,
+        message: `❌ Format error: ${path.basename(filePath)}\\n${error}`,
       };
     }
   }
@@ -144,9 +141,9 @@ class CodeFormatterHook {
   /**
    * Format multiple files
    */
-  async formatFiles(filePaths: string[]): Promise<{ 
-    formatted: string[]; 
-    failed: string[]; 
+  async formatFiles(filePaths: string[]): Promise<{
+    formatted: string[];
+    failed: string[];
     skipped: string[];
     messages: string[];
   }> {
@@ -157,7 +154,7 @@ class CodeFormatterHook {
 
     for (const filePath of filePaths) {
       const result = await this.formatFile(filePath);
-      
+
       if (result.success) {
         if (result.message.includes('Skipped')) {
           skipped.push(filePath);
@@ -167,7 +164,7 @@ class CodeFormatterHook {
       } else {
         failed.push(filePath);
       }
-      
+
       if (this.config.showResults) {
         messages.push(result.message);
       }
@@ -190,7 +187,11 @@ class CodeFormatterHook {
       paths.push(toolInput.filePath);
     }
 
-    if (toolInput?.edits && Array.isArray(toolInput.edits) && typeof toolInput.file_path === 'string') {
+    if (
+      toolInput?.edits &&
+      Array.isArray(toolInput.edits) &&
+      typeof toolInput.file_path === 'string'
+    ) {
       // Handle MultiEdit tool
       paths.push(toolInput.file_path);
     }
@@ -218,35 +219,35 @@ class CodeFormatterHook {
     output: string;
     error: string;
   }> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const child = spawn('sh', ['-c', command], {
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       let output = '';
       let error = '';
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         output += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         error += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         resolve({
           exitCode: code || 0,
           output: output.trim(),
-          error: error.trim()
+          error: error.trim(),
         });
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         resolve({
           exitCode: 1,
           output: '',
-          error: err.message
+          error: err.message,
         });
       });
     });
@@ -289,42 +290,42 @@ const codeFormatterHook: HookPlugin = {
     enabled: {
       description: 'Enable automatic code formatting',
       type: 'boolean',
-      default: true
+      default: true,
     },
     formatOnPreUse: {
       description: 'Format files before editing (PreToolUse)',
       type: 'boolean',
-      default: false
+      default: false,
     },
     formatOnPostUse: {
-      description: 'Format files after editing (PostToolUse)', 
+      description: 'Format files after editing (PostToolUse)',
       type: 'boolean',
-      default: true
+      default: true,
     },
     showResults: {
       description: 'Show formatting results',
       type: 'boolean',
-      default: true
+      default: true,
     },
     failOnError: {
       description: 'Fail hook execution if formatting fails',
       type: 'boolean',
-      default: false
+      default: false,
     },
     prettierConfig: {
       description: 'Path to prettier configuration file',
       type: 'string',
-      default: ''
-    }
+      default: '',
+    },
   },
-  makeHook: (args) => {
+  makeHook: args => {
     const config: CodeFormatterConfig = {
       enabled: args.enabled as boolean,
       formatOnPreUse: args.formatOnPreUse as boolean,
       formatOnPostUse: args.formatOnPostUse as boolean,
       showResults: args.showResults as boolean,
       failOnError: args.failOnError as boolean,
-      prettierConfig: args.prettierConfig as string
+      prettierConfig: args.prettierConfig as string,
     };
 
     const formatter = new CodeFormatterHook(config);
@@ -335,9 +336,10 @@ const codeFormatterHook: HookPlugin = {
     if (config.formatOnPreUse) {
       preToolUseHooks.push({
         matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command' as const,
-          command: `node -e "
+        hooks: [
+          {
+            type: 'command' as const,
+            command: `node -e "
             (async () => {
               try {
                 const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
@@ -362,17 +364,19 @@ const codeFormatterHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 10000
-        }]
+            timeout: 10000,
+          },
+        ],
       });
     }
 
     if (config.formatOnPostUse) {
       postToolUseHooks.push({
         matcher: 'Write|Edit|MultiEdit',
-        hooks: [{
-          type: 'command' as const,
-          command: `node -e "
+        hooks: [
+          {
+            type: 'command' as const,
+            command: `node -e "
             (async () => {
               try {
                 const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
@@ -400,16 +404,17 @@ const codeFormatterHook: HookPlugin = {
               }
             })();
           "`,
-          timeout: 10000
-        }]
+            timeout: 10000,
+          },
+        ],
       });
     }
 
     return {
       ...(preToolUseHooks.length > 0 && { PreToolUse: preToolUseHooks }),
-      ...(postToolUseHooks.length > 0 && { PostToolUse: postToolUseHooks })
+      ...(postToolUseHooks.length > 0 && { PostToolUse: postToolUseHooks }),
     };
-  }
+  },
 };
 
 export default codeFormatterHook;

@@ -1,6 +1,6 @@
 /**
  * Simple settings conversion utilities
- * 
+ *
  * Focused on the single real use case: converting legacy settings to current format.
  * ```ts
  * import { convertLegacyToVersionedSettings, isLegacySettings } from '@sammons/claude-good-hooks-settings/settings-utils/migrations';

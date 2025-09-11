@@ -10,7 +10,7 @@ describe('typedEntries', () => {
     };
 
     const entries = typedEntries(obj);
-    
+
     expect(entries).toEqual([
       ['foo', 'bar'],
       ['baz', 42],
@@ -36,7 +36,7 @@ describe('typedEntries', () => {
     };
 
     const entries = typedEntries(obj);
-    
+
     // TypeScript should know that entries is Array<['specificKey', string] | ['anotherKey', number]>
     entries.forEach(([key, value]) => {
       if (key === 'specificKey') {

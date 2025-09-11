@@ -10,7 +10,7 @@ export function generateCodeOutlineScript(params: {
   settingsPath: string;
   compress?: boolean;
 }): string {
-  const { format, depth, includeAll, patterns, modulePath, settingsPath, compress = true } = params;
+  const { depth, includeAll, patterns, settingsPath, compress = true } = params;
 
   return `#!/usr/bin/env node
 
@@ -70,7 +70,7 @@ function compressLine(line) {
     
     let simpleContent = content
       .replace(/^(const|let|var)\\s+/, '')
-      .replace(/\\s*\\{([^}]+)\\}/, ':\$1')
+      .replace(/\\s*\\{([^}]+)\\}/, ':$1')
       .replace(/function\\s+/, '')
       .replace(/interface\\s+/, '')
       .replace(/class\\s+/, '')

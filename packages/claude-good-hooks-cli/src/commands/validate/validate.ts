@@ -11,7 +11,6 @@ import type { ValidateSubCommand } from './validate-types.js';
 import { ValidateHelpCommand } from './validate-help.js';
 import { ValidateCheckCommand } from './validate-check.js';
 
-
 /**
  * Validate command - validate hooks configuration
  * Uses polymorphic pattern for sub-command handling
@@ -19,7 +18,7 @@ import { ValidateCheckCommand } from './validate-check.js';
 export class ValidateCommand {
   name = 'validate';
   description = 'Validate hooks configuration';
-  
+
   private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
@@ -27,13 +26,10 @@ export class ValidateCommand {
 
   constructor(processService: ProcessService) {
     this.processService = processService;
-    
+
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
-    this.subCommands = [
-      new ValidateCheckCommand(this.processService),
-      new ValidateHelpCommand(),
-    ];
+    this.subCommands = [new ValidateCheckCommand(this.processService), new ValidateHelpCommand()];
   }
 
   /**
@@ -57,11 +53,11 @@ export class ValidateCommand {
 
     // Find matching sub-command and delegate validation
     const subCommand = this.subCommands.find(cmd => cmd.match(args, validateOptions));
-    
+
     if (!subCommand) {
       return {
         valid: false,
-        errors: ['No matching sub-command found for the provided arguments and options']
+        errors: ['No matching sub-command found for the provided arguments and options'],
       };
     }
 
@@ -82,15 +78,17 @@ export class ValidateCommand {
   async execute(args: string[], options: ValidateOptions): Promise<void> {
     // Find matching sub-command using polymorphic pattern
     const subCommand = this.subCommands.find(cmd => cmd.match(args, options));
-    
+
     if (!subCommand) {
       // shouldn't be possible because validation should have been run by the consumer first
       const isJson = options.parent?.json;
       if (isJson) {
-        console.log(JSON.stringify({ 
-          success: false, 
-          error: 'No matching sub-command found for the provided arguments and options' 
-        }));
+        console.log(
+          JSON.stringify({
+            success: false,
+            error: 'No matching sub-command found for the provided arguments and options',
+          })
+        );
       } else {
         console.error(chalk.red('Error: No matching sub-command found'));
       }
@@ -101,5 +99,4 @@ export class ValidateCommand {
     // Execute the matched sub-command
     await subCommand.execute(args, options);
   }
-
 }

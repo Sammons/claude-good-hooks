@@ -55,12 +55,10 @@ export class DoctorCommand {
         {
           name: 'help',
           description: 'Show help for this command',
-          type: 'boolean'
-        }
+          type: 'boolean',
+        },
       ],
-      examples: [
-        'claude-good-hooks doctor'
-      ]
+      examples: ['claude-good-hooks doctor'],
     };
   }
 
@@ -77,7 +75,9 @@ export class DoctorCommand {
         console.log('OPTIONS');
         help.options.forEach(option => {
           const shortFlag = option.short ? `-${option.short}, ` : '';
-          console.log(`  ${shortFlag}--${option.name}${' '.repeat(Math.max(1, 20 - option.name.length))}${option.description}`);
+          console.log(
+            `  ${shortFlag}--${option.name}${' '.repeat(Math.max(1, 20 - option.name.length))}${option.description}`
+          );
         });
         console.log('');
       }
