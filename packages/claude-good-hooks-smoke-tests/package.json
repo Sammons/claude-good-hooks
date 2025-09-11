@@ -41,6 +41,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@sammons/claude-good-hooks": "workspace:*",
     "@sammons/claude-good-hooks-types": "workspace:*"
   },
   "devDependencies": {
