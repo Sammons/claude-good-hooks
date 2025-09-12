@@ -1,6 +1,5 @@
 // Import command classes
 import { HelpCommand } from './help/help.js';
-import { InitCommand } from './init/init.js';
 import { VersionCommand } from './version/version.js';
 import { ApplyCommand } from './apply/apply.js';
 import { ListHooksCommand } from './list-hooks/list-hooks.js';
@@ -9,7 +8,6 @@ import { UpdateCommand } from './update/update.js';
 import { DoctorCommand } from './doctor/doctor.js';
 import { ExportCommand } from './export/export.js';
 import { ImportCommand } from './import/import.js';
-import { RestoreCommand } from './restore/restore.js';
 import { RemoveCommand } from './remove/remove.js';
 
 // Import services needed by commands
@@ -75,7 +73,6 @@ export class CommandRegistry {
     // Initialize all command instances
     this.commands = [
       new HelpCommand(),
-      new InitCommand(this.settingsService, this.processService),
       new VersionCommand(),
       new ApplyCommand(this.hookService, this.processService),
       new ListHooksCommand(),
@@ -84,7 +81,6 @@ export class CommandRegistry {
       new DoctorCommand(),
       new ExportCommand(this.settingsService, this.fileSystemService, this.processService),
       new ImportCommand(this.settingsService, this.processService),
-      new RestoreCommand(this.fileSystemService, this.processService),
       new RemoveCommand(this.settingsService),
     ];
   }

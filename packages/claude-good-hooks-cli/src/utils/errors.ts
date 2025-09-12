@@ -155,9 +155,9 @@ export const createError = {
       context: { configType },
       suggestions: [
         {
-          title: 'Initialize configuration',
-          description: 'Run the init command to create a new configuration',
-          command: 'claude-good-hooks init',
+          title: 'Create configuration manually',
+          description: 'Create a .claude/settings.json file with hook configurations',
+          command: 'mkdir -p .claude && echo "{}" > .claude/settings.json',
         },
         {
           title: 'Check documentation',

@@ -17,11 +17,9 @@ import { NoColorOption } from './cli-parser/no-color-option.js';
 // Command option processors
 import { ListHooksOptions } from './cli-parser/list-hooks-options.js';
 import { ApplyOptions } from './cli-parser/apply-options.js';
-import { InitOptions } from './cli-parser/init-options.js';
 import { ValidateOptions } from './cli-parser/validate-options.js';
 import { ExportOptions } from './cli-parser/export-options.js';
 import { ImportOptions } from './cli-parser/import-options.js';
-import { RestoreOptions } from './cli-parser/restore-options.js';
 import { DoctorOptions } from './cli-parser/doctor-options.js';
 import { UpdateOptions } from './cli-parser/update-options.js';
 import { RemoveOptions } from './cli-parser/remove-options.js';
@@ -179,11 +177,9 @@ export class CLIParser {
   private commandOptions: CommandOptionProcessor[] = [
     new ListHooksOptions(),
     new ApplyOptions(),
-    new InitOptions(),
     new ValidateOptions(),
     new ExportOptions(),
     new ImportOptions(),
-    new RestoreOptions(),
     new DoctorOptions(),
     new UpdateOptions(),
     new RemoveOptions(),
