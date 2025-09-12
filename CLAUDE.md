@@ -87,11 +87,8 @@ No more than 3 parameters should be passed to a function before converting to a 
 
 **❌ Bad:**
 ```typescript
-function createHook(name: string, type: string, command: string, timeout: number, retries: number, async: boolean) {
-  // Too many parameters make the function hard to call and understand
-}
+function createHook(name: string, type: string, command: string, timeout: number, retries: number, async: boolean) {}
 
-// Calling this is error-prone
 createHook('pre-commit', 'bash', 'npm test', 30000, 3, true);
 ```
 
@@ -108,10 +105,8 @@ interface CreateHookParams {
 
 function createHook(params: CreateHookParams) {
   const { name, type, command, timeout = 30000, retries = 3, async = false } = params;
-  // Clear, extensible, and self-documenting
 }
 
-// Calling is clear and order-independent
 createHook({ 
   name: 'pre-commit',
   type: 'bash',
@@ -126,27 +121,10 @@ When exporting multiple functions from the same file which could be combined int
 
 **❌ Bad:**
 ```typescript
-// sqs-utils.ts
-import { SQSClient } from '@aws-sdk/client-sqs';
+export async function publishMessage(client: SQSClient, queueUrl: string, message: string, attributes?: Record<string, any>) {}
+export async function describeQueue(client: SQSClient, queueUrl: string) {}
+export async function purgeQueue(client: SQSClient, queueUrl: string) {}
 
-export async function publishMessage(client: SQSClient, queueUrl: string, message: string, attributes?: Record<string, any>) {
-  // Every function needs the client passed in
-}
-
-export async function describeQueue(client: SQSClient, queueUrl: string) {
-  // Repetitive client parameter
-}
-
-export async function purgeQueue(client: SQSClient, queueUrl: string) {
-  // Client parameter again
-}
-
-export async function getQueueAttributes(client: SQSClient, queueUrl: string, attributeNames: string[]) {
-  // And again...
-}
-
-// Usage is verbose and error-prone
-import { publishMessage, describeQueue, purgeQueue } from './sqs-utils';
 const client = new SQSClient({ region: 'us-east-1' });
 await publishMessage(client, queueUrl, 'Hello');
 await describeQueue(client, queueUrl);
@@ -154,31 +132,15 @@ await describeQueue(client, queueUrl);
 
 **✅ Good:**
 ```typescript
-// sqs-service.ts
-import { SQSClient } from '@aws-sdk/client-sqs';
-
 export class SQSService {
   constructor(private readonly client: SQSClient) {}
   
-  async publishMessage(queueUrl: string, message: string, attributes?: Record<string, any>) {
-    // Client is available via this.client
-  }
-  
-  async describeQueue(queueUrl: string) {
-    // No need to pass client
-  }
-  
-  async purgeQueue(queueUrl: string) {
-    // Clean method signature
-  }
-  
-  async getQueueAttributes(queueUrl: string, attributeNames: string[]) {
-    // Focused on business logic, not boilerplate
-  }
+  async publishMessage(queueUrl: string, message: string, attributes?: Record<string, any>) {}
+  async describeQueue(queueUrl: string) {}
+  async purgeQueue(queueUrl: string) {}
+  async getQueueAttributes(queueUrl: string, attributeNames: string[]) {}
 }
 
-// Usage is clean and the client is configured once
-import { SQSService } from './sqs-service';
 const sqsService = new SQSService(new SQSClient({ region: 'us-east-1' }));
 await sqsService.publishMessage(queueUrl, 'Hello');
 await sqsService.describeQueue(queueUrl);
@@ -207,49 +169,24 @@ function processCommand(command: string, args: any) {
 **✅ Good:**
 ```typescript
 class InitCommand {
-  match(command: string): boolean {
-    return command === 'init';
-  }
-  
-  async execute(args: any): Promise<void> {
-    // Initialize project
-  }
+  match(command: string): boolean { return command === 'init'; }
+  async execute(args: any): Promise<void> {}
 }
 
 class BuildCommand {
-  match(command: string): boolean {
-    return command === 'build';
-  }
-  
-  async execute(args: any): Promise<void> {
-    // Build project
-  }
-}
-
-class TestCommand {
-  match(command: string): boolean {
-    return command === 'test';
-  }
-  
-  async execute(args: any): Promise<void> {
-    // Run tests
-  }
+  match(command: string): boolean { return command === 'build'; }
+  async execute(args: any): Promise<void> {}
 }
 
 class CommandProcessor {
-  // Duck-typing: TypeScript enforces that all items have .match() and .execute()
-  // No need for abstract class or interface
   private commands = [
     new InitCommand(),
     new BuildCommand(),
-    new TestCommand(),
   ];
   
   async process(command: string, args: any): Promise<void> {
-    // This won't compile if any command is missing .match()
     const cmd = this.commands.find(c => c.match(command));
     if (!cmd) throw new Error(`Unknown command: ${command}`);
-    // This won't compile if any command is missing .execute()
     return cmd.execute(args);
   }
 }
@@ -275,7 +212,6 @@ function processData(items: Item[]): ProcessResult {
     }
   }
   
-  // Multiple lets scattered throughout
   let result = { total, errors, processed };
   return result;
 }
@@ -286,11 +222,11 @@ function processData(items: Item[]): ProcessResult {
 function processData(items: Item[]): ProcessResult {
   const processed: Item[] = [];
   const errors: string[] = [];
-  let total = 0; // Single let for simple accumulation is OK
+  let total = 0;
   
   for (const item of items) {
     if (item.isValid) {
-      processed.push(item); // Mutating const array is fine
+      processed.push(item);
       total += item.value;
     } else {
       errors.push(item.error);
@@ -316,25 +252,6 @@ function processData(items: Item[]): ProcessResult {
 }
 ```
 
-**Note on `.reduce()`**: While reduce is powerful, it can hurt readability for complex accumulations. Compare:
-
-```typescript
-// Hard to read reduce
-const result = items.reduce((acc, item) => ({
-  ...acc,
-  total: acc.total + item.value,
-  items: [...acc.items, item],
-  errors: item.error ? [...acc.errors, item.error] : acc.errors
-}), { total: 0, items: [], errors: [] });
-
-// Clearer with const mutation
-const result = { total: 0, items: [], errors: [] };
-for (const item of items) {
-  result.total += item.value;
-  result.items.push(item);
-  if (item.error) result.errors.push(item.error);
-}
-```
 
 #### R5. Prefer Duck-Typing Over Explicit Interfaces
 
@@ -354,16 +271,8 @@ class ConsoleLogger implements Logger {
   warn(message: string): void { console.warn(message); }
 }
 
-class FileLogger implements Logger {
-  log(message: string): void { /* write to file */ }
-  error(message: string): void { /* write to file */ }
-  warn(message: string): void { /* write to file */ }
-}
-
-// Unnecessary interface constraint
 function processWithLogging(logger: Logger, data: any) {
   logger.log('Processing started');
-  // process data
   logger.log('Processing complete');
 }
 ```
@@ -376,37 +285,21 @@ class ConsoleLogger {
   warn(message: string) { console.warn(message); }
 }
 
-class FileLogger {
-  log(message: string) { /* write to file */ }
-  error(message: string) { /* write to file */ }
-  warn(message: string) { /* write to file */ }
-}
-
-// Duck-typing: any object with .log() method works
 function processWithLogging(logger: { log(message: string): void }, data: any) {
   logger.log('Processing started');
-  // process data
   logger.log('Processing complete');
 }
 
-// Or even better, let TypeScript infer from usage
 class DataProcessor {
   constructor(private logger = new ConsoleLogger()) {}
   
   process(data: any) {
-    // TypeScript knows logger must have .log() from how it's used
     this.logger.log('Processing started');
-    // process data
     this.logger.log('Processing complete');
   }
 }
 
-// This pattern also enables easier testing with simple objects
-const testLogger = { 
-  log: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn()
-};
+const testLogger = { log: vi.fn(), error: vi.fn(), warn: vi.fn() };
 const processor = new DataProcessor(testLogger);
 ```
 
@@ -416,79 +309,31 @@ Prefer Vitest over Jest for testing. Vitest offers better TypeScript support, fa
 
 **❌ Bad:**
 ```typescript
-// jest.config.js
+// jest.config.js - requires complex configuration
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  // Lots of configuration needed
+  transform: { '^.+\\.tsx?$': 'ts-jest' },
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
 };
-
-// test.spec.ts
-import { jest } from '@jest/globals';
-
-describe('UserService', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should mock correctly', () => {
-    const mockFn = jest.fn();
-    mockFn.mockReturnValue(42);
-    expect(mockFn()).toBe(42);
-  });
-});
 ```
 
 **✅ Good:**
 ```typescript
-// vitest.config.ts
+// vitest.config.ts - minimal configuration
 import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    globals: true, // Optional: enables global test APIs
-  },
-  // Minimal configuration, works out of the box
-});
+export default defineConfig({ test: { globals: true } });
 
 // test.spec.ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('UserService', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should mock correctly', () => {
     const mockFn = vi.fn();
     mockFn.mockReturnValue(42);
     expect(mockFn()).toBe(42);
   });
-
-  // Vitest-specific features
-  it('should support inline tests', () => {
-    expect(sum(1, 2)).toBe(3);
-  });
 });
-
-// Vitest also supports in-source testing
-// math.ts
-export function sum(a: number, b: number): number {
-  return a + b;
-}
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-  it('sum adds numbers', () => {
-    expect(sum(1, 2)).toBe(3);
-  });
-}
 ```
 
 #### R7. Split Tests Into Focused Files Instead of Deep Nesting
@@ -502,31 +347,9 @@ describe('UserService', () => {
   describe('authentication', () => {
     describe('login', () => {
       describe('with valid credentials', () => {
-        it('should return a token', () => { /* ... */ });
-        it('should set last login time', () => { /* ... */ });
+        it('should return a token', () => {});
+        it('should set last login time', () => {});
       });
-      
-      describe('with invalid credentials', () => {
-        it('should throw unauthorized error', () => { /* ... */ });
-        it('should increment failed attempts', () => { /* ... */ });
-      });
-    });
-    
-    describe('logout', () => {
-      it('should clear the session', () => { /* ... */ });
-      it('should revoke the token', () => { /* ... */ });
-    });
-  });
-  
-  describe('profile management', () => {
-    describe('update profile', () => {
-      it('should update user data', () => { /* ... */ });
-      it('should validate email format', () => { /* ... */ });
-    });
-    
-    describe('delete account', () => {
-      it('should soft delete the user', () => { /* ... */ });
-      it('should cancel subscriptions', () => { /* ... */ });
     });
   });
 });
@@ -536,46 +359,18 @@ describe('UserService', () => {
 ```typescript
 // user.login-valid.test.ts
 describe('UserService login with valid credentials', () => {
-  it('should return a token', () => { /* ... */ });
-  it('should set last login time', () => { /* ... */ });
+  it('should return a token', () => {});
+  it('should set last login time', () => {});
 });
 
 // user.login-invalid.test.ts
 describe('UserService login with invalid credentials', () => {
-  it('should throw unauthorized error', () => { /* ... */ });
-  it('should increment failed attempts', () => { /* ... */ });
+  it('should throw unauthorized error', () => {});
+  it('should increment failed attempts', () => {});
 });
-
-// user.logout.test.ts
-describe('UserService logout', () => {
-  it('should clear the session', () => { /* ... */ });
-  it('should revoke the token', () => { /* ... */ });
-});
-
-// user.profile.test.ts
-describe('UserService profile management', () => {
-  it('should update user data', () => { /* ... */ });
-  it('should validate email format', () => { /* ... */ });
-});
-
-// user.deletion.test.ts
-describe('UserService account deletion', () => {
-  it('should soft delete the user', () => { /* ... */ });
-  it('should cancel subscriptions', () => { /* ... */ });
 ```
 
-**File naming convention:**
-- `user.test.ts` - General/basic tests
-- `user.authentication.test.ts` - Authentication-specific tests
-- `user.profile.test.ts` - Profile management tests
-- `user.deletion.test.ts` - Account deletion tests
-- `user.edge-cases.test.ts` - Edge cases and error scenarios
-
-This approach:
-- Makes test output cleaner and easier to scan
-- Allows running specific test suites with glob patterns: `vitest user.auth*`
-- Improves IDE navigation and file search
-- Keeps each test file focused on a single concern
+Split test files by feature: `user.login.test.ts`, `user.profile.test.ts`, etc.
 
 #### R8. Use Kebab-Case for Filenames
 
@@ -583,69 +378,25 @@ Use kebab-case for all filenames to make search easier and differentiate between
 
 **❌ Bad:**
 ```typescript
-// File structure with mixed casing
 src/
   UserService.ts
   AuthenticationMiddleware.ts
-  DatabaseConnection.ts
   userUtils.ts
   API_Client.ts
-
-// Searching becomes ambiguous
-// Search: "UserService" - Is this the class or the file?
-// Search: "authenticationMiddleware" - Different from filename
-
-// Imports are inconsistent with class names
-import { UserService } from './UserService';  // File and class name identical
-import { AuthMiddleware } from './AuthenticationMiddleware';  // Names differ
 ```
 
 **✅ Good:**
 ```typescript
-// File structure with kebab-case
 src/
   user-service.ts
   authentication-middleware.ts
-  database-connection.ts
   user-utils.ts
   api-client.ts
 
-// Clear distinction in searches
-// Search: "UserService" - Looking for the class
-// Search: "user-service" - Looking for the file
-
-// Imports clearly show file vs export
 import { UserService } from './user-service';
 import { AuthenticationMiddleware } from './authentication-middleware';
-import { DatabaseConnection } from './database-connection';
-import { validateUser, formatUser } from './user-utils';
-import { APIClient } from './api-client';
 ```
 
-**Benefits:**
-- **Clear search intent**: `UserService` finds the class, `user-service` finds the file
-- **Consistent URLs**: Kebab-case matches web URLs if files are served
-- **Cross-platform**: Avoids case-sensitivity issues between filesystems
-- **Better autocomplete**: Typing lowercase gives file suggestions, PascalCase gives class suggestions
-
-**Apply to all file types:**
-```typescript
-// Components
-user-profile.component.tsx
-navigation-bar.component.tsx
-
-// Tests  
-user-service.test.ts
-user-service.integration.test.ts
-
-// Configurations
-vitest.config.ts
-database.config.ts
-
-// Types/Interfaces
-user.types.ts
-api.interfaces.ts
-```
 
 #### R9. Return DTOs, Not Entity Classes with Methods
 
@@ -653,7 +404,6 @@ Methods should return plain Data Transfer Objects (DTOs) that may adhere to inte
 
 **❌ Bad:**
 ```typescript
-// Returning entities with methods causes issues
 class User {
   constructor(
     public id: string,
@@ -669,30 +419,18 @@ class User {
   getDisplayName(): string {
     return this.email.split('@')[0];
   }
-  
-  toJSON() {
-    // Custom serialization logic needed
-    const { passwordHash, ...data } = this;
-    return data;
-  }
 }
 
 class UserService {
   async getUser(id: string): Promise<User> {
     const data = await db.query('SELECT * FROM users WHERE id = ?', [id]);
-    // Returning an entity with methods
     return new User(data.id, data.email, data.passwordHash, data.createdAt);
   }
 }
-
-// Problems arise with serialization
-const user = await userService.getUser('123');
-JSON.stringify(user); // Loses methods, might expose passwordHash
 ```
 
 **✅ Good:**
 ```typescript
-// Plain interface for return type
 interface User {
   id: string;
   email: string;
@@ -700,19 +438,10 @@ interface User {
   displayName: string;
 }
 
-// Separate type for internal database data
-interface UserRecord {
-  id: string;
-  email: string;
-  passwordHash: string;
-  createdAt: Date;
-}
-
 class UserService {
   async getUser(id: string): Promise<User> {
     const data = await db.query<UserRecord>('SELECT * FROM users WHERE id = ?', [id]);
     
-    // Return plain object matching interface
     return {
       id: data.id,
       email: data.email,
@@ -721,24 +450,13 @@ class UserService {
     };
   }
   
-  // Business logic stays in service
   async validatePassword(userId: string, password: string): Promise<boolean> {
     const data = await db.query<UserRecord>('SELECT passwordHash FROM users WHERE id = ?', [userId]);
     return bcrypt.compare(password, data.passwordHash);
   }
 }
-
-// Clean serialization
-const user = await userService.getUser('123');
-JSON.stringify(user); // Works perfectly, no surprises
 ```
 
-**Benefits:**
-- **Clean serialization**: DTOs serialize to JSON without custom logic
-- **Type safety**: TypeScript ensures DTOs match their interfaces
-- **Separation of concerns**: Data structure separate from business logic
-- **API compatibility**: DTOs map directly to API responses
-- **Testability**: Easy to create test data as plain objects
 
 #### R10. Use `satisfies` for Type-Safe Object Literals
 
@@ -746,44 +464,25 @@ Use `satisfies` instead of type annotations to maintain literal inference while 
 
 **❌ Bad:**
 ```typescript
-// Type annotation loses literal types
 const routes: Record<string, string> = {
   home: '/',
   about: '/about',
   contact: '/contact'
 };
 
-// No autocomplete, type is just string
-const homeRoute = routes.home; // string
-
-// Can accidentally add invalid properties
-const config: { port: number; host: string } = {
-  port: 3000,
-  host: 'localhost',
-  invalidProp: true // TypeScript doesn't catch this with excess property checks in some contexts
-};
+const homeRoute = routes.home; // string, no autocomplete
 ```
 
 **✅ Good:**
 ```typescript
-// Using satisfies preserves literal types
 const routes = {
   home: '/',
   about: '/about',
   contact: '/contact'
 } satisfies Record<string, string>;
 
-// Full autocomplete and literal type
 const homeRoute = routes.home; // "/"
 
-// Ensures type safety while keeping literals
-const config = {
-  port: 3000,
-  host: 'localhost',
-  // invalidProp: true // TypeScript error: not in expected shape
-} satisfies { port: number; host: string };
-
-// Especially powerful for const assertions with validation
 const commands = {
   init: { description: 'Initialize project' },
   build: { description: 'Build project' },
@@ -800,23 +499,16 @@ Replace `as` casts with type guard functions that return type predicates. This p
 **❌ Bad:**
 ```typescript
 function processUser(data: unknown) {
-  // Dangerous: no runtime validation
   const user = data as User;
   console.log(user.email); // Might crash at runtime
 }
 
-// Lying to TypeScript
 const numbers = [1, 2, null, 3, undefined, 4];
 const filtered = numbers.filter(n => n !== null && n !== undefined) as number[];
-// TypeScript trusts us, but we might be wrong
-
-// Multiple assertions = code smell
-const config = JSON.parse(configStr) as unknown as ConfigType;
 ```
 
 **✅ Good:**
 ```typescript
-// Type predicate with runtime validation
 function isUser(data: unknown): data is User {
   return (
     typeof data === 'object' &&
@@ -828,28 +520,17 @@ function isUser(data: unknown): data is User {
 
 function processUser(data: unknown) {
   if (isUser(data)) {
-    console.log(data.email); // Safe: TypeScript knows this is User
+    console.log(data.email);
   } else {
     throw new Error('Invalid user data');
   }
 }
 
-// Type predicate for filtering
 function isDefined<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
 
-const numbers = [1, 2, null, 3, undefined, 4];
-const filtered = numbers.filter(isDefined); // number[], safely typed and validated
-
-// Parse with validation
-function parseConfig(configStr: string): Config {
-  const data = JSON.parse(configStr);
-  if (isValidConfig(data)) {
-    return data;
-  }
-  throw new Error('Invalid config');
-}
+const filtered = numbers.filter(isDefined);
 ```
 
 #### R12. Avoid Barrel Exports (index.ts Re-exports)
@@ -862,41 +543,16 @@ Don't use index.ts files that re-export everything. Import directly from source 
 export * from './user-service';
 export * from './auth-service';
 export * from './payment-service';
-export * from './email-service';
 
-// components/index.ts
-export { UserProfile } from './user-profile';
-export { Navigation } from './navigation';
-export { Footer } from './footer';
-
-// Usage creates unclear dependencies
-import { UserService, AuthService, EmailService } from './services';
-// Where do these come from? What if services import each other?
+import { UserService, AuthService } from './services';
 ```
 
 **✅ Good:**
 ```typescript
-// No index.ts barrel files - import directly
 import { UserService } from './services/user-service';
 import { AuthService } from './services/auth-service';
-import { EmailService } from './services/email-service';
-
-// Clear dependency graph
-import { UserProfile } from './components/user-profile';
-import { Navigation } from './components/navigation';
-
-// If you must group exports, use a specific module file
-// services/authentication.ts (not index.ts)
-export { AuthService } from './auth-service';
-export { TokenService } from './token-service';
-export type { AuthConfig } from './auth-types';
 ```
 
-**Benefits:**
-- **Faster builds**: Better tree-shaking and dead code elimination
-- **Clear dependencies**: Know exactly where imports come from
-- **Avoid circular deps**: Direct imports make cycles obvious
-- **Better code splitting**: Bundlers can optimize better
 
 #### R13. Use Discriminated Unions for Error Handling
 
@@ -907,29 +563,22 @@ Return discriminated unions instead of throwing errors. This makes error handlin
 class UserService {
   async getUser(id: string): Promise<User> {
     const user = await db.findUser(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    if (!user.isActive) {
-      throw new Error('User is inactive');
-    }
+    if (!user) throw new Error('User not found');
+    if (!user.isActive) throw new Error('User is inactive');
     return user;
   }
 }
 
-// Caller has no idea what errors to expect
 try {
   const user = await userService.getUser('123');
   console.log(user);
 } catch (error) {
-  // What kind of error? How to handle it?
   console.error(error);
 }
 ```
 
 **✅ Good:**
 ```typescript
-// Discriminated union for results
 type Result<T, E = Error> = 
   | { success: true; data: T }
   | { success: false; error: E };
@@ -945,45 +594,27 @@ class UserService {
       const user = await db.findUser(id);
       
       if (!user) {
-        return { 
-          success: false, 
-          error: { type: 'NOT_FOUND', userId: id } 
-        };
+        return { success: false, error: { type: 'NOT_FOUND', userId: id } };
       }
       
       if (!user.isActive) {
-        return { 
-          success: false, 
-          error: { type: 'INACTIVE', userId: id } 
-        };
+        return { success: false, error: { type: 'INACTIVE', userId: id } };
       }
       
       return { success: true, data: user };
     } catch (error) {
-      return { 
-        success: false, 
-        error: { type: 'DB_ERROR', message: String(error) } 
-      };
+      return { success: false, error: { type: 'DB_ERROR', message: String(error) } };
     }
   }
 }
 
-// Caller must handle all error cases
 const result = await userService.getUser('123');
-
 if (result.success) {
-  console.log(result.data); // TypeScript knows this is User
+  console.log(result.data);
 } else {
-  // TypeScript knows all possible error types
   switch (result.error.type) {
     case 'NOT_FOUND':
       console.log(`User ${result.error.userId} not found`);
-      break;
-    case 'INACTIVE':
-      console.log(`User ${result.error.userId} is inactive`);
-      break;
-    case 'DB_ERROR':
-      console.log(`Database error: ${result.error.message}`);
       break;
   }
 }
@@ -998,20 +629,14 @@ Use `unknown` in catch blocks and narrow the type with guards or validation.
 try {
   await riskyOperation();
 } catch (error) {
-  // error is implicitly 'any'
   console.log(error.message); // Unsafe property access
-  console.log(error.code); // Might not exist
-  
-  if (error.isNetworkError) { // No type checking
-    retryOperation();
-  }
+  if (error.isNetworkError) retryOperation();
 }
 
-// Casting to Error assumes too much
 try {
   await parseJSON(input);
 } catch (error) {
-  const e = error as Error; // What if it's not an Error?
+  const e = error as Error;
   logger.error(e.message);
 }
 ```
@@ -1021,11 +646,8 @@ try {
 try {
   await riskyOperation();
 } catch (error: unknown) {
-  // Must narrow the type before use
   if (error instanceof Error) {
-    console.log(error.message); // Safe
-    
-    // Further narrowing for specific error types
+    console.log(error.message);
     if (error instanceof NetworkError) {
       retryOperation();
     }
@@ -1036,20 +658,10 @@ try {
   }
 }
 
-// Helper function for error narrowing
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String(error.message);
-  }
   return 'Unknown error occurred';
-}
-
-try {
-  await parseJSON(input);
-} catch (error: unknown) {
-  logger.error(getErrorMessage(error));
 }
 ```
 
@@ -1059,37 +671,29 @@ Use `as const` and template literal types for compile-time validation of string 
 
 **❌ Bad:**
 ```typescript
-// Loose typing, no autocomplete
 const ROUTES = {
   users: '/api/users',
   posts: '/api/posts',
   comments: '/api/comments'
 };
 
-type Route = string; // Too broad
+type Route = string;
 
-// No compile-time validation
 function buildUrl(route: string, id?: string): string {
   return id ? `${route}/${id}` : route;
 }
-
-// String unions without const assertion
-const EVENTS = ['click', 'focus', 'blur'];
-type EventType = 'click' | 'focus' | 'blur'; // Manually maintained
 ```
 
 **✅ Good:**
 ```typescript
-// Const assertion for literal types
 const ROUTES = {
   users: '/api/users',
   posts: '/api/posts',
   comments: '/api/comments'
 } as const;
 
-type Route = typeof ROUTES[keyof typeof ROUTES]; // '/api/users' | '/api/posts' | '/api/comments'
+type Route = typeof ROUTES[keyof typeof ROUTES];
 
-// Template literal types for validation
 type ApiRoute = `/api/${string}`;
 type RouteWithId<T extends string> = `${T}/${string}`;
 
@@ -1097,18 +701,8 @@ function buildUrl<T extends ApiRoute>(route: T, id?: string): T | RouteWithId<T>
   return id ? `${route}/${id}` as RouteWithId<T> : route;
 }
 
-// Const assertion for arrays
 const EVENTS = ['click', 'focus', 'blur'] as const;
-type EventType = typeof EVENTS[number]; // 'click' | 'focus' | 'blur'
-
-// Template literal types for patterns
-type HexColor = `#${string}`;
-type DataAttribute = `data-${string}`;
-
-const theme = {
-  primary: '#007bff',
-  secondary: '#6c757d'
-} as const satisfies Record<string, HexColor>;
+type EventType = typeof EVENTS[number];
 ```
 
 #### R16. Use Dependency Injection Tokens Instead of Classes
@@ -1117,7 +711,6 @@ Use Symbol tokens for dependency injection instead of class constructors. This i
 
 **❌ Bad:**
 ```typescript
-// Using class constructors as DI keys
 class Container {
   private services = new Map<any, any>();
   
@@ -1130,16 +723,12 @@ class Container {
   }
 }
 
-// Usage - class names don't minify well
 container.register(UserService, new UserService());
-container.register(AuthService, new AuthService());
-
-const userService = container.get(UserService); // Uses class as key
+const userService = container.get(UserService);
 ```
 
 **✅ Good:**
 ```typescript
-// Symbol tokens for DI
 const DI_TOKENS = {
   UserService: Symbol('UserService'),
   AuthService: Symbol('AuthService'),
@@ -1165,16 +754,9 @@ class Container {
   }
 }
 
-// Define tokens with types
 const USER_SERVICE: ServiceToken<UserService> = DI_TOKENS.UserService;
-const AUTH_SERVICE: ServiceToken<AuthService> = DI_TOKENS.AuthService;
-
-// Registration with explicit contracts
 container.register(USER_SERVICE, () => new UserService(container.get(DATABASE)));
-container.register(AUTH_SERVICE, () => new AuthService());
-
-// Type-safe retrieval
-const userService = container.get(USER_SERVICE); // TypeScript knows this is UserService
+const userService = container.get(USER_SERVICE);
 ```
 
 #### R17. Validate at the Edge with Zod
@@ -1183,12 +765,10 @@ Use Zod or similar runtime validation at system boundaries. Parse, don't validat
 
 **❌ Bad:**
 ```typescript
-// Manual validation scattered throughout
 class UserController {
   async createUser(req: Request): Promise<User> {
     const { email, password, age } = req.body;
     
-    // Manual validation
     if (!email || typeof email !== 'string') {
       throw new Error('Invalid email');
     }
@@ -1199,16 +779,8 @@ class UserController {
       throw new Error('Invalid age');
     }
     
-    // Hope we validated everything correctly
     return this.userService.create({ email, password, age });
   }
-}
-
-// Trusting external data
-function processConfig(configFile: string) {
-  const config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
-  // Using config without validation
-  return connectDb(config.database.host, config.database.port);
 }
 ```
 
@@ -1216,52 +788,34 @@ function processConfig(configFile: string) {
 ```typescript
 import { z } from 'zod';
 
-// Define schema once, get type for free
 const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   age: z.number().min(0).max(150).optional()
 });
 
-type CreateUserInput = z.infer<typeof CreateUserSchema>; // Auto-generated type
+type CreateUserInput = z.infer<typeof CreateUserSchema>;
 
 class UserController {
   async createUser(req: Request): Promise<User> {
-    // Parse at the edge - throws with detailed errors if invalid
     const input = CreateUserSchema.parse(req.body);
-    
-    // input is fully typed and validated
     return this.userService.create(input);
   }
 }
 
-// Config validation
 const ConfigSchema = z.object({
   database: z.object({
     host: z.string(),
     port: z.number().int().positive(),
     username: z.string(),
     password: z.string()
-  }),
-  features: z.object({
-    enableCache: z.boolean().default(true),
-    maxConnections: z.number().int().default(10)
   })
 });
 
 function loadConfig(configFile: string): z.infer<typeof ConfigSchema> {
   const raw = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
-  return ConfigSchema.parse(raw); // Validates and provides defaults
+  return ConfigSchema.parse(raw);
 }
-
-// Environment variables with validation
-const EnvSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']),
-  PORT: z.string().transform(Number).pipe(z.number().positive()),
-  DATABASE_URL: z.string().url()
-});
-
-const env = EnvSchema.parse(process.env); // Validated env with proper types
 ```
 
 #### R18. Keep Parent Files Adjacent to Their Helper Directories
@@ -1270,107 +824,36 @@ When a file needs multiple helper files, create a helper directory at the same l
 
 **❌ Bad:**
 ```typescript
-// Wrong: parent file inside its own helpers directory
 src/
   toy-handlers/
     toy-processor.ts      // Parent file wrongly placed inside
     parse-toy.ts
     validate-toy.ts
-    transform-toy.ts
-    format-toy.ts
-
-// Or this confusing structure
-src/
-  user-service/
-    user-service.ts       // Is this the main file or a helper?
-    user-validator.ts
-    user-repository.ts
-    user-transformer.ts
-
-// Imports are confusing
-// From toy-processor.ts:
-import { parseToy } from './parse-toy';  // Looks like sibling, but it's actually a helper
 ```
 
 **✅ Good:**
 ```typescript
-// Correct: parent file at same level as its helpers directory
 src/
   toy-processor.ts        // Parent file at root level
   toy-processor/          // Helper directory with same name prefix
     parse-toy.ts
     validate-toy.ts
-    transform-toy.ts
-    format-toy.ts
 
-// Or with 'helpers' suffix for clarity
-src/
-  toy-processor.ts
-  toy-processor-helpers/
-    parse-toy.ts
-    validate-toy.ts
-    transform-toy.ts
-
-// Clear relationship
 src/
   user-service.ts         // Main service file
   user-service/           // Its helpers
     user-validator.ts
     user-repository.ts
-    user-transformer.ts
-    user-types.ts
 
-// Imports clearly show the relationship
-// From toy-processor.ts:
 import { parseToy } from './toy-processor/parse-toy';
-import { validateToy } from './toy-processor/validate-toy';
-
-// From external files:
-import { ToyProcessor } from './toy-processor';  // Clear what's the main export
-import { parseToy } from './toy-processor/parse-toy';  // Clear what's a helper
+import { ToyProcessor } from './toy-processor';
 ```
 
-**Benefits:**
-- **Clear hierarchy**: Parent file is visually at the parent level
-- **Easy discovery**: Can immediately identify the main file vs helpers
-- **Natural imports**: Import paths reflect the actual relationship
-- **Better refactoring**: Moving the feature means moving the file + its directory together
 
-**Common patterns:**
+**Exception for CLI Commands:**
 ```typescript
-// Service pattern  
-src/services/
-  hook-service.ts         // Main service
-  hook-service/           // Service helpers
-    hook-parser.ts
-    hook-validator.ts
-    hook-cache.ts
-
-// Component pattern
-src/components/
-  user-profile.tsx        // Main component
-  user-profile/           // Component helpers
-    user-avatar.tsx
-    user-stats.tsx
-    user-profile.styles.ts
-```
-
-**Exception for CLI Commands in this project:**
-For CLI commands specifically, we use a different pattern where each command lives entirely within its own directory:
-
-```typescript
-// CLI Commands pattern (exception to R18)
 src/commands/
   apply/                  // Command directory
     apply.ts              // Main command implementation  
     apply.command.ts      // Export file for command registry
-    apply.*.test.ts       // Test files
-    apply-*.ts            // Additional command files if needed
-  
-  validate/
-    validate.ts           // Main command implementation
-    validate.command.ts   // Export file for command registry  
-    validate.test.ts      // Test files
 ```
-
-This pattern is used because CLI commands are self-contained units that are registered via the command registry, making the directory structure clearer for command organization and preventing a proliferation of files at the commands root level.
