@@ -1,6 +1,6 @@
 /**
  * Library exports for @sammons/claude-good-hooks
- * 
+ *
  * This file exports the settings functionality that was previously
  * in the deprecated @sammons/claude-good-hooks-settings package.
  */

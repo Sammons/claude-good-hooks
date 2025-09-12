@@ -8,10 +8,7 @@
  * This separation resolves validation conflicts with Claude Code.
  */
 
-import type {
-  ClaudeSettings,
-  HookConfiguration,
-} from '@sammons/claude-good-hooks-types';
+import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
 
 // CleanHookConfiguration is just HookConfiguration without our metadata
 type CleanHookConfiguration = HookConfiguration;

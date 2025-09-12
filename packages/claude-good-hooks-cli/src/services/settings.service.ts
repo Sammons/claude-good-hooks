@@ -1,7 +1,5 @@
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
-import {
-  SettingsHelper as CoreSettingsHelper,
-} from '../settings/index.js';
+import { SettingsHelper as CoreSettingsHelper } from '../settings/index.js';
 import type { SettingsScope } from '../settings/index.js';
 import { FileSystemService } from './file-system.service.js';
 

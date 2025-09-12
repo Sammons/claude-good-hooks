@@ -6,11 +6,7 @@
  */
 
 import type { ClaudeSettings, HookConfiguration } from '@sammons/claude-good-hooks-types';
-import {
-  DualSettingsHelper,
-  MigrationUtility,
-  type SettingsScope,
-} from '../settings/index.js';
+import { DualSettingsHelper, MigrationUtility, type SettingsScope } from '../settings/index.js';
 import { FileSystemService } from './file-system.service.js';
 
 // Re-export the SettingsScope type for backwards compatibility

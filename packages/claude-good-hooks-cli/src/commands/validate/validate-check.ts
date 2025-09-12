@@ -10,11 +10,7 @@ import {
   validateCommandPaths,
   printValidationResults,
 } from '../../utils/validator.js';
-import {
-  atomicReadFile,
-  createVersionedSettings,
-  isLegacySettings,
-} from '../../settings/index.js';
+import { atomicReadFile, createVersionedSettings, isLegacySettings } from '../../settings/index.js';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ProcessService } from '../../services/process.service.js';
 import { SettingsService } from '../../services/settings.service.js';
