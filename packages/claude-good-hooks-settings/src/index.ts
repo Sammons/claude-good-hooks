@@ -1,9 +1,9 @@
 /**
  * @sammons/claude-good-hooks-settings
- * 
+ *
  * ⚠️ DEPRECATED: This package is deprecated.
  * Settings functionality has been integrated into @sammons/claude-good-hooks directly.
- * 
+ *
  * This package now serves as a compatibility layer and will be removed in a future version.
  * Please update your imports to use @sammons/claude-good-hooks instead.
  */
@@ -12,8 +12,8 @@
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
   console.warn(
     '\x1b[33m⚠️  Warning: @sammons/claude-good-hooks-settings is deprecated.\x1b[0m\n' +
-    'Settings functionality has been integrated into @sammons/claude-good-hooks.\n' +
-    'Please update your imports to use the main package instead.\n'
+      'Settings functionality has been integrated into @sammons/claude-good-hooks.\n' +
+      'Please update your imports to use the main package instead.\n'
   );
 }
 
@@ -28,6 +28,6 @@ export * from './migration-utility.js';
 export function deprecationNotice(): void {
   console.warn(
     '⚠️  @sammons/claude-good-hooks-settings is deprecated. ' +
-    'Use @sammons/claude-good-hooks instead.'
+      'Use @sammons/claude-good-hooks instead.'
   );
 }
