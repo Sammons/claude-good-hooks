@@ -14,7 +14,7 @@ import {
   atomicReadFile,
   createVersionedSettings,
   isLegacySettings,
-} from '@sammons/claude-good-hooks-settings';
+} from '../../settings/index.js';
 import type { VersionedClaudeSettings } from '@sammons/claude-good-hooks-types';
 import { ProcessService } from '../../services/process.service.js';
 import { SettingsService } from '../../services/settings.service.js';

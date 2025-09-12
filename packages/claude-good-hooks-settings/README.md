@@ -1,5 +1,18 @@
 # @sammons/claude-good-hooks-settings
 
+> ⚠️ **DEPRECATED**: This package is deprecated and will be removed in a future version. 
+> 
+> The settings functionality has been integrated directly into the main CLI package `@sammons/claude-good-hooks`.
+> Please update your imports to use the main package instead.
+>
+> ```typescript
+> // OLD (deprecated)
+> import { validateSettings } from '@sammons/claude-good-hooks-settings';
+> 
+> // NEW (use this instead)
+> import { validateSettings } from '@sammons/claude-good-hooks';
+> ```
+
 Settings management utilities for Claude Good Hooks, including validation, atomic operations, migrations, and version tracking.
 
 ## Features

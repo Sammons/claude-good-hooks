@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+  "title": "Claude Settings Configuration",
+  "description": "JSON Schema for validating Claude Code hook settings configuration files",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Settings configuration version (semantic version)"
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Hook configurations organized by event type",
+      "additionalProperties": false,
+      "properties": {
+        "PreToolUse": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run before tool execution"
+        },
+        "PostToolUse": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run after tool execution"
+        },
+        "UserPromptSubmit": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when user submits a prompt"
+        },
+        "Notification": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when Claude Code sends notifications"
+        },
+        "Stop": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when Claude Code agent finishes responding"
+        },
+        "SubagentStop": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when a subagent finishes responding"
+        },
+        "SessionEnd": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when Claude Code session ends"
+        },
+        "SessionStart": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run when Claude Code session starts"
+        },
+        "PreCompact": {
+          "$ref": "#/$defs/HookConfigurationArray",
+          "description": "Hooks that run before compacting conversation"
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the settings configuration",
+      "additionalProperties": false,
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when settings were first created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when settings were last updated"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["global", "project", "local"],
+          "description": "Source scope of the settings file"
+        },
+        "migrations": {
+          "type": "array",
+          "description": "History of migrations applied to these settings",
+          "items": {
+            "$ref": "#/$defs/MigrationRecord"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "HookConfigurationArray": {
+      "type": "array",
+      "description": "Array of hook configurations for a specific event type",
+      "items": {
+        "$ref": "#/$defs/HookConfiguration"
+      }
+    },
+    "HookConfiguration": {
+      "type": "object",
+      "description": "Configuration for a set of hooks with optional tool matching",
+      "required": ["hooks"],
+      "additionalProperties": false,
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Pattern to match tool names (regex supported). Use '*' for all tools, empty string or omit for events without matchers",
+          "examples": ["Write", "Write|Edit", "Bash", "mcp__.*", "*", "^(Write|Edit)$"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what this hook configuration does",
+          "maxLength": 500
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this hook configuration is enabled"
+        },
+        "hooks": {
+          "type": "array",
+          "description": "Array of hook commands to execute",
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/HookCommand"
+          }
+        }
+      }
+    },
+    "HookCommand": {
+      "type": "object",
+      "description": "Individual hook command configuration",
+      "required": ["type", "command"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["command"],
+          "description": "Type of hook command (currently only 'command' is supported)"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 10000,
+          "description": "Shell command to execute. Can use $CLAUDE_PROJECT_DIR environment variable",
+          "examples": [
+            "echo 'Hello World'",
+            "$CLAUDE_PROJECT_DIR/.claude/hooks/validate.sh",
+            "prettier --write $CLAUDE_PROJECT_DIR",
+            "npm run test"
+          ]
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600000,
+          "description": "Command timeout in milliseconds (max 1 hour)",
+          "examples": [5000, 30000, 120000]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what this command does",
+          "maxLength": 200
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this command is enabled"
+        },
+        "continueOnError": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to continue executing subsequent commands if this one fails"
+        }
+      }
+    },
+    "MigrationRecord": {
+      "type": "object",
+      "description": "Record of a migration that was applied to the settings",
+      "required": ["version", "appliedAt", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Version this migration migrates to"
+        },
+        "appliedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when migration was applied"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this migration does"
+        },
+        "changes": {
+          "type": "array",
+          "description": "List of changes made by this migration",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+      "version": "1.0.0",
+      "hooks": {
+        "PostToolUse": [
+          {
+            "matcher": "Write|Edit|MultiEdit",
+            "description": "Format and lint code after file modifications",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "prettier --write $CLAUDE_PROJECT_DIR",
+                "timeout": 30000,
+                "description": "Format code with Prettier"
+              },
+              {
+                "type": "command",
+                "command": "eslint --fix $CLAUDE_PROJECT_DIR --ext .ts,.js",
+                "timeout": 60000,
+                "description": "Lint and auto-fix with ESLint"
+              }
+            ]
+          }
+        ],
+        "SessionStart": [
+          {
+            "description": "Load development context at session start",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "git status --porcelain > ~/.claude/session-start-status.txt",
+                "description": "Capture git status at session start"
+              }
+            ]
+          }
+        ]
+      },
+      "meta": {
+        "createdAt": "2025-01-01T10:00:00Z",
+        "updatedAt": "2025-01-01T10:00:00Z",
+        "source": "project"
+      }
+    }
+  ]
+}

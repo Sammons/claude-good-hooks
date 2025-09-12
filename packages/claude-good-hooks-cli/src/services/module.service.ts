@@ -73,7 +73,7 @@ export class ModuleService {
 
     // For scoped packages like @sammons/package-name/export-path
     const scopedMatch = hookIdentifier.match(/^(@[^/]+\/[^/]+)\/(.+)$/);
-    if (scopedMatch) {
+    if (scopedMatch && scopedMatch[1] && scopedMatch[2]) {
       return {
         moduleName: scopedMatch[1],
         exportPath: scopedMatch[2],
@@ -83,7 +83,7 @@ export class ModuleService {
 
     // For non-scoped packages like package-name/export-path
     const nonScopedMatch = hookIdentifier.match(/^([^@][^/]+)\/(.+)$/);
-    if (nonScopedMatch) {
+    if (nonScopedMatch && nonScopedMatch[1] && nonScopedMatch[2]) {
       return {
         moduleName: nonScopedMatch[1],
         exportPath: nonScopedMatch[2],

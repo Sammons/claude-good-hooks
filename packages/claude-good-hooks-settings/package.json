@@ -1,7 +1,8 @@
 {
   "name": "@sammons/claude-good-hooks-settings",
   "version": "0.1.0",
-  "description": "Settings management utilities for Claude Good Hooks",
+  "deprecated": "This package is deprecated. Settings functionality has been integrated into @sammons/claude-good-hooks directly.",
+  "description": "DEPRECATED: Settings management utilities for Claude Good Hooks",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",

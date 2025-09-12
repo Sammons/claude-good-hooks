@@ -1,3 +1,6 @@
+// Export metadata types
+export * from './metadata-schema.js';
+
 export interface HookCommand {
   type: 'command';
   command: string;

@@ -1,22 +1,33 @@
 /**
  * @sammons/claude-good-hooks-settings
- *
- * Settings management utilities for Claude Good Hooks, including validation,
- * atomic operations, migrations, and version tracking.
+ * 
+ * ⚠️ DEPRECATED: This package is deprecated.
+ * Settings functionality has been integrated into @sammons/claude-good-hooks directly.
+ * 
+ * This package now serves as a compatibility layer and will be removed in a future version.
+ * Please update your imports to use @sammons/claude-good-hooks instead.
  */
 
-// Re-export all schema types and utilities
+// Log deprecation warning on import
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  console.warn(
+    '\x1b[33m⚠️  Warning: @sammons/claude-good-hooks-settings is deprecated.\x1b[0m\n' +
+    'Settings functionality has been integrated into @sammons/claude-good-hooks.\n' +
+    'Please update your imports to use the main package instead.\n'
+  );
+}
+
+// Re-export everything from the existing implementation for backwards compatibility
 export * from './schemas/index.js';
-
-// Re-export all standalone utility functions
 export * from './settings-utils/index.js';
-
-// Re-export the core settings helper (renamed from SettingsService)
 export * from './settings-helper.js';
-
-// Re-export dual settings helper and migration utilities
 export * from './dual-settings-helper.js';
 export * from './migration-utility.js';
 
-// Note: Backwards compatibility exports removed - use settings-utils imports
-// Files have been consolidated into settings-utils/ directory
+// Export a deprecation notice function that can be called
+export function deprecationNotice(): void {
+  console.warn(
+    '⚠️  @sammons/claude-good-hooks-settings is deprecated. ' +
+    'Use @sammons/claude-good-hooks instead.'
+  );
+}

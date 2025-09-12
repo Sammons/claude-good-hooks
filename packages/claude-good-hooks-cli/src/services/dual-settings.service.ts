@@ -10,7 +10,7 @@ import {
   DualSettingsHelper,
   MigrationUtility,
   type SettingsScope,
-} from '@sammons/claude-good-hooks-settings';
+} from '../settings/index.js';
 import { FileSystemService } from './file-system.service.js';
 
 // Re-export the SettingsScope type for backwards compatibility
@@ -246,6 +246,7 @@ export class DualSettingsService {
     // Copy unmanaged hooks from current settings
     if (currentSettings.hooks) {
       for (const [eventName, configs] of Object.entries(currentSettings.hooks)) {
+        if (!Array.isArray(configs)) continue;
         const unmanagedConfigs = configs.filter((config: any) => {
           // Keep hooks that are NOT managed by claude-good-hooks
           return !config.claudegoodhooks?.name && !(config as any).name;
