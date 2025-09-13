@@ -53,3 +53,11 @@ yarn.lock
 
 # GitHub Pages build output (deployed via GitHub Actions)
 docs/
+
+# Test output artifacts
+test-export.yaml
+minified-test.json
+-.json
+*-test.json
+*-test.yaml
+claude-hooks-*.json
