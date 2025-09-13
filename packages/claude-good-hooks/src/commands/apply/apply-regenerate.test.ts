@@ -108,8 +108,6 @@ describe('ApplyCommand --regenerate', () => {
     const help = applyCommand.getHelp();
 
     expect(help.examples).toContain('claude-good-hooks apply --regenerate');
-    expect(help.examples).toContain(
-      'claude-good-hooks apply --regenerate @sammons/git-dirty-hook'
-    );
+    expect(help.examples).toContain('claude-good-hooks apply --regenerate @sammons/git-dirty-hook');
   });
 });

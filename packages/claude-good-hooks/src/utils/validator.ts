@@ -3,11 +3,7 @@ import { join, isAbsolute } from 'path';
 import { spawn } from 'child_process';
 import chalk from 'chalk';
 import type { ClaudeSettings } from '../types';
-import {
-  isClaudeSettings,
-  isHookConfiguration,
-  isHookCommand,
-} from '../types';
+import { isClaudeSettings, isHookConfiguration, isHookCommand } from '../types';
 
 export interface ValidationResult {
   valid: boolean;

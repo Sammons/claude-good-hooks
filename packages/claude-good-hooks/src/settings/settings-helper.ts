@@ -1,8 +1,4 @@
-import type {
-  ClaudeSettings,
-  HookConfiguration,
-  VersionedClaudeSettings,
-} from '../types/index.js';
+import type { ClaudeSettings, HookConfiguration, VersionedClaudeSettings } from '../types/index.js';
 import { ensureVersionedSettings } from './settings-utils/migrations.js';
 
 export type SettingsScope = 'global' | 'project' | 'local';

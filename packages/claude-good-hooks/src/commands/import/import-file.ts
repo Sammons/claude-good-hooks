@@ -75,7 +75,7 @@ export class ImportFileCommand implements ImportSubCommand {
     const source = args[0];
     if (!source) {
       throw new AppError('Source is required', {
-        code: ERROR_CODES.MISSING_ARGUMENT
+        code: ERROR_CODES.MISSING_ARGUMENT,
       });
     }
 
@@ -382,14 +382,14 @@ export class ImportFileCommand implements ImportSubCommand {
         const response = await fetch(source);
         if (!response.ok) {
           throw new AppError(`HTTP ${response.status}: ${response.statusText}`, {
-            code: ERROR_CODES.NETWORK_ERROR
+            code: ERROR_CODES.NETWORK_ERROR,
           });
         }
         content = await response.text();
       } catch (error) {
         throw new AppError(`Failed to fetch from URL: ${error}`, {
           code: ERROR_CODES.NETWORK_ERROR,
-          cause: error instanceof Error ? error : undefined
+          cause: error instanceof Error ? error : undefined,
         });
       }
     } else {
@@ -397,7 +397,7 @@ export class ImportFileCommand implements ImportSubCommand {
       if (!existsSync(source)) {
         throw new AppError(`File not found: ${source}`, {
           code: ERROR_CODES.FILE_NOT_FOUND,
-          suggestion: 'Check that the file path is correct and the file exists'
+          suggestion: 'Check that the file path is correct and the file exists',
         });
       }
 
@@ -406,7 +406,7 @@ export class ImportFileCommand implements ImportSubCommand {
       } catch (error) {
         throw new AppError(`Failed to read file: ${error}`, {
           code: ERROR_CODES.FILE_READ_FAILED,
-          cause: error instanceof Error ? error : undefined
+          cause: error instanceof Error ? error : undefined,
         });
       }
     }
@@ -433,7 +433,7 @@ export class ImportFileCommand implements ImportSubCommand {
     } catch (error) {
       throw new AppError(`Failed to parse configuration: ${error}`, {
         code: ERROR_CODES.CONFIG_INVALID,
-        cause: error instanceof Error ? error : undefined
+        cause: error instanceof Error ? error : undefined,
       });
     }
 
@@ -450,7 +450,7 @@ export class ImportFileCommand implements ImportSubCommand {
     } else {
       throw new AppError('Invalid configuration format', {
         code: ERROR_CODES.CONFIG_INVALID,
-        suggestion: 'Ensure the configuration file is valid JSON or YAML'
+        suggestion: 'Ensure the configuration file is valid JSON or YAML',
       });
     }
   }
@@ -486,7 +486,7 @@ export class ImportFileCommand implements ImportSubCommand {
     } catch {
       throw new AppError('Failed to parse YAML content', {
         code: ERROR_CODES.CONFIG_INVALID,
-        suggestion: 'Consider using a JSON file or simplifying the YAML structure'
+        suggestion: 'Consider using a JSON file or simplifying the YAML structure',
       });
     }
   }

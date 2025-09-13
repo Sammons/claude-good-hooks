@@ -90,7 +90,7 @@ export function withErrorBoundary<T extends unknown[], R>(
 
       // This should never be reached, but TypeScript needs it
       throw new AppError('Error boundary reached unreachable code', {
-        code: ERROR_CODES.INTERNAL
+        code: ERROR_CODES.INTERNAL,
       });
     }
   };
@@ -148,7 +148,7 @@ export function withSyncErrorBoundary<T extends unknown[], R>(
 
       // This should never be reached, but TypeScript needs it
       throw new AppError('Error boundary reached unreachable code', {
-        code: ERROR_CODES.INTERNAL
+        code: ERROR_CODES.INTERNAL,
       });
     }
   };

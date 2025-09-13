@@ -3,13 +3,13 @@
  * Export only the AppError class and utilities
  */
 
-export { 
-  AppError, 
-  ERROR_CODES, 
-  type ErrorCode, 
+export {
+  AppError,
+  ERROR_CODES,
+  type ErrorCode,
   type AppErrorOptions,
   isAppError,
-  formatError 
+  formatError,
 } from './app-error.js';
 
 // For backward compatibility during migration, provide aliases
@@ -22,7 +22,7 @@ export const ValidationError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.VALIDATION_FAILED,
-      ...options
+      ...options,
     });
   }
 };
@@ -34,7 +34,7 @@ export const ConfigError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.CONFIG_INVALID,
-      ...options
+      ...options,
     });
   }
 };
@@ -46,7 +46,7 @@ export const HookError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.HOOK_EXECUTION_FAILED,
-      ...options
+      ...options,
     });
   }
 };
@@ -58,7 +58,7 @@ export const FileSystemError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.FILE_READ_FAILED,
-      ...options
+      ...options,
     });
   }
 };
@@ -70,7 +70,7 @@ export const PermissionError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.PERMISSION_DENIED,
-      ...options
+      ...options,
     });
   }
 };
@@ -82,7 +82,7 @@ export const CommandError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.COMMAND_FAILED,
-      ...options
+      ...options,
     });
   }
 };
@@ -94,7 +94,7 @@ export const NetworkError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.NETWORK_ERROR,
-      ...options
+      ...options,
     });
   }
 };
@@ -106,7 +106,7 @@ export const InternalError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.INTERNAL,
-      ...options
+      ...options,
     });
   }
 };
@@ -118,7 +118,7 @@ export const CLIError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
       code: ERROR_CODES.UNKNOWN,
-      ...options
+      ...options,
     });
   }
 };

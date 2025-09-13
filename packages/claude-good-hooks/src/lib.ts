@@ -16,7 +16,7 @@ export { HookService } from './services/hook.service.js';
 export { ModuleService } from './services/module.service.js';
 
 // Export types (selectively to avoid conflicts)
-export { 
+export {
   type ClaudeSettings,
   type HookConfiguration,
   type HookCommand,
@@ -27,5 +27,5 @@ export {
   isHookPlugin,
   isClaudeSettings,
   isHookCommand,
-  isHookConfiguration
+  isHookConfiguration,
 } from './types/index.js';

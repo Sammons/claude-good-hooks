@@ -65,7 +65,7 @@ export async function withRetry<T>(
   }
 
   throw new AppError('Retry loop completed without error or result', {
-    code: ERROR_CODES.INTERNAL
+    code: ERROR_CODES.INTERNAL,
   });
 }
 
@@ -91,7 +91,7 @@ export async function withFallback<T, F>(
     }
 
     // Don't use fallback for user-facing validation errors
-    if (error instanceof ValidationError) {
+    if (isAppError(error) && error.code === ERROR_CODES.VALIDATION_FAILED) {
       throw error;
     }
 

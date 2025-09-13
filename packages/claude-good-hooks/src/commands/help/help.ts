@@ -132,13 +132,9 @@ export class HelpCommand {
     console.log(`  ${installCmd}`);
     console.log(`  claude-good-hooks apply --global @sammons/git-dirty-hook`);
     console.log(`  ${chalk.dim('# Apply hook with custom arguments')}`);
-    console.log(
-      `  claude-good-hooks apply --project @sammons/git-dirty-hook --staged --filenames`
-    );
+    console.log(`  claude-good-hooks apply --project @sammons/git-dirty-hook --staged --filenames`);
     console.log(`  ${chalk.dim('# Apply a specific hook variant via deep import')}`);
-    console.log(
-      `  claude-good-hooks apply --project @sammons/code-outline-hook/minimal`
-    );
+    console.log(`  claude-good-hooks apply --project @sammons/code-outline-hook/minimal`);
     console.log(`  ${chalk.dim('# Check system configuration')}`);
     console.log(`  claude-good-hooks doctor\n`);
 

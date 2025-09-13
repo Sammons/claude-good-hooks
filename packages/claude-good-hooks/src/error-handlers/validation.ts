@@ -18,14 +18,14 @@ export function validateInput<T>(
   if (result === false) {
     throw new AppError(`Invalid ${fieldName}`, {
       code: ERROR_CODES.VALIDATION_FAILED,
-      suggestion
+      suggestion,
     });
   }
 
   if (typeof result === 'string') {
     throw new AppError(`Invalid ${fieldName}: ${result}`, {
       code: ERROR_CODES.VALIDATION_FAILED,
-      suggestion
+      suggestion,
     });
   }
 
@@ -43,7 +43,7 @@ export function assert(
   if (!condition) {
     throw new AppError(message, {
       code: ERROR_CODES.VALIDATION_FAILED,
-      suggestion
+      suggestion,
     });
   }
 }
