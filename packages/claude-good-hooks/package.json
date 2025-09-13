@@ -5,16 +5,20 @@
   "bin": {
     "claude-good-hooks": "./dist/index.mjs"
   },
-  "main": "dist/lib.js",
-  "types": "dist/lib.d.ts",
+  "main": "dist/lib.mjs",
+  "types": "dist/lib.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/lib.js",
-      "types": "./dist/lib.d.ts"
+      "import": "./dist/lib.mjs",
+      "types": "./dist/lib.d.mts"
+    },
+    "./lib": {
+      "import": "./dist/lib.mjs",
+      "types": "./dist/lib.d.mts"
     },
     "./cli": {
       "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.mts"
     }
   },
   "files": [
