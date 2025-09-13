@@ -19,8 +19,6 @@ The code structure outline is available at: @./.claude/code-outline.md
 - [Types Package](./packages/claude-good-hooks-types/README.md) - TypeScript type definitions
 
 ### Example and Template Packages
-- [Examples](./packages/claude-good-hooks-examples/README.md) - Example hook implementations
-- [Template Hook](./packages/claude-good-hooks-template-hook/README.md) - Template for creating new hooks
 - [Dirty Good Claude Hook](./packages/dirty-good-claude-hook/README.md) - Git status hook implementation
 - [Code Outline Hook](./packages/claude-good-hooks-code-outline/README.md) - Code structure analysis hook
 
@@ -55,7 +53,6 @@ The code structure outline is available at: @./.claude/code-outline.md
   6. this is a monorepo
     - ./packages/claude-good-hooks-cli # @sammons/claude-good-hooks
     - ./packages/claude-good-hooks-types # @sammons/claude-good-hooks-types
-    - ./packages/claude-good-hooks-template-hook # @sammons/claude-good-hooks-template-hook, to act as npm template
     - ./packages/dirty-hook # @sammons/dirty-good-claude-hook # consumes types, and exports a HookPlugin
   7. some additional points:
     - applying globally, the referenced module must be installed globally already via npm, and if it is not, then a clear warning should be shown indicating that it needs to 
