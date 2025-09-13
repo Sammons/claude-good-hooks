@@ -9,7 +9,7 @@
 
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import type { ClaudeSettings } from '../types';
+import type { ClaudeSettings } from '../../types/index.js';
 import type {
   SchemaValidationError,
   SchemaValidationResult,

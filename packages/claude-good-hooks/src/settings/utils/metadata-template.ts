@@ -2,7 +2,7 @@
  * Utility for creating metadata file templates
  */
 
-import type { ClaudeGoodHooksMetadata } from '../types';
+import type { ClaudeGoodHooksMetadata } from '../../types/index.js';
 import type { SettingsScope } from '../dual-settings-helper.js';
 
 /**

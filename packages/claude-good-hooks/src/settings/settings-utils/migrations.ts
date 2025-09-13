@@ -7,7 +7,7 @@
  * ```
  */
 
-import type { ClaudeSettings } from '../types';
+import type { ClaudeSettings } from '../../types/index.js';
 import type { VersionedClaudeSettings } from '../schemas/index.js';
 import { CURRENT_SCHEMA_VERSION } from '../schemas/index.js';
 

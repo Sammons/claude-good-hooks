@@ -7,7 +7,7 @@
  */
 
 import { DualSettingsHelper, type SettingsScope } from './dual-settings-helper.js';
-import type { MigrationStatus } from '../types';
+import type { MigrationStatus } from '../types/index.js';
 
 /**
  * Duck-typed interface for file system operations

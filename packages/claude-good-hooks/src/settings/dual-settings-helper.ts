@@ -8,7 +8,7 @@
  * This separation resolves validation conflicts with Claude Code.
  */
 
-import type { ClaudeSettings, HookConfiguration } from '../types';
+import type { ClaudeSettings, HookConfiguration } from '../types/index.js';
 
 // CleanHookConfiguration is just HookConfiguration without our metadata
 type CleanHookConfiguration = HookConfiguration;
@@ -20,7 +20,7 @@ import type {
   SettingsMetadataPair,
   MigrationStatus,
   HookWithMetadata,
-} from '../types';
+} from '../types/index.js';
 
 import { generateHookId } from './utils/hook-id.js';
 import { createMetadataTemplate } from './utils/metadata-template.js';
@@ -182,14 +182,22 @@ export class DualSettingsHelper {
     }
 
     // Initialize metadata if it doesn't exist
-    if (!pair.metadata.hooks[eventName]) {
-      pair.metadata.hooks[eventName] = { claudegoodhooks: [] };
+    if (!pair.metadata) {
+      pair.metadata = createMetadataTemplate(scope);
+    }
+    // TypeScript needs non-null assertion here
+    const pairMetadata = pair.metadata!;
+    if (!pairMetadata.hooks) {
+      pairMetadata.hooks = {};
+    }
+    if (!pairMetadata.hooks[eventName]) {
+      pairMetadata.hooks[eventName] = { claudegoodhooks: [] };
     }
 
     // Check for duplicate in METADATA (not settings) since metadata is our source of truth
     let existingMetaIndex = -1;
     if (metadata) {
-      const metadataArray = pair.metadata.hooks[eventName]?.claudegoodhooks || [];
+      const metadataArray = pairMetadata.hooks[eventName]?.claudegoodhooks || [];
       existingMetaIndex = metadataArray.findIndex(
         existingMeta => existingMeta.identifier.name === metadata.identifier.name
       );
@@ -197,12 +205,13 @@ export class DualSettingsHelper {
 
     // Synchronize: ensure settings and metadata arrays have same length
     const settingsArray = pair.settings.hooks[eventName]!;
-    const metadataArray = pair.metadata.hooks[eventName].claudegoodhooks;
+    const metadataArray = pairMetadata.hooks[eventName]?.claudegoodhooks || [];
 
     // Handle divergence: if metadata has more entries than settings, pad settings
     while (settingsArray.length < metadataArray.length) {
       // Reconstruct the settings entry from metadata
       const orphanedMetadata = metadataArray[settingsArray.length];
+      if (!orphanedMetadata) continue;
       const reconstructedConfig: CleanHookConfiguration = {
         matcher: orphanedMetadata.customConfig?.matcher as string | undefined,
         hooks: (orphanedMetadata.customConfig?.hooks as any) || [],
@@ -240,8 +249,10 @@ export class DualSettingsHelper {
       };
     }
 
-    // Write both files
-    await this.writeSettingsAndMetadata(scope, pair.settings, pair.metadata);
+    // Write both files (metadata is guaranteed to be defined at this point)
+    if (pair.metadata) {
+      await this.writeSettingsAndMetadata(scope, pair.settings, pair.metadata);
+    }
   }
 
   /**
@@ -300,13 +311,15 @@ export class DualSettingsHelper {
 
       for (let i = 0; i < metadataArray.length; i++) {
         const meta = metadataArray[i];
+        if (!meta) continue;
         const key = meta.identifier.name;
 
         if (seen.has(key)) {
           duplicatesRemoved++;
           // Keep the newer one (compare lastModified)
           const existingIndex = seen.get(key)!;
-          if (meta.lastModified > uniqueMetadata[existingIndex].lastModified) {
+          const existing = uniqueMetadata[existingIndex];
+          if (existing && meta.lastModified > existing.lastModified) {
             uniqueMetadata[existingIndex] = meta;
           }
         } else {
@@ -422,8 +435,10 @@ export class DualSettingsHelper {
       delete pair.metadata.hooks[eventName];
     }
 
-    // Write both files
-    await this.writeSettingsAndMetadata(scope, pair.settings, pair.metadata);
+    // Write both files (metadata is guaranteed to be defined at this point)
+    if (pair.metadata) {
+      await this.writeSettingsAndMetadata(scope, pair.settings, pair.metadata);
+    }
     return true;
   }
 
@@ -665,7 +680,9 @@ export class DualSettingsHelper {
         }
 
         if (cleanConfigs.length > 0) {
-          cleanSettings.hooks[eventName as keyof ClaudeSettings['hooks']] = cleanConfigs as any;
+          const hookKey = eventName as keyof NonNullable<ClaudeSettings['hooks']>;
+          if (!cleanSettings.hooks) cleanSettings.hooks = {};
+          (cleanSettings.hooks as any)[hookKey] = cleanConfigs;
         }
 
         if (metadataArray.length > 0) {
