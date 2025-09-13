@@ -8,9 +8,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@sammons/claude-good-hooks-examples",
-    "@sammons/claude-good-hooks-smoke-tests",
-    "claude-good-hooks-landing-page"
+    "@sammons/claude-good-hooks-landing"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
