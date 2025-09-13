@@ -150,25 +150,6 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)
 
-  packages/claude-good-hooks-smoke-tests:
-    dependencies:
-      '@sammons/claude-good-hooks':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-cli
-      '@sammons/claude-good-hooks-types':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-types
-    devDependencies:
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.18.0
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.2
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@22.18.0)
-
   packages/claude-good-hooks-template-hook:
     dependencies:
       '@sammons/claude-good-hooks-types':

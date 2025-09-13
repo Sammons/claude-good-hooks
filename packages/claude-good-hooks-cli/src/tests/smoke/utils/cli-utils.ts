@@ -8,7 +8,7 @@ const execFileAsync = promisify(execFile);
 // Get the path to the CLI executable
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const CLI_PATH = path.resolve(__dirname, '../../../claude-good-hooks-cli/dist/index.mjs');
+const CLI_PATH = path.resolve(__dirname, '../../../../dist/index.mjs');
 
 export interface CLIResult {
   stdout: string;

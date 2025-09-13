@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest';
-import { runCLI, expectValidJSON, expectNonEmptyOutput } from '../utils/cli-utils.js';
+import { runCLI, expectValidJSON, expectNonEmptyOutput } from './utils/cli-utils.js';
 
 describe('Claude Good Hooks CLI - Smoke Tests', () => {
   beforeAll(async () => {
