@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
-import { ProcessService } from '../../services/process.service.js';
 import type { SettingsScope } from '../../services/settings.service.js';
 import type { ApplySubCommand } from './apply-types.js';
 import type { ApplyOptions } from './apply-options.js';
@@ -17,11 +16,9 @@ interface HandleRegenerateParams {
  */
 export class ApplyRegenerateCommand implements ApplySubCommand {
   private hookService: HookService;
-  private processService: ProcessService;
 
-  constructor(hookService: HookService, processService: ProcessService) {
+  constructor(hookService: HookService) {
     this.hookService = hookService;
-    this.processService = processService;
   }
 
   /**
@@ -120,7 +117,7 @@ export class ApplyRegenerateCommand implements ApplySubCommand {
       }
 
       if (result.errorCount > 0) {
-        this.processService.exit(1);
+        process.exit(1);
       }
     } catch (error: unknown) {
       if (isJson) {

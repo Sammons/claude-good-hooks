@@ -1,5 +1,8 @@
 import type { PackageManager } from '../utils/detect-package-manager.js';
-import { ProcessService } from '../services/process.service.js';
+import { exec, execSync } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export interface ListModulesOptions {
   depth?: number;
@@ -35,10 +38,7 @@ export interface InstallResult {
  * Centralizes both command construction and execution logic
  */
 export class PackageManagerHelper {
-  constructor(
-    private readonly packageManager: PackageManager,
-    private readonly processService = new ProcessService()
-  ) {}
+  constructor(private readonly packageManager: PackageManager) {}
 
   /**
    * Get global root directory command
@@ -63,7 +63,7 @@ export class PackageManagerHelper {
   async getGlobalRoot(): Promise<string> {
     try {
       const command = this.globalRootCommand();
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
       return result.stdout.trim();
     } catch (error) {
       throw new Error(`Failed to get global root directory: ${String(error)}`);
@@ -110,7 +110,7 @@ export class PackageManagerHelper {
   async listModules(options: ListModulesOptions = {}): Promise<ModuleListResult> {
     try {
       const command = this.listModulesCommand(options);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       // Handle different package manager output formats
       if (this.packageManager === 'yarn' && options.global) {
@@ -170,7 +170,7 @@ export class PackageManagerHelper {
   async install(packageName?: string, options: InstallOptions = {}): Promise<InstallResult> {
     try {
       const command = this.installCommand(packageName, options);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       return {
         success: true,
@@ -213,7 +213,7 @@ export class PackageManagerHelper {
   async uninstall(packageName: string, options: UninstallOptions = {}): Promise<InstallResult> {
     try {
       const command = this.uninstallCommand(packageName, options);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       return {
         success: true,
@@ -252,7 +252,7 @@ export class PackageManagerHelper {
   async runScript(scriptName: string): Promise<InstallResult> {
     try {
       const command = this.runScriptCommand(scriptName);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       return {
         success: true,
@@ -296,7 +296,7 @@ export class PackageManagerHelper {
   async exec(packageName: string, options: ExecOptions = {}): Promise<InstallResult> {
     try {
       const command = this.execCommand(packageName, options);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       return {
         success: true,
@@ -325,7 +325,7 @@ export class PackageManagerHelper {
   async getVersion(): Promise<string> {
     try {
       const command = this.versionCommand();
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
       return result.stdout.trim();
     } catch (error) {
       throw new Error(`Failed to get package manager version: ${String(error)}`);
@@ -361,7 +361,7 @@ export class PackageManagerHelper {
   async update(packageName: string, options: InstallOptions = {}): Promise<InstallResult> {
     try {
       const command = this.updateCommand(packageName, options);
-      const result = await this.processService.exec(command);
+      const result = await execAsync(command);
 
       return {
         success: true,

@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import { detectPackageManager } from '../../utils/detect-package-manager.js';
 import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
@@ -77,9 +76,8 @@ export class UpdateCommand {
       return;
     }
 
-    const processService = new ProcessService();
     const packageManager = detectPackageManager();
-    const helper = new PackageManagerHelper(packageManager, processService);
+    const helper = new PackageManagerHelper(packageManager);
 
     try {
       // For simplicity in this refactor, we'll use a basic update approach
@@ -177,7 +175,7 @@ export class UpdateCommand {
         console.error(chalk.gray(`Or locally: ${localInstallCmd}`));
       }
 
-      processService.exit(1);
+      process.exit(1);
     }
   }
 

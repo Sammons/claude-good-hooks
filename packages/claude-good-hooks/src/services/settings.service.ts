@@ -1,50 +1,57 @@
 import type { ClaudeSettings, HookConfiguration } from '../types';
 import { SettingsHelper as CoreSettingsHelper } from '../settings/index.js';
 import type { SettingsScope } from '../settings/index.js';
-import { FileSystemService } from './file-system.service.js';
+import { readFile, writeFile, access, mkdir, constants } from 'fs/promises';
+import { join, dirname } from 'path';
+import { homedir } from 'os';
+import { cwd } from 'process';
 
 // Re-export the SettingsScope type for backwards compatibility
 export type { SettingsScope };
 
 /**
- * Adapter that wraps the FileSystemService to match the duck-typed interface
+ * File system provider that implements the duck-typed interface
  * expected by the core SettingsService from the settings package.
  */
-class FileSystemAdapter {
-  constructor(private fs: FileSystemService) {}
-
+const fileSystemProvider = {
   async readFile(path: string, encoding?: string): Promise<string> {
-    return await this.fs.readFileAsync(path, (encoding as any) || 'utf-8');
-  }
+    const buffer = await readFile(path, (encoding as BufferEncoding) || 'utf-8');
+    return buffer.toString();
+  },
 
   async writeFile(path: string, content: string, encoding?: string): Promise<void> {
-    await this.fs.writeFileAsync(path, content, encoding as any);
-  }
+    await writeFile(path, content, encoding as any);
+  },
 
   async exists(path: string): Promise<boolean> {
-    return await this.fs.existsAsync(path);
-  }
+    try {
+      await access(path, constants.F_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 
   async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
-    await this.fs.mkdirAsync(path, options);
-  }
+    await mkdir(path, options);
+  },
 
   dirname(path: string): string {
-    return this.fs.dirname(path);
-  }
+    return dirname(path);
+  },
 
   join(...paths: string[]): string {
-    return this.fs.join(...paths);
-  }
+    return join(...paths);
+  },
 
   homedir(): string {
-    return this.fs.homedir();
-  }
+    return homedir();
+  },
 
   cwd(): string {
-    return this.fs.cwd();
+    return cwd();
   }
-}
+};
 
 /**
  * Thin wrapper around the core SettingsHelper that provides backwards compatibility
@@ -54,9 +61,7 @@ export class SettingsService {
   private coreSettingsHelper: CoreSettingsHelper;
 
   constructor() {
-    const fileSystem = new FileSystemService();
-    const adapter = new FileSystemAdapter(fileSystem);
-    this.coreSettingsHelper = new CoreSettingsHelper(adapter);
+    this.coreSettingsHelper = new CoreSettingsHelper(fileSystemProvider);
   }
 
   getSettingsPath(scope: SettingsScope): string {

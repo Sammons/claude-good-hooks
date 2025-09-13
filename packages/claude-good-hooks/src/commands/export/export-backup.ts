@@ -6,8 +6,8 @@ import chalk from 'chalk';
 import { basename, extname } from 'path';
 import type { ClaudeSettings } from '../../types/index.js';
 import { SettingsService, type SettingsScope } from '../../services/settings.service.js';
-import { FileSystemService } from '../../services/file-system.service.js';
-import { ProcessService } from '../../services/process.service.js';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { dirname, join } from 'path';
 import type { ExportSubCommand } from './export-types.js';
 import type { ExportOptions } from './export-options.js';
 import type { ValidationResult } from '../common-validation-types.js';
@@ -25,17 +25,9 @@ interface ExportedConfiguration {
 
 export class ExportBackupCommand implements ExportSubCommand {
   private settingsService: SettingsService;
-  private fileSystemService: FileSystemService;
-  private processService: ProcessService;
 
-  constructor(
-    settingsService: SettingsService,
-    fileSystemService: FileSystemService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService) {
     this.settingsService = settingsService;
-    this.fileSystemService = fileSystemService;
-    this.processService = processService;
   }
 
   /**
@@ -85,7 +77,7 @@ export class ExportBackupCommand implements ExportSubCommand {
 
     if (Object.keys(settingsData).length === 0) {
       console.error(chalk.red('❌ No hooks found to backup'));
-      this.processService.exit(1);
+      process.exit(1);
       return;
     }
 
@@ -114,31 +106,31 @@ export class ExportBackupCommand implements ExportSubCommand {
       // Prefer project directory if it exists or can be created
       let baseDir: string;
       try {
-        const projectDir = this.fileSystemService.dirname(projectSettingsPath);
-        if (!this.fileSystemService.exists(projectDir)) {
-          this.fileSystemService.mkdir(projectDir, { recursive: true });
+        const projectDir = dirname(projectSettingsPath);
+        if (!existsSync(projectDir)) {
+          mkdirSync(projectDir, { recursive: true });
         }
         baseDir = projectDir;
       } catch {
-        const globalDir = this.fileSystemService.dirname(globalSettingsPath);
-        if (!this.fileSystemService.exists(globalDir)) {
-          this.fileSystemService.mkdir(globalDir, { recursive: true });
+        const globalDir = dirname(globalSettingsPath);
+        if (!existsSync(globalDir)) {
+          mkdirSync(globalDir, { recursive: true });
         }
         baseDir = globalDir;
       }
 
-      outputPath = this.fileSystemService.join(baseDir, `settings.json.backup.${timestamp}`);
+      outputPath = join(baseDir, `settings.json.backup.${timestamp}`);
     } else {
       // For specific scope, create backup in that scope's .claude directory
       const settingsPath = this.settingsService.getSettingsPath(scope as SettingsScope);
-      const claudeDir = this.fileSystemService.dirname(settingsPath);
+      const claudeDir = dirname(settingsPath);
 
       // Ensure .claude directory exists
-      if (!this.fileSystemService.exists(claudeDir)) {
-        this.fileSystemService.mkdir(claudeDir, { recursive: true });
+      if (!existsSync(claudeDir)) {
+        mkdirSync(claudeDir, { recursive: true });
       }
 
-      outputPath = this.fileSystemService.join(claudeDir, `settings.json.backup.${timestamp}`);
+      outputPath = join(claudeDir, `settings.json.backup.${timestamp}`);
     }
 
     // Ensure proper file extension
@@ -171,12 +163,12 @@ export class ExportBackupCommand implements ExportSubCommand {
       }
 
       // Write to file
-      if (this.fileSystemService.exists(outputPath)) {
+      if (existsSync(outputPath)) {
         console.log(chalk.yellow(`⚠️  File already exists: ${outputPath}`));
         console.log(chalk.gray('Overwriting existing file...'));
       }
 
-      this.fileSystemService.writeFile(outputPath, outputContent, 'utf8');
+      writeFileSync(outputPath, outputContent, 'utf8');
 
       console.log(chalk.green(`\n✅ Backup created successfully!`));
       console.log(chalk.blue(`📁 Backup file: ${outputPath}`));
@@ -215,7 +207,7 @@ export class ExportBackupCommand implements ExportSubCommand {
       console.log(chalk.gray(`   • Safe to share or archive`));
     } catch (error) {
       console.error(chalk.red(`❌ Backup failed: ${error}`));
-      this.processService.exit(1);
+      process.exit(1);
     }
   }
 

@@ -6,8 +6,7 @@ import chalk from 'chalk';
 import { basename, extname } from 'path';
 import type { ClaudeSettings } from '../../types/index.js';
 import { SettingsService, type SettingsScope } from '../../services/settings.service.js';
-import { FileSystemService } from '../../services/file-system.service.js';
-import { ProcessService } from '../../services/process.service.js';
+import { writeFileSync, existsSync } from 'fs';
 import type { ExportSubCommand } from './export-types.js';
 import type { ExportOptions } from './export-options.js';
 import type { ValidationResult } from '../common-validation-types.js';
@@ -25,17 +24,9 @@ interface ExportedConfiguration {
 
 export class ExportFileCommand implements ExportSubCommand {
   private settingsService: SettingsService;
-  private fileSystemService: FileSystemService;
-  private processService: ProcessService;
 
-  constructor(
-    settingsService: SettingsService,
-    fileSystemService: FileSystemService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService) {
     this.settingsService = settingsService;
-    this.fileSystemService = fileSystemService;
-    this.processService = processService;
   }
 
   /**
@@ -86,7 +77,7 @@ export class ExportFileCommand implements ExportSubCommand {
 
     if (Object.keys(settingsData).length === 0) {
       console.error(chalk.red('❌ No hooks found to export'));
-      this.processService.exit(1);
+      process.exit(1);
       return;
     }
 
@@ -138,12 +129,12 @@ export class ExportFileCommand implements ExportSubCommand {
       }
 
       // Write to file
-      if (this.fileSystemService.exists(outputPath)) {
+      if (existsSync(outputPath)) {
         console.log(chalk.yellow(`⚠️  File already exists: ${outputPath}`));
         console.log(chalk.gray('Overwriting existing file...'));
       }
 
-      this.fileSystemService.writeFile(outputPath, outputContent, 'utf8');
+      writeFileSync(outputPath, outputContent, 'utf8');
 
       console.log(chalk.green(`\n✅ Configuration exported successfully!`));
       console.log(chalk.blue(`📁 Output file: ${outputPath}`));
@@ -183,7 +174,7 @@ export class ExportFileCommand implements ExportSubCommand {
       );
     } catch (error) {
       console.error(chalk.red(`❌ Export failed: ${error}`));
-      this.processService.exit(1);
+      process.exit(1);
     }
   }
 

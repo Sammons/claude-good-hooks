@@ -153,7 +153,7 @@ export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly exitCode: number;
   public readonly suggestion?: string;
-  public readonly cause?: Error;
+  public override readonly cause?: Error;
   public readonly details?: Record<string, unknown>;
   public readonly context?: Record<string, unknown>;
   public readonly isUserFacing: boolean;
@@ -353,7 +353,7 @@ export class AppError extends Error {
   /**
    * Format for console output
    */
-  toString(): string {
+  override toString(): string {
     let output = `Error: ${this.message}`;
 
     if (this.code !== ERROR_CODES.UNKNOWN) {

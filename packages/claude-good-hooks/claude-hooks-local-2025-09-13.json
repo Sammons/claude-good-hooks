@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "metadata": {
-    "exported": "2025-09-13T15:01:55.813Z",
+    "exported": "2025-09-13T17:05:34.227Z",
     "source": [
       "local"
     ],
@@ -163,13 +163,13 @@
       ]
     },
     "meta": {
-      "createdAt": "2025-09-13T15:01:53.470Z",
-      "updatedAt": "2025-09-13T15:01:53.470Z",
+      "createdAt": "2025-09-13T17:05:30.631Z",
+      "updatedAt": "2025-09-13T17:05:30.631Z",
       "source": "local",
       "migrations": [
         {
           "version": "1.0.0",
-          "appliedAt": "2025-09-13T15:01:53.470Z",
+          "appliedAt": "2025-09-13T17:05:30.631Z",
           "description": "Converted from legacy settings format",
           "changes": [
             "Added versioning and metadata",

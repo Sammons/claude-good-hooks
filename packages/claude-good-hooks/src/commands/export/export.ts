@@ -1,7 +1,5 @@
 import chalk from 'chalk';
 import { SettingsService } from '../../services/settings.service.js';
-import { FileSystemService } from '../../services/file-system.service.js';
-import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import type { ExportOptions } from './export-options.js';
 import { validateExportCommand } from './export-options.js';
@@ -22,27 +20,19 @@ export class ExportCommand {
   description = 'Export Claude hooks configuration to shareable format';
 
   private settingsService: SettingsService;
-  private fileSystemService: FileSystemService;
-  private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ExportSubCommand[];
 
-  constructor(
-    settingsService: SettingsService,
-    fileSystemService: FileSystemService,
-    processService: ProcessService
-  ) {
+  constructor(settingsService: SettingsService) {
     this.settingsService = settingsService;
-    this.fileSystemService = fileSystemService;
-    this.processService = processService;
 
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
       new ExportHelpCommand(),
-      new ExportBackupCommand(this.settingsService, this.fileSystemService, this.processService),
-      new ExportFileCommand(this.settingsService, this.fileSystemService, this.processService),
+      new ExportBackupCommand(this.settingsService),
+      new ExportFileCommand(this.settingsService),
     ];
   }
 

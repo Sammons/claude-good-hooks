@@ -7,48 +7,54 @@
 
 import type { ClaudeSettings, HookConfiguration } from '../types';
 import { DualSettingsHelper, MigrationUtility, type SettingsScope } from '../settings/index.js';
-import { FileSystemService } from './file-system.service.js';
+import { promises as fs } from 'fs';
+import { dirname, join } from 'path';
+import { homedir } from 'os';
 
 // Re-export the SettingsScope type for backwards compatibility
 export type { SettingsScope };
 
 /**
- * Adapter that wraps the FileSystemService to match the duck-typed interface
+ * Adapter that uses direct Node.js APIs to match the duck-typed interface
  * expected by the DualSettingsHelper.
  */
 class FileSystemAdapter {
-  constructor(private fs: FileSystemService) {}
-
   async readFile(path: string, encoding?: string): Promise<string> {
-    return await this.fs.readFileAsync(path, (encoding as any) || 'utf-8');
+    const buffer = await fs.readFile(path, (encoding as BufferEncoding) || 'utf-8');
+    return buffer.toString();
   }
 
   async writeFile(path: string, content: string, encoding?: string): Promise<void> {
-    await this.fs.writeFileAsync(path, content, encoding as any);
+    await fs.writeFile(path, content, encoding as any);
   }
 
   async exists(path: string): Promise<boolean> {
-    return await this.fs.existsAsync(path);
+    try {
+      await fs.access(path);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
-    await this.fs.mkdirAsync(path, options);
+    await fs.mkdir(path, options);
   }
 
   dirname(path: string): string {
-    return this.fs.dirname(path);
+    return dirname(path);
   }
 
   join(...paths: string[]): string {
-    return this.fs.join(...paths);
+    return join(...paths);
   }
 
   homedir(): string {
-    return this.fs.homedir();
+    return homedir();
   }
 
   cwd(): string {
-    return this.fs.cwd();
+    return process.cwd();
   }
 }
 
@@ -61,7 +67,7 @@ export class DualSettingsService {
   private migrationUtility: MigrationUtility;
 
   constructor() {
-    const fsAdapter = new FileSystemAdapter(new FileSystemService());
+    const fsAdapter = new FileSystemAdapter();
     this.dualHelper = new DualSettingsHelper(fsAdapter);
     this.migrationUtility = new MigrationUtility(fsAdapter);
   }

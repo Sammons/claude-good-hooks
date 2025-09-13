@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import type { ValidateOptions } from './validate-options.js';
 import { validateValidateCommand } from './validate-options.js';
@@ -19,17 +18,15 @@ export class ValidateCommand {
   name = 'validate';
   description = 'Validate hooks configuration';
 
-  private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ValidateSubCommand[];
 
-  constructor(processService: ProcessService) {
-    this.processService = processService;
+  constructor() {
 
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
-    this.subCommands = [new ValidateCheckCommand(this.processService), new ValidateHelpCommand()];
+    this.subCommands = [new ValidateCheckCommand(), new ValidateHelpCommand()];
   }
 
   /**

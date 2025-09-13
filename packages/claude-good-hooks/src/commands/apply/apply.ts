@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
-import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import type { ApplyOptions } from './apply-options.js';
 import { validateApplyCommand } from './apply-options.js';
@@ -23,22 +22,20 @@ export class ApplyCommand {
   description = 'Apply a hook to the configuration';
 
   private hookService: HookService;
-  private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ApplySubCommand[];
 
-  constructor(hookService: HookService, processService: ProcessService) {
+  constructor(hookService: HookService) {
     this.hookService = hookService;
-    this.processService = processService;
 
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
-      new ApplyRegenerateCommand(this.hookService, this.processService),
+      new ApplyRegenerateCommand(this.hookService),
       new HookHelpCommand(this.hookService),
       new ApplyHelpCommand(),
-      new ApplyHookCommand(this.hookService, this.processService),
+      new ApplyHookCommand(this.hookService),
     ];
   }
 

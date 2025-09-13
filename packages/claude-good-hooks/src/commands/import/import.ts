@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { SettingsService } from '../../services/settings.service.js';
-import { ProcessService } from '../../services/process.service.js';
 import type { HelpInfo } from '../command-registry.js';
 import type { ImportOptions } from './import-options.js';
 import { validateImportCommand } from './import-options.js';
@@ -21,20 +20,18 @@ export class ImportCommand {
   description = 'Import Claude hooks configuration from file or URL';
 
   private settingsService: SettingsService;
-  private processService: ProcessService;
 
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ImportSubCommand[];
 
-  constructor(settingsService: SettingsService, processService: ProcessService) {
+  constructor(settingsService: SettingsService) {
     this.settingsService = settingsService;
-    this.processService = processService;
 
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [
       new ImportHelpCommand(),
-      new ImportFileCommand(this.settingsService, this.processService),
+      new ImportFileCommand(this.settingsService),
     ];
   }
 
@@ -98,7 +95,7 @@ export class ImportCommand {
       } else {
         console.error(chalk.red('Error: No matching sub-command found'));
       }
-      this.processService.exit(1);
+      process.exit(1);
       return;
     }
 

@@ -12,7 +12,6 @@ import {
 } from '../../utils/validator.js';
 import { atomicReadFile, createVersionedSettings, isLegacySettings } from '../../settings/index.js';
 import type { VersionedClaudeSettings } from '../../types/index.js';
-import { ProcessService } from '../../services/process.service.js';
 import { SettingsService } from '../../services/settings.service.js';
 import type { ValidateSubCommand } from './validate-types.js';
 import type { ValidateOptions } from './validate-options.js';
@@ -22,11 +21,9 @@ import type { ValidationResult } from '../common-validation-types.js';
 import type { ValidationResult as UtilsValidationResult } from '../../utils/validator.js';
 
 export class ValidateCheckCommand implements ValidateSubCommand {
-  private processService: ProcessService;
   private settingsService: SettingsService;
 
-  constructor(processService: ProcessService) {
-    this.processService = processService;
+  constructor() {
     this.settingsService = new SettingsService();
   }
 
@@ -197,7 +194,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
         console.log(chalk.gray('  Manual fixes are required for hook configurations'));
       }
 
-      this.processService.exit(1);
+      process.exit(1);
     }
 
     // Additional recommendations based on validation results

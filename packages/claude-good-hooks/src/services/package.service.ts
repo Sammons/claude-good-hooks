@@ -1,4 +1,5 @@
-import { FileSystemService } from './file-system.service.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export interface PackageInfo {
   name: string;
@@ -6,15 +7,13 @@ export interface PackageInfo {
 }
 
 export class PackageService {
-  private fileSystem = new FileSystemService();
-
   constructor() {}
 
   getPackageInfo(): PackageInfo | null {
     try {
       // Use process.cwd() and navigate to package.json
-      const packagePath = this.fileSystem.join(process.cwd(), 'package.json');
-      const content = this.fileSystem.readFile(packagePath, 'utf-8');
+      const packagePath = join(process.cwd(), 'package.json');
+      const content = readFileSync(packagePath, 'utf-8');
       const packageJson = JSON.parse(content);
 
       return {

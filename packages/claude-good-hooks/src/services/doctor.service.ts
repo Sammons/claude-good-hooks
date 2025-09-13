@@ -1,5 +1,7 @@
-import { FileSystemService } from './file-system.service.js';
-import { ProcessService } from './process.service.js';
+import { existsSync } from 'fs';
+import { execSync } from 'child_process';
+import { join } from 'path';
+import { homedir, cwd } from 'process';
 import { detectPackageManager } from '../utils/detect-package-manager.js';
 import { PackageManagerHelper } from '../helpers/package-manager-helper.js';
 
@@ -15,13 +17,12 @@ export interface DoctorReport {
 }
 
 export class DoctorService {
-  private fileSystem = new FileSystemService();
-  private process = new ProcessService();
   private packageManagerHelper: PackageManagerHelper;
 
   constructor() {
     const packageManager = detectPackageManager();
-    this.packageManagerHelper = new PackageManagerHelper(packageManager, this.process);
+    // Note: PackageManagerHelper needs to be updated to not use ProcessService
+    this.packageManagerHelper = new PackageManagerHelper(packageManager);
   }
 
   async runSystemCheck(): Promise<DoctorReport> {
@@ -29,7 +30,7 @@ export class DoctorService {
 
     // Check if claude-good-hooks is in PATH
     try {
-      this.process.execSync('which claude-good-hooks');
+      execSync('which claude-good-hooks');
       checks.push({ name: 'claude-good-hooks in PATH', status: true });
     } catch {
       const installCmd = this.packageManagerHelper.getInstallInstructions(
@@ -44,7 +45,7 @@ export class DoctorService {
     }
 
     // Check Node.js version
-    const nodeVersion = this.process.getVersion();
+    const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
     const nodeOk = majorVersion >= 20;
     checks.push({
@@ -54,8 +55,8 @@ export class DoctorService {
     });
 
     // Check for Claude settings directory
-    const claudeDir = this.fileSystem.join(this.fileSystem.homedir(), '.claude');
-    const claudeDirExists = this.fileSystem.exists(claudeDir);
+    const claudeDir = join(homedir(), '.claude');
+    const claudeDirExists = existsSync(claudeDir);
     checks.push({
       name: 'Claude settings directory',
       status: claudeDirExists,
@@ -63,8 +64,8 @@ export class DoctorService {
     });
 
     // Check for global settings file
-    const globalSettingsPath = this.fileSystem.join(claudeDir, 'settings.json');
-    const globalSettingsExists = this.fileSystem.exists(globalSettingsPath);
+    const globalSettingsPath = join(claudeDir, 'settings.json');
+    const globalSettingsExists = existsSync(globalSettingsPath);
     checks.push({
       name: 'Global settings file',
       status: globalSettingsExists,
@@ -72,10 +73,8 @@ export class DoctorService {
     });
 
     // Check for project settings
-    const projectClaudeDir = this.fileSystem.join(this.fileSystem.cwd(), '.claude');
-    const projectSettingsExists = this.fileSystem.exists(
-      this.fileSystem.join(projectClaudeDir, 'settings.json')
-    );
+    const projectClaudeDir = join(cwd(), '.claude');
+    const projectSettingsExists = existsSync(join(projectClaudeDir, 'settings.json'));
     checks.push({
       name: 'Project settings',
       status: projectSettingsExists,
