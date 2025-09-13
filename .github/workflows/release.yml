@@ -152,14 +152,13 @@ jobs:
           # Explicitly list packages that should be published to NPM
           # This whitelist approach prevents accidental publishing of private packages
           PUBLISHABLE_PACKAGES=(
-            "claude-good-hooks-cli"           # Main CLI tool
-            "claude-good-hooks-types"         # TypeScript type definitions
-            "dirty-hook"                      # Hook implementation utility
-            "claude-good-hooks-template-hook" # Template for creating new hooks
+            "claude-good-hooks"               # Main CLI tool
+            "git-dirty-hook"                  # Git status hook implementation
+            "code-outline-hook"               # Code structure analysis hook
           )
           
           echo "🚀 Starting NPM publication process..."
-          echo "📋 Publishing $(${#PUBLISHABLE_PACKAGES[@]} packages: ${PUBLISHABLE_PACKAGES[*]}"
+          echo "📋 Publishing ${#PUBLISHABLE_PACKAGES[@]} packages: ${PUBLISHABLE_PACKAGES[*]}"
           
           # Process each package in the whitelist
           for pkg_name in "${PUBLISHABLE_PACKAGES[@]}"; do
@@ -202,7 +201,7 @@ jobs:
           done
           
           echo "🎉 All packages published successfully to NPM!"
-          echo "📊 Published $(${#PUBLISHABLE_PACKAGES[@]}) packages total"
+          echo "📊 Published ${#PUBLISHABLE_PACKAGES[@]} packages total"
           
       # Step 12: Create GitHub Release
       # This creates a formal release on GitHub with auto-generated release notes
