@@ -1,14 +1,14 @@
 # Claude Good Hooks
 
-[![CI](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/ci.yml)
-[![Security Scan](https://github.com/sammons/claude-good-hooks/actions/workflows/security.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/security.yml)
-[![Performance](https://github.com/sammons/claude-good-hooks/actions/workflows/performance.yml/badge.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/performance.yml)
-[![Coverage](.github/badges/coverage.svg)](https://github.com/sammons/claude-good-hooks/actions/workflows/coverage.yml)
+[![CI](https://github.com/sammons2/claude-good-hooks/actions/workflows/ci.yml/badge.svg)](https://github.com/sammons2/claude-good-hooks/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/sammons2/claude-good-hooks/actions/workflows/security.yml/badge.svg)](https://github.com/sammons2/claude-good-hooks/actions/workflows/security.yml)
+[![Performance](https://github.com/sammons2/claude-good-hooks/actions/workflows/performance.yml/badge.svg)](https://github.com/sammons2/claude-good-hooks/actions/workflows/performance.yml)
+[![Coverage](.github/badges/coverage.svg)](https://github.com/sammons2/claude-good-hooks/actions/workflows/coverage.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 CLI for configuring Claude Code hooks and using hooks shared via npm.
 
-[View Documentation](https://sammons.github.io/claude-good-hooks/)
+[View Documentation](https://sammons2.github.io/claude-good-hooks/)
 
 ## Documentation
 

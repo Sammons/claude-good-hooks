@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Claude Good Hooks!
 
 ```bash
 # Clone the repository
-git clone https://github.com/sammons/claude-good-hooks.git
+git clone https://github.com/sammons2/claude-good-hooks.git
 cd claude-good-hooks
 
 # Setup development environment

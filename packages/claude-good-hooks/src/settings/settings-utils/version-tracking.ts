@@ -19,7 +19,7 @@ export function createVersionedSettings(
   const now = getCurrentTimestamp();
 
   return {
-    $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
+    $schema: 'https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json',
     version: initialVersion,
     hooks: {},
     meta: {

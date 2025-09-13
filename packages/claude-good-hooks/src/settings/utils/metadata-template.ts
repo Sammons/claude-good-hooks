@@ -12,7 +12,7 @@ export function createMetadataTemplate(scope: SettingsScope): ClaudeGoodHooksMet
   const now = new Date().toISOString();
 
   return {
-    $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-good-hooks-metadata.json',
+    $schema: 'https://github.com/sammons2/claude-good-hooks/schemas/claude-good-hooks-metadata.json',
     meta: {
       version: '1.0.0',
       createdAt: now,

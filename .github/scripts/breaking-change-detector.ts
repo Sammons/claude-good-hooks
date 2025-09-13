@@ -942,9 +942,9 @@ function migrationCommand(options: DetectionOptions): void {
   
   migrationGuide += '\n## Need Help?\n\n';
   migrationGuide += 'If you encounter issues during migration:\n\n';
-  migrationGuide += '- [Create an issue](https://github.com/sammons/claude-good-hooks/issues)\n';
+  migrationGuide += '- [Create an issue](https://github.com/sammons2/claude-good-hooks/issues)\n';
   migrationGuide += '- [Check the documentation](https://claude-good-hooks.dev)\n';
-  migrationGuide += '- [Join the discussion](https://github.com/sammons/claude-good-hooks/discussions)\n';
+  migrationGuide += '- [Join the discussion](https://github.com/sammons2/claude-good-hooks/discussions)\n';
   
   if (options.output) {
     writeFileSync(options.output, migrationGuide);

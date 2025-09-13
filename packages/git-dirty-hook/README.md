@@ -245,7 +245,7 @@ claude-good-hooks doctor
 ### Building from Source
 
 ```bash
-git clone https://github.com/sammons/claude-good-hooks.git
+git clone https://github.com/sammons2/claude-good-hooks.git
 cd claude-good-hooks/packages/dirty-good-claude-hook
 npm install
 npm run build
@@ -294,7 +294,7 @@ export const myCustomGitHook: HookPlugin = {
 
 ## Contributing
 
-Contributions are welcome! Please see the [main repository](https://github.com/sammons/claude-good-hooks) for contribution guidelines.
+Contributions are welcome! Please see the [main repository](https://github.com/sammons2/claude-good-hooks) for contribution guidelines.
 
 ### Ideas for Enhancement
 - Support for other VCS systems (SVN, Mercurial)

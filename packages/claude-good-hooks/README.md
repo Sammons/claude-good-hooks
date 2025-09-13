@@ -135,7 +135,7 @@ claude-good-hooks apply template-hook --template git-status
 
 ### Building from Source
 ```bash
-git clone https://github.com/sammons/claude-good-hooks.git
+git clone https://github.com/sammons2/claude-good-hooks.git
 cd claude-good-hooks/packages/claude-good-hooks
 npm install
 npm run build
@@ -191,7 +191,7 @@ DEBUG=claude-good-hooks* claude-good-hooks <command>
 
 ## Contributing
 
-Contributions are welcome! Please see the [main repository](https://github.com/sammons/claude-good-hooks) for contribution guidelines.
+Contributions are welcome! Please see the [main repository](https://github.com/sammons2/claude-good-hooks) for contribution guidelines.
 
 ## License
 
@@ -199,5 +199,5 @@ MIT © Sammons Software LLC
 
 ## Support
 
-- [GitHub Issues](https://github.com/sammons/claude-good-hooks/issues)
-- [Documentation](https://sammons.github.io/claude-good-hooks/)
+- [GitHub Issues](https://github.com/sammons2/claude-good-hooks/issues)
+- [Documentation](https://sammons2.github.io/claude-good-hooks/)

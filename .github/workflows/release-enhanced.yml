@@ -433,7 +433,7 @@ jobs:
           echo "" >> enhanced-release-notes.md
           echo "---" >> enhanced-release-notes.md
           echo "" >> enhanced-release-notes.md
-          echo "**Full Changelog**: https://github.com/sammons/claude-good-hooks/compare/$(git describe --tags --abbrev=0 HEAD~1)...${{ github.ref_name }}" >> enhanced-release-notes.md
+          echo "**Full Changelog**: https://github.com/sammons2/claude-good-hooks/compare/$(git describe --tags --abbrev=0 HEAD~1)...${{ github.ref_name }}" >> enhanced-release-notes.md
           echo "" >> enhanced-release-notes.md
           echo "*This release was automatically generated and published by GitHub Actions with npm provenance.*" >> enhanced-release-notes.md
           

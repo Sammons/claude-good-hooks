@@ -66,6 +66,6 @@ export function getCurrentTimestamp(): string {
 // Constants
 export const CURRENT_SCHEMA_VERSION = '1.0.0';
 export const SCHEMA_URL =
-  'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json';
+  'https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json';
 export const DEFAULT_TIMEOUT = 60000; // 60 seconds
 export const MAX_TIMEOUT = 3600000; // 1 hour

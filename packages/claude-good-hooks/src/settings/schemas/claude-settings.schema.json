@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+  "$id": "https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json",
   "title": "Claude Settings Configuration",
   "description": "JSON Schema for validating Claude Code hook settings configuration files",
   "type": "object",
@@ -206,7 +206,7 @@
   },
   "examples": [
     {
-      "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+      "$schema": "https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json",
       "version": "1.0.0",
       "hooks": {
         "PostToolUse": [

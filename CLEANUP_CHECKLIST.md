@@ -17,7 +17,7 @@
 8. Update `/packages/landing-page/README.md` - bundle size badge shows outdated "23.8 KB"
 9. Verify `/packages/landing-page/README.md` - "Lighthouse 100" performance claim needs validation
 10. Update `/packages/landing-page/README.md` - change `npm` references to `pnpm` for consistency
-11. Verify website link `https://sammons.github.io/claude-good-hooks/` is active and correct
+11. Verify website link `https://sammons2.github.io/claude-good-hooks/` is active and correct
 12. Standardize GitHub org references - choose between `sammons` and `sammons2` consistently
 
 ### Medium Priority: Code Quality

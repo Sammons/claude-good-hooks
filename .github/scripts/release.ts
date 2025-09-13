@@ -439,7 +439,7 @@ async function executeRelease(config: ReleaseConfig): Promise<void> {
     console.log('');
     console.log('📋 Next Steps:');
     console.log('   1. Monitor the GitHub Actions workflow at:');
-    console.log('      https://github.com/sammons/claude-good-hooks/actions');
+    console.log('      https://github.com/sammons2/claude-good-hooks/actions');
     console.log('');
     console.log('   2. The workflow will automatically:');
     console.log(`      • Update package.json versions to ${version}`);

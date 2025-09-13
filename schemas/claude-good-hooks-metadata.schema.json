@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/sammons/claude-good-hooks/schemas/claude-good-hooks-metadata.json",
+  "$id": "https://github.com/sammons2/claude-good-hooks/schemas/claude-good-hooks-metadata.json",
   "title": "Claude Good Hooks Metadata",
   "description": "Schema for claude-good-hooks.json metadata files that store Claude Good Hooks metadata separately from Claude settings",
   "type": "object",

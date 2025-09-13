@@ -227,7 +227,7 @@ export class ValidateCheckCommand implements ValidateSubCommand {
         return {
           ...parsed,
           version: '0.0.0', // Mark as legacy for validation
-          $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
+          $schema: 'https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json',
         } as VersionedClaudeSettings;
       }
 

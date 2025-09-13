@@ -44,7 +44,7 @@ export function convertLegacyToVersionedSettings(
   const now = new Date().toISOString();
 
   const versionedSettings: VersionedClaudeSettings = {
-    $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
+    $schema: 'https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json',
     version: CURRENT_SCHEMA_VERSION,
     hooks: {},
     meta: {
@@ -111,7 +111,7 @@ export function ensureVersionedSettings(
   // If empty or invalid, return minimal versioned settings
   const now = new Date().toISOString();
   return {
-    $schema: 'https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json',
+    $schema: 'https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json',
     version: CURRENT_SCHEMA_VERSION,
     hooks: {},
     meta: {

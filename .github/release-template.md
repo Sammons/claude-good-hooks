@@ -63,15 +63,15 @@ Thanks to all the contributors who made this release possible:
 
 ## 📋 Full Changelog
 
-**Full Changelog**: https://github.com/sammons/claude-good-hooks/compare/{PREVIOUS_VERSION}...v{VERSION}
+**Full Changelog**: https://github.com/sammons2/claude-good-hooks/compare/{PREVIOUS_VERSION}...v{VERSION}
 
 ---
 
 ## 🔗 Links
 
 - 📚 **Documentation**: https://claude-good-hooks.dev
-- 🐛 **Report Issues**: https://github.com/sammons/claude-good-hooks/issues
-- 💬 **Discussions**: https://github.com/sammons/claude-good-hooks/discussions
+- 🐛 **Report Issues**: https://github.com/sammons2/claude-good-hooks/issues
+- 💬 **Discussions**: https://github.com/sammons2/claude-good-hooks/discussions
 - 📦 **npm Package**: https://www.npmjs.com/package/@sammons/claude-good-hooks
 
 ---

@@ -9,7 +9,7 @@
     "description": "Exported hooks configuration from local settings"
   },
   "settings": {
-    "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+    "$schema": "https://github.com/sammons2/claude-good-hooks/schemas/claude-settings.json",
     "version": "1.0.0",
     "hooks": {
       "PreToolUse": [
