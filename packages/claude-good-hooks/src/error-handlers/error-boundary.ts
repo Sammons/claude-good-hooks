@@ -2,13 +2,13 @@
  * Error boundary utilities for wrapping functions with consistent error handling
  */
 
-import {
-  CLIError,
-  formatError,
-  ErrorOutputOptions,
-  InternalError,
-  isCLIError,
-} from '../errors/index.js';
+import { AppError, ERROR_CODES, isAppError, formatError } from '../errors/app-error.js';
+
+export interface ErrorOutputOptions {
+  isJson?: boolean;
+  showStackTrace?: boolean;
+  includeDetails?: boolean;
+}
 
 /**
  * Global error handler that processes errors and exits gracefully
@@ -33,7 +33,7 @@ export function handleError(
   }
 
   if (exit) {
-    const exitCode = isCLIError(error) ? error.common.exitCode : 1;
+    const exitCode = isAppError(error) ? error.exitCode : 1;
     process.exit(exitCode);
   }
 }
@@ -58,14 +58,14 @@ export function withErrorBoundary<T extends unknown[], R>(
       // For CLI errors with context, we'll create a new error with context
       let processedError: unknown = caughtError;
 
-      if (isCLIError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
-        // We can't modify the common attributes directly, so we'll wrap it in a new CLIError
-        processedError = new CLIError(`${errorContext}: ${caughtError.message}`, {
-          exitCode: caughtError.common.exitCode,
-          isUserFacing: caughtError.common.isUserFacing,
-          suggestion: caughtError.common.suggestion,
-          cause:
-            caughtError.common.cause || (caughtError instanceof Error ? caughtError : undefined),
+      if (isAppError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
+        // We'll wrap it in a new AppError with context
+        processedError = new AppError(`${errorContext}: ${caughtError.message}`, {
+          code: caughtError.code,
+          exitCode: caughtError.exitCode,
+          isUserFacing: caughtError.isUserFacing,
+          suggestion: caughtError.suggestion,
+          cause: caughtError.cause || (caughtError instanceof Error ? caughtError : undefined),
         });
       }
 
@@ -89,7 +89,9 @@ export function withErrorBoundary<T extends unknown[], R>(
       }
 
       // This should never be reached, but TypeScript needs it
-      throw new InternalError('Error boundary reached unreachable code');
+      throw new AppError('Error boundary reached unreachable code', {
+        code: ERROR_CODES.INTERNAL
+      });
     }
   };
 }
@@ -114,14 +116,14 @@ export function withSyncErrorBoundary<T extends unknown[], R>(
       // For CLI errors with context, we'll create a new error with context
       let processedError: unknown = caughtError;
 
-      if (isCLIError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
-        // We can't modify the common attributes directly, so we'll wrap it in a new CLIError
-        processedError = new CLIError(`${errorContext}: ${caughtError.message}`, {
-          exitCode: caughtError.common.exitCode,
-          isUserFacing: caughtError.common.isUserFacing,
-          suggestion: caughtError.common.suggestion,
-          cause:
-            caughtError.common.cause || (caughtError instanceof Error ? caughtError : undefined),
+      if (isAppError(caughtError) && errorContext && !caughtError.message.includes(errorContext)) {
+        // We'll wrap it in a new AppError with context
+        processedError = new AppError(`${errorContext}: ${caughtError.message}`, {
+          code: caughtError.code,
+          exitCode: caughtError.exitCode,
+          isUserFacing: caughtError.isUserFacing,
+          suggestion: caughtError.suggestion,
+          cause: caughtError.cause || (caughtError instanceof Error ? caughtError : undefined),
         });
       }
 
@@ -145,7 +147,9 @@ export function withSyncErrorBoundary<T extends unknown[], R>(
       }
 
       // This should never be reached, but TypeScript needs it
-      throw new InternalError('Error boundary reached unreachable code');
+      throw new AppError('Error boundary reached unreachable code', {
+        code: ERROR_CODES.INTERNAL
+      });
     }
   };
 }

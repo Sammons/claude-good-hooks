@@ -6,8 +6,9 @@ import { readFileSync, existsSync } from 'fs';
 import { extname } from 'path';
 import { createInterface } from 'readline';
 import chalk from 'chalk';
-import type { ClaudeSettings } from '../types';
-import { isClaudeSettings } from '../types';
+import { AppError, ERROR_CODES } from '../../errors/index.js';
+import type { ClaudeSettings } from '../../types/index.js';
+import { isClaudeSettings } from '../../types/index.js';
 import { SettingsService, type SettingsScope } from '../../services/settings.service.js';
 import { ProcessService } from '../../services/process.service.js';
 import { validateSettings, printValidationResults } from '../../utils/validator.js';
@@ -73,7 +74,9 @@ export class ImportFileCommand implements ImportSubCommand {
   async execute(args: string[], options: ImportOptions): Promise<void> {
     const source = args[0];
     if (!source) {
-      throw new Error('Source is required');
+      throw new AppError('Source is required', {
+        code: ERROR_CODES.MISSING_ARGUMENT
+      });
     }
 
     const scope = (options.scope || 'project') as SettingsScope;
@@ -378,22 +381,33 @@ export class ImportFileCommand implements ImportSubCommand {
       try {
         const response = await fetch(source);
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          throw new AppError(`HTTP ${response.status}: ${response.statusText}`, {
+            code: ERROR_CODES.NETWORK_ERROR
+          });
         }
         content = await response.text();
       } catch (error) {
-        throw new Error(`Failed to fetch from URL: ${error}`);
+        throw new AppError(`Failed to fetch from URL: ${error}`, {
+          code: ERROR_CODES.NETWORK_ERROR,
+          cause: error instanceof Error ? error : undefined
+        });
       }
     } else {
       // Load from file
       if (!existsSync(source)) {
-        throw new Error(`File not found: ${source}`);
+        throw new AppError(`File not found: ${source}`, {
+          code: ERROR_CODES.FILE_NOT_FOUND,
+          suggestion: 'Check that the file path is correct and the file exists'
+        });
       }
 
       try {
         content = readFileSync(source, 'utf8');
       } catch (error) {
-        throw new Error(`Failed to read file: ${error}`);
+        throw new AppError(`Failed to read file: ${error}`, {
+          code: ERROR_CODES.FILE_READ_FAILED,
+          cause: error instanceof Error ? error : undefined
+        });
       }
     }
 
@@ -417,7 +431,10 @@ export class ImportFileCommand implements ImportSubCommand {
         }
       }
     } catch (error) {
-      throw new Error(`Failed to parse configuration: ${error}`);
+      throw new AppError(`Failed to parse configuration: ${error}`, {
+        code: ERROR_CODES.CONFIG_INVALID,
+        cause: error instanceof Error ? error : undefined
+      });
     }
 
     // Normalize configuration structure
@@ -431,7 +448,10 @@ export class ImportFileCommand implements ImportSubCommand {
       // Full export format
       return parsed as ImportedConfiguration;
     } else {
-      throw new Error('Invalid configuration format');
+      throw new AppError('Invalid configuration format', {
+        code: ERROR_CODES.CONFIG_INVALID,
+        suggestion: 'Ensure the configuration file is valid JSON or YAML'
+      });
     }
   }
 
@@ -464,7 +484,10 @@ export class ImportFileCommand implements ImportSubCommand {
 
       return JSON.parse('{' + json.slice(0, -1) + '}');
     } catch {
-      throw new Error('Failed to parse YAML content');
+      throw new AppError('Failed to parse YAML content', {
+        code: ERROR_CODES.CONFIG_INVALID,
+        suggestion: 'Consider using a JSON file or simplifying the YAML structure'
+      });
     }
   }
 

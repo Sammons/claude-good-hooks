@@ -15,7 +15,7 @@ import type {
   MigrationRecord,
   SettingsMetadata,
   VersionedClaudeSettings,
-} from '../types';
+} from '../../types/index.js';
 
 export type {
   SchemaValidationError,

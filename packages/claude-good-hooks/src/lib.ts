@@ -15,5 +15,17 @@ export { DualSettingsService } from './services/dual-settings.service.js';
 export { HookService } from './services/hook.service.js';
 export { ModuleService } from './services/module.service.js';
 
-// Export types
-export * from './types/index.js';
+// Export types (selectively to avoid conflicts)
+export { 
+  type ClaudeSettings,
+  type HookConfiguration,
+  type HookCommand,
+  type HookPlugin,
+  type HookFactory,
+  type HookFactoryArguments,
+  type HookMetadata,
+  isHookPlugin,
+  isClaudeSettings,
+  isHookCommand,
+  isHookConfiguration
+} from './types/index.js';

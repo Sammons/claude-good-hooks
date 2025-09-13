@@ -2,7 +2,7 @@
  * Retry and recovery helpers for error-prone operations
  */
 
-import { CLIError, ValidationError, InternalError, isCLIError } from '../errors/index.js';
+import { AppError, ERROR_CODES, isAppError } from '../errors/app-error.js';
 
 /**
  * Async retry wrapper with exponential backoff
@@ -38,7 +38,7 @@ export async function withRetry<T>(
       }
 
       // Don't retry user-facing validation errors
-      if (error instanceof ValidationError) {
+      if (isAppError(error) && error.code === ERROR_CODES.VALIDATION_FAILED) {
         break;
       }
 
@@ -50,20 +50,23 @@ export async function withRetry<T>(
 
   // If we get here, all retries failed
   if (lastError) {
-    if (isCLIError(lastError)) {
+    if (isAppError(lastError)) {
       throw lastError;
     }
 
     const message = lastError instanceof Error ? lastError.message : String(lastError);
     const contextualMessage = errorContext ? `${errorContext}: ${message}` : message;
 
-    throw new CLIError(`Operation failed after ${maxRetries} attempts: ${contextualMessage}`, {
+    throw new AppError(`Operation failed after ${maxRetries} attempts: ${contextualMessage}`, {
+      code: ERROR_CODES.UNKNOWN,
       cause: lastError instanceof Error ? lastError : undefined,
       suggestion: 'The operation may be temporarily unavailable. Try again later.',
     });
   }
 
-  throw new InternalError('Retry loop completed without error or result');
+  throw new AppError('Retry loop completed without error or result', {
+    code: ERROR_CODES.INTERNAL
+  });
 }
 
 /**

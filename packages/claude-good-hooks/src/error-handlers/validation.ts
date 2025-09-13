@@ -2,7 +2,7 @@
  * Validation helpers that throw appropriate errors for failed checks
  */
 
-import { ValidationError } from '../errors/index.js';
+import { AppError, ERROR_CODES } from '../errors/app-error.js';
 
 /**
  * Validation helper that throws ValidationError for failed checks
@@ -16,11 +16,17 @@ export function validateInput<T>(
   const result = validator(value);
 
   if (result === false) {
-    throw new ValidationError(`Invalid ${fieldName}`, { suggestion });
+    throw new AppError(`Invalid ${fieldName}`, {
+      code: ERROR_CODES.VALIDATION_FAILED,
+      suggestion
+    });
   }
 
   if (typeof result === 'string') {
-    throw new ValidationError(`Invalid ${fieldName}: ${result}`, { suggestion });
+    throw new AppError(`Invalid ${fieldName}: ${result}`, {
+      code: ERROR_CODES.VALIDATION_FAILED,
+      suggestion
+    });
   }
 
   return value;
@@ -35,6 +41,9 @@ export function assert(
   suggestion?: string
 ): asserts condition {
   if (!condition) {
-    throw new ValidationError(message, { suggestion });
+    throw new AppError(message, {
+      code: ERROR_CODES.VALIDATION_FAILED,
+      suggestion
+    });
   }
 }
