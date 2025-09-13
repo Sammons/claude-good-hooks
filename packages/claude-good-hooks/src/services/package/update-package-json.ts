@@ -7,10 +7,7 @@ import { readFileSync, writeFileSync } from 'fs';
 /**
  * Update package.json with new information
  */
-export function updatePackageJson(
-  packagePath: string,
-  updates: Record<string, unknown>
-): boolean {
+export function updatePackageJson(packagePath: string, updates: Record<string, unknown>): boolean {
   try {
     const content = readFileSync(packagePath, 'utf-8');
     const packageJson = JSON.parse(content);

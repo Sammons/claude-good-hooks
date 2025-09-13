@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PackageManagerHelper } from './package-manager-helper.js';
-import { createMockProcessService, type MockProcessService } from './package-manager-helper-shared-setup.js';
+import {
+  createMockProcessService,
+  type MockProcessService,
+} from './package-manager-helper-shared-setup.js';
 
 describe('PackageManagerHelper NPM Commands', () => {
   let mockProcessService: MockProcessService;

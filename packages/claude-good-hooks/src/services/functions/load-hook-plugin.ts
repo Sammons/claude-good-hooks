@@ -48,7 +48,13 @@ export async function loadHookPlugin(
     plugin = module.HookPlugin || module.default?.HookPlugin;
 
     // If no HookPlugin export, try the default export (if it looks like a plugin)
-    if (!plugin && module.default && typeof module.default === 'object' && 'default' in module.default && !module.default.makeHook) {
+    if (
+      !plugin &&
+      module.default &&
+      typeof module.default === 'object' &&
+      'default' in module.default &&
+      !module.default.makeHook
+    ) {
       // This handles cases where the module has a nested default export
       plugin = module.default.default as HookPlugin;
     } else if (!plugin) {

@@ -30,7 +30,16 @@ describe('CLI Import/Export Minified JSON', () => {
 
     const minifiedExportPath = path.join(testDir, 'export-minified.json');
     const minifiedResult = await runCLI(
-      ['export', '--scope', 'project', '--format', 'json', '--minify', '--output', minifiedExportPath],
+      [
+        'export',
+        '--scope',
+        'project',
+        '--format',
+        'json',
+        '--minify',
+        '--output',
+        minifiedExportPath,
+      ],
       { timeout: 10000 }
     );
 

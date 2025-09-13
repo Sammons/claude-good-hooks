@@ -9,7 +9,7 @@ import type { ClaudeSettings, HookConfiguration } from '../types/index.js';
  */
 export function mergeConfigs(...configs: ClaudeSettings[]): ClaudeSettings {
   const result: ClaudeSettings = {
-    hooks: {}
+    hooks: {},
   };
 
   for (const config of configs) {
@@ -31,13 +31,16 @@ export function mergeConfigs(...configs: ClaudeSettings[]): ClaudeSettings {
   return result;
 }
 
-function mergeHookConfigurations(existing: HookConfiguration[], newHooks: HookConfiguration[]): HookConfiguration[] {
+function mergeHookConfigurations(
+  existing: HookConfiguration[],
+  newHooks: HookConfiguration[]
+): HookConfiguration[] {
   const merged = [...existing];
 
   for (const newHook of newHooks) {
-    const existingIndex = merged.findIndex(h =>
-      h.matcher === newHook.matcher &&
-      JSON.stringify(h.hooks) === JSON.stringify(newHook.hooks)
+    const existingIndex = merged.findIndex(
+      h =>
+        h.matcher === newHook.matcher && JSON.stringify(h.hooks) === JSON.stringify(newHook.hooks)
     );
 
     if (existingIndex === -1) {

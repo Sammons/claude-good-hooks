@@ -35,9 +35,9 @@ describe('Validation Utilities', () => {
     it('should include suggestion in error', () => {
       const validator = () => false;
 
-      expect(() =>
-        validateInput('test', validator, 'Error message', 'Try this instead')
-      ).toThrow(AppError);
+      expect(() => validateInput('test', validator, 'Error message', 'Try this instead')).toThrow(
+        AppError
+      );
       // Test that the suggestion is included in the thrown error
       try {
         validateInput('test', validator, 'Error message', 'Try this instead');

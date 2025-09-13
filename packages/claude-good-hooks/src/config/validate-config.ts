@@ -47,10 +47,15 @@ function validateHookConfiguration(hook: any, eventName: string) {
     }
 
     if (typeof command.command !== 'string' || !command.command.trim()) {
-      throw AppError.validation(`Hook command must have non-empty command string for event: ${eventName}`);
+      throw AppError.validation(
+        `Hook command must have non-empty command string for event: ${eventName}`
+      );
     }
 
-    if (command.timeout !== undefined && (typeof command.timeout !== 'number' || command.timeout < 0)) {
+    if (
+      command.timeout !== undefined &&
+      (typeof command.timeout !== 'number' || command.timeout < 0)
+    ) {
       throw AppError.validation(`Hook timeout must be a positive number for event: ${eventName}`);
     }
   }

@@ -29,10 +29,7 @@ export class ImportCommand {
 
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
-    this.subCommands = [
-      new ImportHelpCommand(),
-      new ImportFileCommand(this.settingsService),
-    ];
+    this.subCommands = [new ImportHelpCommand(), new ImportFileCommand(this.settingsService)];
   }
 
   /**

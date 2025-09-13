@@ -26,7 +26,7 @@ export async function isModuleInstalled(
       const localPath = join(process.cwd(), 'node_modules', moduleName);
       return existsSync(localPath);
     }
-  } catch (error) {
+  } catch {
     return false;
   }
 }

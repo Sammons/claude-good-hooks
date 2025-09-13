@@ -9,6 +9,6 @@ import type { ClaudeSettings } from '../types/index.js';
  */
 export function loadDefaultConfig(): ClaudeSettings {
   return {
-    hooks: {}
+    hooks: {},
   };
 }

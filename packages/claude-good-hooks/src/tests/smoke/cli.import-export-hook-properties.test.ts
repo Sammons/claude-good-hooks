@@ -67,18 +67,16 @@ describe('CLI Import/Export Hook Property Preservation', () => {
     await fs.writeFile(complexPath, JSON.stringify(complexConfig, null, 2), 'utf8');
 
     // Import the complex configuration
-    const importResult = await runCLI(
-      ['import', complexPath, '--scope', 'project', '--yes'],
-      { timeout: 10000 }
-    );
+    const importResult = await runCLI(['import', complexPath, '--scope', 'project', '--yes'], {
+      timeout: 10000,
+    });
     expect(importResult.success).toBe(true);
 
     // Export it back
     const exportPath = path.join(testDir, 'complex-export.json');
-    const exportResult = await runCLI(
-      ['export', '--scope', 'project', '--output', exportPath],
-      { timeout: 10000 }
-    );
+    const exportResult = await runCLI(['export', '--scope', 'project', '--output', exportPath], {
+      timeout: 10000,
+    });
     expect(exportResult.success).toBe(true);
 
     // Verify all properties are preserved
@@ -124,10 +122,9 @@ describe('CLI Import/Export Hook Property Preservation', () => {
 
     await fs.writeFile(edgeCasePath, JSON.stringify(edgeCaseConfig, null, 2), 'utf8');
 
-    const importResult = await runCLI(
-      ['import', edgeCasePath, '--scope', 'project', '--yes'],
-      { timeout: 10000 }
-    );
+    const importResult = await runCLI(['import', edgeCasePath, '--scope', 'project', '--yes'], {
+      timeout: 10000,
+    });
     expect(importResult.success).toBe(true);
 
     const exportResult = await runCLI(
@@ -141,6 +138,8 @@ describe('CLI Import/Export Hook Property Preservation', () => {
 
     expect(exportedConfig.settings.hooks.PreToolUse).toHaveLength(2);
     expect(exportedConfig.settings.hooks.PreToolUse[1].matcher).toBe('unicode-test-🚀');
-    expect(exportedConfig.settings.hooks.PreToolUse[1].hooks[0].command).toBe('echo "unicode: 你好 🌟"');
+    expect(exportedConfig.settings.hooks.PreToolUse[1].hooks[0].command).toBe(
+      'echo "unicode: 你好 🌟"'
+    );
   }, 15000);
 });

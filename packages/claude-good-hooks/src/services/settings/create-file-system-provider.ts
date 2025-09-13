@@ -49,6 +49,6 @@ export function createFileSystemProvider() {
 
     cwd(): string {
       return cwd();
-    }
+    },
   };
 }

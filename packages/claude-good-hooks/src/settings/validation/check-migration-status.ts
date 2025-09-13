@@ -48,10 +48,7 @@ export async function checkMigrationStatus(
     }
 
     // Extract clean settings and metadata
-    const { cleanSettings, extractedMetadata, issues, warnings } = extractFromLegacy(
-      parsed,
-      scope
-    );
+    const { cleanSettings, extractedMetadata, issues, warnings } = extractFromLegacy(parsed, scope);
 
     return {
       needsMigration: true,

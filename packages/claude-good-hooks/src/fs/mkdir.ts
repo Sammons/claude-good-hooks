@@ -7,6 +7,9 @@ export function createDirectory(path: string, options?: { recursive?: boolean })
   mkdirSync(path, options);
 }
 
-export async function createDirectoryAsync(path: string, options?: { recursive?: boolean }): Promise<void> {
+export async function createDirectoryAsync(
+  path: string,
+  options?: { recursive?: boolean }
+): Promise<void> {
   await mkdirAsync(path, options);
 }

@@ -14,12 +14,7 @@ export async function getModuleVersion(
       const globalPath = await packageManagerHelper.getGlobalRoot();
       packageJsonPath = join(globalPath, moduleName, 'package.json');
     } else {
-      packageJsonPath = join(
-        process.cwd(),
-        'node_modules',
-        moduleName,
-        'package.json'
-      );
+      packageJsonPath = join(process.cwd(), 'node_modules', moduleName, 'package.json');
     }
 
     if (!existsSync(packageJsonPath)) {

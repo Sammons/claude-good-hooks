@@ -2,7 +2,11 @@
  * Extract clean settings and metadata from legacy format
  */
 
-import type { ClaudeSettings, ClaudeGoodHooksMetadata, HookConfiguration } from '../../types/index.js';
+import type {
+  ClaudeSettings,
+  ClaudeGoodHooksMetadata,
+  HookConfiguration,
+} from '../../types/index.js';
 import { createMetadataTemplate } from '../utils/metadata-template.js';
 import { extractCleanConfigAndMetadata } from '../metadata/extract-clean-config-and-metadata.js';
 
@@ -21,10 +25,7 @@ export interface ExtractLegacyResult {
 /**
  * Extract clean settings and metadata from legacy format
  */
-export function extractFromLegacy(
-  parsed: any,
-  scope: SettingsScope
-): ExtractLegacyResult {
+export function extractFromLegacy(parsed: any, scope: SettingsScope): ExtractLegacyResult {
   const issues: string[] = [];
   const warnings: string[] = [];
 

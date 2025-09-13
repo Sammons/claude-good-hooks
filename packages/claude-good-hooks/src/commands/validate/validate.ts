@@ -18,12 +18,10 @@ export class ValidateCommand {
   name = 'validate';
   description = 'Validate hooks configuration';
 
-
   // Polymorphic sub-command handlers - no switch statements needed
   private subCommands: ValidateSubCommand[];
 
   constructor() {
-
     // Initialize sub-commands with shared services
     // Order matters - more specific matches should come first
     this.subCommands = [new ValidateCheckCommand(), new ValidateHelpCommand()];

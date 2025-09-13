@@ -27,12 +27,9 @@ describe('CLI Import/Export Basic Cycle', () => {
   test('should import, export, and verify configuration integrity', async () => {
     // Step 1: Import the test configuration
     console.log('Step 1: Importing test configuration...');
-    const importResult = await runCLI(
-      ['import', configPath, '--scope', 'project', '--yes'],
-      {
-        timeout: 15000,
-      }
-    );
+    const importResult = await runCLI(['import', configPath, '--scope', 'project', '--yes'], {
+      timeout: 15000,
+    });
 
     expect(importResult.success).toBe(true);
     expect(importResult.stdout).toMatch(/Configuration imported successfully/i);
@@ -44,12 +41,9 @@ describe('CLI Import/Export Basic Cycle', () => {
 
     // Step 2: Export the configuration back out
     console.log('Step 2: Exporting configuration...');
-    const exportResult = await runCLI(
-      ['export', '--scope', 'project', '--output', exportedPath],
-      {
-        timeout: 15000,
-      }
-    );
+    const exportResult = await runCLI(['export', '--scope', 'project', '--output', exportedPath], {
+      timeout: 15000,
+    });
 
     expect(exportResult.success).toBe(true);
     expect(exportResult.stdout).toMatch(/Configuration exported successfully/i);
@@ -90,7 +84,7 @@ describe('CLI Import/Export Basic Cycle', () => {
       'SubagentStop',
       'SessionEnd',
       'Notification',
-      'PreCompact'
+      'PreCompact',
     ];
 
     for (const hookType of expectedHookTypes) {

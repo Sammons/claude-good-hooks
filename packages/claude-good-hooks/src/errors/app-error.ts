@@ -380,7 +380,14 @@ export function isAppError(error: unknown): error is AppError {
  */
 export function formatError(
   error: unknown,
-  options: { json?: boolean; isJson?: boolean; showStackTrace?: boolean; includeStack?: boolean; includeDetails?: boolean; context?: Record<string, unknown> } = {}
+  options: {
+    json?: boolean;
+    isJson?: boolean;
+    showStackTrace?: boolean;
+    includeStack?: boolean;
+    includeDetails?: boolean;
+    context?: Record<string, unknown>;
+  } = {}
 ): string {
   // Handle legacy option names for backward compatibility
   const isJson = options.json ?? options.isJson;

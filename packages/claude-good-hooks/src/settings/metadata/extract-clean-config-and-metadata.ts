@@ -26,10 +26,7 @@ export function extractCleanConfigAndMetadata(hookConfig: HookConfiguration): Ex
   let metadata: HookInstanceMetadata | undefined;
 
   if (hookConfig.claudegoodhooks) {
-    const id = generateHookId(
-      hookConfig.claudegoodhooks.name,
-      hookConfig.claudegoodhooks.version
-    );
+    const id = generateHookId(hookConfig.claudegoodhooks.name, hookConfig.claudegoodhooks.version);
     const now = new Date().toISOString();
 
     metadata = {

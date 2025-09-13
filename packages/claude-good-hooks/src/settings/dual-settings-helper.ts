@@ -8,7 +8,12 @@
  * This separation resolves validation conflicts with Claude Code.
  */
 
-import type { ClaudeSettings, HookConfiguration, SettingsMetadataPair, MigrationStatus } from '../types/index.js';
+import type {
+  ClaudeSettings,
+  HookConfiguration,
+  SettingsMetadataPair,
+  MigrationStatus,
+} from '../types/index.js';
 
 // Import single-function modules
 import { getSettingsPath } from './paths/get-settings-path.js';

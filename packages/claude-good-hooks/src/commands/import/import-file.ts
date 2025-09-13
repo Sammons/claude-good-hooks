@@ -3,7 +3,6 @@
  */
 
 import chalk from 'chalk';
-import { AppError, ERROR_CODES } from '../../errors/index.js';
 import { SettingsService, type SettingsScope } from '../../services/settings.service.js';
 import { validateSettings, printValidationResults } from '../../utils/validator.js';
 import type { ImportSubCommand } from './import-types.js';
@@ -67,15 +66,7 @@ export class ImportFileCommand implements ImportSubCommand {
    */
   async execute(args: string[], options: ImportOptions): Promise<void> {
     const [source] = args;
-    const {
-      scope,
-      merge,
-      force,
-      dryRun,
-      validate,
-      json,
-      yes,
-    } = options;
+    const { scope, merge, force, dryRun, validate, json, yes } = options;
 
     if (json) {
       await this.executeJson(source, scope, merge, force, dryRun, validate, options);
@@ -196,7 +187,8 @@ export class ImportFileCommand implements ImportSubCommand {
         printValidationResults(validationResult);
 
         if (!force) {
-          const proceed = yes || await askYesNo('Continue with invalid configuration? (y/N): ', false);
+          const proceed =
+            yes || (await askYesNo('Continue with invalid configuration? (y/N): ', false));
           if (!proceed) {
             process.exit(1);
           }
@@ -226,7 +218,7 @@ export class ImportFileCommand implements ImportSubCommand {
       console.log(chalk.yellow('\n🔍 Dry run mode - no changes will be made'));
     } else {
       console.log();
-      const proceed = yes || await askYesNo('Proceed with import? (Y/n): ', true);
+      const proceed = yes || (await askYesNo('Proceed with import? (Y/n): ', true));
       if (!proceed) {
         console.log(chalk.gray('Import cancelled'));
         process.exit(0);
@@ -243,7 +235,11 @@ export class ImportFileCommand implements ImportSubCommand {
 
     console.log(chalk.gray(`   Scope: ${scope}`));
     console.log(chalk.gray(`   Total hooks: ${countHooks(finalSettings)}`));
-    console.log(chalk.gray(`   Total events: ${finalSettings.hooks ? Object.keys(finalSettings.hooks).length : 0}`));
+    console.log(
+      chalk.gray(
+        `   Total events: ${finalSettings.hooks ? Object.keys(finalSettings.hooks).length : 0}`
+      )
+    );
 
     console.log(chalk.blue('\n📝 Next steps:'));
     console.log(chalk.gray('   • Run `claude-good-hooks list-hooks` to verify installation'));

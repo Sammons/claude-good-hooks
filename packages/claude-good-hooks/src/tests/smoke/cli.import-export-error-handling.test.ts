@@ -37,10 +37,9 @@ describe('CLI Import/Export Error Handling', () => {
     const invalidJsonPath = path.join(testDir, 'invalid.json');
     await fs.writeFile(invalidJsonPath, '{ invalid json content', 'utf8');
 
-    const invalidJsonResult = await runCLI(
-      ['import', invalidJsonPath, '--scope', 'project'],
-      { timeout: 5000 }
-    );
+    const invalidJsonResult = await runCLI(['import', invalidJsonPath, '--scope', 'project'], {
+      timeout: 5000,
+    });
     expect(invalidJsonResult.success).toBe(false);
     expect(invalidJsonResult.stderr).toMatch(/(parse|json|syntax)/i);
 
@@ -50,6 +49,8 @@ describe('CLI Import/Export Error Handling', () => {
       { timeout: 5000 }
     );
     expect(invalidExportResult.success).toBe(false);
-    expect(invalidExportResult.stderr).toMatch(/(permission|not found|ENOENT|EACCES|no hooks found)/i);
+    expect(invalidExportResult.stderr).toMatch(
+      /(permission|not found|ENOENT|EACCES|no hooks found)/i
+    );
   }, 20000);
 });

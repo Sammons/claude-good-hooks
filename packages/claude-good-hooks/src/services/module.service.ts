@@ -28,7 +28,10 @@ export class ModuleService {
     return isModuleInstalled(hookIdentifier, this.packageManagerHelper, global);
   }
 
-  async loadHookPlugin(hookIdentifier: string, global: boolean = false): Promise<HookPlugin | null> {
+  async loadHookPlugin(
+    hookIdentifier: string,
+    global: boolean = false
+  ): Promise<HookPlugin | null> {
     return loadHookPlugin(hookIdentifier, this.packageManagerHelper, global);
   }
 

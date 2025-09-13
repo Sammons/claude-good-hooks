@@ -17,10 +17,6 @@ export function getMetadataPath(scope: SettingsScope, fileSystem: FileSystemProv
     case 'project':
       return fileSystem.join(fileSystem.cwd(), '.claude', 'claude-good-hooks.json');
     case 'local':
-      return fileSystem.join(
-        fileSystem.cwd(),
-        '.claude',
-        'claude-good-hooks.local.json'
-      );
+      return fileSystem.join(fileSystem.cwd(), '.claude', 'claude-good-hooks.local.json');
   }
 }

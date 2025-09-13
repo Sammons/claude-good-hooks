@@ -9,10 +9,7 @@ export function countHooks(settings: ClaudeSettings): number {
     ? Object.values(settings.hooks).reduce((total: number, configs: any) => {
         return (
           total +
-          configs.reduce(
-            (configTotal: number, config: any) => configTotal + config.hooks.length,
-            0
-          )
+          configs.reduce((configTotal: number, config: any) => configTotal + config.hooks.length, 0)
         );
       }, 0)
     : 0;

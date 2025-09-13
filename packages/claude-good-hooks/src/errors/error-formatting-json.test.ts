@@ -50,7 +50,7 @@ describe('Error Formatting JSON Output', () => {
 
     const formatted = formatError(error, {
       json: true,
-      includeStack: true
+      includeStack: true,
     });
     const parsed = JSON.parse(formatted);
 

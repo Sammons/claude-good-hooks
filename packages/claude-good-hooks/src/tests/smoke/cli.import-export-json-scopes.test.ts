@@ -26,10 +26,9 @@ describe('CLI Import/Export JSON Format with Scopes', () => {
 
   test('should handle JSON format import/export with all scopes', async () => {
     // Test project scope
-    const projectResult = await runCLI(
-      ['import', configPath, '--scope', 'project', '--yes'],
-      { timeout: 10000 }
-    );
+    const projectResult = await runCLI(['import', configPath, '--scope', 'project', '--yes'], {
+      timeout: 10000,
+    });
     expect(projectResult.success).toBe(true);
     expect(projectResult.stdout).toMatch(/project/i);
 

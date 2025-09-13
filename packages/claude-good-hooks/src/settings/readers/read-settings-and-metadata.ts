@@ -2,7 +2,11 @@
  * Read both settings and metadata files for a scope
  */
 
-import type { ClaudeSettings, ClaudeGoodHooksMetadata, SettingsMetadataPair } from '../../types/index.js';
+import type {
+  ClaudeSettings,
+  ClaudeGoodHooksMetadata,
+  SettingsMetadataPair,
+} from '../../types/index.js';
 import { atomicReadFile } from './atomic-read-file.js';
 import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
 import { getSettingsPath } from '../paths/get-settings-path.js';

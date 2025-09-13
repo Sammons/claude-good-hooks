@@ -55,5 +55,4 @@ export class HookService {
   parseHookArgsFromSaved(savedArgs: Record<string, unknown>, plugin: HookPlugin): ParsedHookArgs {
     return parseHookArgsFromSaved(savedArgs, plugin);
   }
-
 }
