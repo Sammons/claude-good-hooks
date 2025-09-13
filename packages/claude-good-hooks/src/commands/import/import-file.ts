@@ -74,12 +74,13 @@ export class ImportFileCommand implements ImportSubCommand {
       dryRun,
       validate,
       json,
+      yes,
     } = options;
 
     if (json) {
       await this.executeJson(source, scope, merge, force, dryRun, validate, options);
     } else {
-      await this.executeInteractive(source, scope, merge, force, dryRun, validate, options);
+      await this.executeInteractive(source, scope, merge, force, dryRun, validate, yes, options);
     }
   }
 
@@ -152,6 +153,7 @@ export class ImportFileCommand implements ImportSubCommand {
     force: boolean,
     dryRun: boolean,
     validate: boolean,
+    yes: boolean,
     options: ImportOptions
   ): Promise<void> {
     console.log(chalk.blue.bold('📥 Importing Claude Hooks Configuration\n'));
@@ -194,7 +196,7 @@ export class ImportFileCommand implements ImportSubCommand {
         printValidationResults(validationResult);
 
         if (!force) {
-          const proceed = await askYesNo('Continue with invalid configuration? (y/N): ', false);
+          const proceed = yes || await askYesNo('Continue with invalid configuration? (y/N): ', false);
           if (!proceed) {
             process.exit(1);
           }
@@ -224,7 +226,7 @@ export class ImportFileCommand implements ImportSubCommand {
       console.log(chalk.yellow('\n🔍 Dry run mode - no changes will be made'));
     } else {
       console.log();
-      const proceed = await askYesNo('Proceed with import? (Y/n): ', true);
+      const proceed = yes || await askYesNo('Proceed with import? (Y/n): ', true);
       if (!proceed) {
         console.log(chalk.gray('Import cancelled'));
         process.exit(0);

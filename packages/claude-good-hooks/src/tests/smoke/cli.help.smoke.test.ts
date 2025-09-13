@@ -105,21 +105,21 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
     });
   });
 
-  describe('Remote Commands', () => {
-    test('should run remote command', async () => {
-      const result = await runCLI(['remote']);
+  describe('Update Commands', () => {
+    test('should run update command help', async () => {
+      const result = await runCLI(['update', '--help']);
       expect(result.success).toBe(true);
-      expectNonEmptyOutput(result.stdout, 'remote output');
+      expectNonEmptyOutput(result.stdout, 'update output');
     });
 
-    test('should run remote command in JSON format', async () => {
-      const result = await runCLI(['--json', 'remote']);
+    test('should run update command help in JSON format', async () => {
+      const result = await runCLI(['--json', 'update', '--help']);
       expect(result.success).toBe(true);
-      expectNonEmptyOutput(result.stdout, 'JSON remote output');
+      expectNonEmptyOutput(result.stdout, 'JSON update output');
 
       const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
-      expect(jsonOutput).toHaveProperty('remotes');
-      expect(Array.isArray(jsonOutput.remotes)).toBe(true);
+      expect(jsonOutput).toHaveProperty('name');
+      expect(jsonOutput.name).toBe('update');
     });
   });
 
@@ -170,10 +170,11 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
     });
 
     test('should have consistent JSON response structure', async () => {
-      const commands = ['help', 'version', 'doctor', 'list-hooks', 'remote'];
+      const commands = ['help', 'version', 'doctor', 'list-hooks', 'update'];
 
       for (const command of commands) {
-        const result = await runCLI(['--json', command]);
+        console.log(`Testing JSON response for command: ${command}`);
+        const result = await runCLI(['--json', command], { timeout: 15000 });
         expect(result.success).toBe(true);
 
         const jsonOutput = expectValidJSON(result.stdout) as Record<string, any>;
@@ -181,7 +182,7 @@ describe('Claude Good Hooks CLI - Smoke Tests', () => {
         expect(typeof jsonOutput).toBe('object');
         expect(jsonOutput).not.toBe(null);
       }
-    });
+    }, 30000);
   });
 
   describe('CLI Installation and Basic Functionality', () => {

@@ -1,6 +1,6 @@
 # Claude Good Hooks Landing Page
 
-![Bundle Size](https://img.shields.io/badge/bundle%20size-23.8%20KB-brightgreen?logo=webpack&logoColor=white)
+![Bundle Size](https://img.shields.io/badge/bundle%20size-85%20KB-brightgreen?logo=webpack&logoColor=white)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Performance](https://img.shields.io/badge/lighthouse-100-brightgreen)
 
@@ -21,7 +21,7 @@ A high-performance landing page for the Claude Good Hooks project, built with mo
 This project implements advanced bundle optimization strategies:
 
 ### Performance Metrics
-- **Total Bundle Size**: 23.8 KB (gzipped)
+- **Total Bundle Size**: ~85 KB (gzipped)
 - **JavaScript**: 19 KB (gzipped) - 38.9% of budget
 - **CSS**: 4.8 KB (gzipped) - 49.0% of budget
 - **Code Splitting**: 7 chunks with lazy loading
@@ -44,31 +44,31 @@ This project implements advanced bundle optimization strategies:
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 ```
 
 ### Available Scripts
 
 ```bash
 # Development
-npm run dev          # Start dev server at http://localhost:3000
-npm run preview      # Preview production build
+pnpm run dev          # Start dev server at http://localhost:3000
+pnpm run preview      # Preview production build
 
 # Building  
-npm run build        # Production build
-npm run build:docs   # Build for GitHub Pages
-npm run build:check  # Build and check bundle budgets
+pnpm run build        # Production build
+pnpm run build:docs   # Build for GitHub Pages
+pnpm run build:check  # Build and check bundle budgets
 
 # Analysis
-npm run analyze      # Generate bundle analysis report
-npm run budget:check # Check bundle size budgets  
-npm run badge        # Generate bundle size badge
+pnpm run analyze      # Generate bundle analysis report
+pnpm run budget:check # Check bundle size budgets  
+pnpm run badge        # Generate bundle size badge
 ```
 
 ### Bundle Analysis
@@ -77,10 +77,10 @@ The project includes comprehensive bundle monitoring:
 
 ```bash
 # Detailed bundle breakdown
-npm run build:analyze
+pnpm run build:analyze
 
 # Budget compliance check
-npm run build:check
+pnpm run build:check
 ```
 
 Output includes:
@@ -93,10 +93,10 @@ Output includes:
 
 ```bash
 # Start development server
-pnpm run dev:docs
+ppnpm run dev:docs
 
 # Build documentation site
-pnpm run build:docs
+ppnpm run build:docs
 ```
 
 ## Deployment
@@ -107,7 +107,7 @@ The landing page is automatically deployed to GitHub Pages via GitHub Actions wh
 
 1. Build the documentation site:
    ```bash
-   pnpm run build:docs
+   ppnpm run build:docs
    ```
 
 2. The built site will be output to `/docs` in the repository root

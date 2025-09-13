@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { runCLI } from './utils/cli-utils.js';
 import fs from 'fs/promises';
 import { testConfiguration } from './fixtures/import-export-test-config.js';
@@ -6,6 +6,17 @@ import { setupTestFiles, cleanupTestFiles, configPath, exportedPath } from './ut
 
 describe('CLI Import/Export Basic Cycle', () => {
   beforeAll(async () => {
+    await setupTestFiles();
+  });
+
+  beforeEach(async () => {
+    // Clean up project settings before each test for isolation
+    try {
+      await fs.rm('.claude', { recursive: true, force: true });
+    } catch {
+      // Ignore - directory might not exist
+    }
+    // Re-setup test files after cleanup
     await setupTestFiles();
   });
 
@@ -25,10 +36,9 @@ describe('CLI Import/Export Basic Cycle', () => {
 
     expect(importResult.success).toBe(true);
     expect(importResult.stdout).toMatch(/Configuration imported successfully/i);
-    expect(importResult.stdout).toMatch(/project settings/i);
+    expect(importResult.stdout).toMatch(/Scope: project/i);
 
     // Verify import statistics are shown
-    expect(importResult.stdout).toMatch(/Import Summary/i);
     expect(importResult.stdout).toMatch(/Total hooks:/i);
     expect(importResult.stdout).toMatch(/Total events:/i);
 

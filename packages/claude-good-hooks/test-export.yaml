@@ -1,0 +1,42 @@
+version: "1.0.0"
+metadata:
+  exported: "2025-09-13T19:33:48.511Z"
+  source: ["project"]
+  generator: "claude-good-hooks-cli"
+  description: "Exported hooks configuration from project settings"
+settings:
+  {
+    $schema: https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json
+    version: 1.0.0
+    hooks: {
+      PreToolUse: [
+        {
+          enabled: true
+          hooks: [
+            {
+              type: command
+              command: echo test
+              enabled: true
+            }
+          ]
+          matcher: Write
+        }
+      ]
+    }
+    meta: {
+      createdAt: 2025-09-13T19:33:48.053Z
+      updatedAt: 2025-09-13T19:33:48.053Z
+      source: project
+      migrations: [
+        {
+          version: 1.0.0
+          appliedAt: 2025-09-13T19:33:48.053Z
+          description: Converted from legacy settings format
+          changes: [
+            Added versioning and metadata
+            Applied schema validation
+          ]
+        }
+      ]
+    }
+  }

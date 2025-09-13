@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { SettingsService } from './settings.service.js';
 
-// Since the test would require significant rewriting to mock the FileSystemService properly,
-// and the main goal was to remove dependency injection, we'll temporarily skip these tests.
-// TODO: Rewrite these tests to properly mock the FileSystemService module
+// These tests are currently skipped as they require significant rewriting after FileSystemService removal.
+// The service now uses direct Node.js fs operations instead of dependency injection patterns.
 
 describe('SettingsService', () => {
   it('should be instantiable without constructor arguments', () => {

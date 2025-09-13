@@ -1,21 +1,26 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ModuleService } from './module.service.js';
 
-// Mock the dependencies
-vi.mock('./file-system.service.js', () => ({
-  FileSystemService: vi.fn().mockImplementation(() => ({
-    exists: vi.fn(),
-    join: (...args: string[]) => args.join('/'),
-    cwd: () => '/test/cwd',
-    readFile: vi.fn(),
-    resolveFromCwd: (path: string) => (path.startsWith('/') ? path : `/test/cwd/${path}`),
-    isAbsolute: (path: string) => path.startsWith('/'),
-  })),
+// Mock Node.js fs module
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
 }));
 
-vi.mock('./process.service.js', () => ({
-  ProcessService: vi.fn().mockImplementation(() => ({})),
+// Mock Node.js path module
+vi.mock('path', () => ({
+  join: vi.fn((...args: string[]) => args.join('/')),
+  resolve: vi.fn((cwd: string, path: string) => (path.startsWith('/') ? path : `${cwd}/${path}`)),
 }));
+
+// Mock process.cwd
+const originalCwd = process.cwd;
+beforeEach(() => {
+  process.cwd = vi.fn(() => '/test/cwd');
+});
+
+afterEach(() => {
+  process.cwd = originalCwd;
+});
 
 vi.mock('../utils/detect-package-manager.js', () => ({
   detectPackageManager: () => 'npm',
@@ -206,56 +211,54 @@ describe('ModuleService', () => {
 
   describe('isModuleInstalled with deep imports', () => {
     it('should check base module regardless of suffix', async () => {
-      const fileSystemService = (moduleService as any).fileSystem;
-      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      const { existsSync } = await import('fs');
+      vi.mocked(existsSync).mockReturnValue(true);
 
       const result = await moduleService.isModuleInstalled('@sammons/test-hook/deep-export');
 
-      expect(fileSystemService.exists).toHaveBeenCalledWith(
-        '/test/cwd/node_modules/@sammons/test-hook'
-      );
+      expect(existsSync).toHaveBeenCalledWith('/test/cwd/node_modules/@sammons/test-hook');
       expect(result).toBe(true);
     });
 
     it('should handle global installation check with suffix', async () => {
-      const fileSystemService = (moduleService as any).fileSystem;
-      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      const { existsSync } = await import('fs');
+      vi.mocked(existsSync).mockReturnValue(true);
 
       const result = await moduleService.isModuleInstalled('@sammons/test-hook/deep-export', true);
 
-      expect(fileSystemService.exists).toHaveBeenCalledWith('/global/npm/@sammons/test-hook');
+      expect(existsSync).toHaveBeenCalledWith('/global/npm/@sammons/test-hook');
       expect(result).toBe(true);
     });
   });
 
   describe('isModuleInstalled with file paths', () => {
     it('should check if relative file path exists', async () => {
-      const fileSystemService = (moduleService as any).fileSystem;
-      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      const { existsSync } = await import('fs');
+      vi.mocked(existsSync).mockReturnValue(true);
 
       const result = await moduleService.isModuleInstalled('./my-hook.js');
 
-      expect(fileSystemService.exists).toHaveBeenCalledWith('/test/cwd/./my-hook.js');
+      expect(existsSync).toHaveBeenCalledWith('/test/cwd/./my-hook.js');
       expect(result).toBe(true);
     });
 
     it('should check if absolute file path exists', async () => {
-      const fileSystemService = (moduleService as any).fileSystem;
-      fileSystemService.exists = vi.fn().mockResolvedValue(true);
+      const { existsSync } = await import('fs');
+      vi.mocked(existsSync).mockReturnValue(true);
 
       const result = await moduleService.isModuleInstalled('/home/user/hooks/my-hook.mjs');
 
-      expect(fileSystemService.exists).toHaveBeenCalledWith('/home/user/hooks/my-hook.mjs');
+      expect(existsSync).toHaveBeenCalledWith('/home/user/hooks/my-hook.mjs');
       expect(result).toBe(true);
     });
 
     it('should return false for non-existent file', async () => {
-      const fileSystemService = (moduleService as any).fileSystem;
-      fileSystemService.exists = vi.fn().mockResolvedValue(false);
+      const { existsSync } = await import('fs');
+      vi.mocked(existsSync).mockReturnValue(false);
 
       const result = await moduleService.isModuleInstalled('./non-existent.js');
 
-      expect(fileSystemService.exists).toHaveBeenCalledWith('/test/cwd/./non-existent.js');
+      expect(existsSync).toHaveBeenCalledWith('/test/cwd/./non-existent.js');
       expect(result).toBe(false);
     });
   });

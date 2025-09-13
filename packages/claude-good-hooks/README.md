@@ -136,7 +136,7 @@ claude-good-hooks apply template-hook --template git-status
 ### Building from Source
 ```bash
 git clone https://github.com/sammons/claude-good-hooks.git
-cd claude-good-hooks/packages/claude-good-hooks-cli
+cd claude-good-hooks/packages/claude-good-hooks
 npm install
 npm run build
 npm link

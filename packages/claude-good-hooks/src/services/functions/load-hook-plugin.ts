@@ -17,7 +17,6 @@ export async function loadHookPlugin(
       modulePath = resolve(process.cwd(), moduleName);
     } else {
       // For npm modules, locate in node_modules
-      // TODO: Add more sophisticated module resolution
       if (global) {
         const globalPath = await packageManagerHelper.getGlobalRoot();
         modulePath = join(globalPath, moduleName);

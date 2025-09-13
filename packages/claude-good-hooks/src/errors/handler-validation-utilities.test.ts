@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { validateInput, assert } from './handler.js';
-import { ValidationError } from './index.js';
+import { AppError, ERROR_CODES } from './index.js';
 
 describe('Validation Utilities', () => {
   describe('validateInput', () => {
@@ -16,15 +16,15 @@ describe('Validation Utilities', () => {
       expect(result).toBe('test');
     });
 
-    it('should throw ValidationError for false validator', () => {
+    it('should throw AppError for false validator', () => {
       const validator = (value: string) => value.length > 5;
 
       expect(() =>
         validateInput('test', validator, 'Value must be longer than 5 characters')
-      ).toThrow(ValidationError);
+      ).toThrow(AppError);
     });
 
-    it('should throw ValidationError with custom message', () => {
+    it('should throw AppError with custom message', () => {
       const validator = () => false;
 
       expect(() => validateInput('test', validator, 'Custom error message')).toThrow(
@@ -37,13 +37,13 @@ describe('Validation Utilities', () => {
 
       expect(() =>
         validateInput('test', validator, 'Error message', 'Try this instead')
-      ).toThrow(ValidationError);
+      ).toThrow(AppError);
       // Test that the suggestion is included in the thrown error
       try {
         validateInput('test', validator, 'Error message', 'Try this instead');
       } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).suggestion).toBe('Try this instead');
+        expect(error).toBeInstanceOf(AppError);
+        expect((error as AppError).suggestion).toBe('Try this instead');
       }
     });
   });
@@ -55,20 +55,20 @@ describe('Validation Utilities', () => {
       expect(() => assert(1, 'This should not throw')).not.toThrow();
     });
 
-    it('should throw ValidationError for falsy conditions', () => {
-      expect(() => assert(false, 'This should throw')).toThrow(ValidationError);
-      expect(() => assert('', 'Empty string should throw')).toThrow(ValidationError);
-      expect(() => assert(0, 'Zero should throw')).toThrow(ValidationError);
-      expect(() => assert(null, 'Null should throw')).toThrow(ValidationError);
+    it('should throw AppError for falsy conditions', () => {
+      expect(() => assert(false, 'This should throw')).toThrow(AppError);
+      expect(() => assert('', 'Empty string should throw')).toThrow(AppError);
+      expect(() => assert(0, 'Zero should throw')).toThrow(AppError);
+      expect(() => assert(null, 'Null should throw')).toThrow(AppError);
     });
 
     it('should include suggestion in assertion error', () => {
       try {
         assert(false, 'Assertion failed', 'Try something else');
       } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).message).toBe('Assertion failed');
-        expect((error as ValidationError).suggestion).toBe('Try something else');
+        expect(error).toBeInstanceOf(AppError);
+        expect((error as AppError).message).toBe('Assertion failed');
+        expect((error as AppError).suggestion).toBe('Try something else');
       }
     });
   });

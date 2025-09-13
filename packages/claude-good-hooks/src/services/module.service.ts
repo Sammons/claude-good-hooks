@@ -13,6 +13,8 @@ import { getInstalledHookModules } from './functions/get-installed-hook-modules.
 import { getModuleVersion } from './functions/get-module-version.js';
 import { extractModuleNameFromHookName } from './functions/extract-module-name-from-hook-name.js';
 import { isPluginExported } from './functions/is-plugin-exported.js';
+import { isFilePath } from './functions/is-file-path.js';
+import { parseHookIdentifier } from './functions/parse-hook-identifier.js';
 
 export class ModuleService {
   private packageManagerHelper: PackageManagerHelper;
@@ -44,5 +46,18 @@ export class ModuleService {
 
   async isPluginExported(hookName: string, global: boolean = false): Promise<boolean> {
     return isPluginExported(hookName, this.packageManagerHelper, global);
+  }
+
+  // Methods exposed for testing
+  isFilePath(identifier: string): boolean {
+    return isFilePath(identifier);
+  }
+
+  parseHookIdentifier(hookIdentifier: string): {
+    moduleName: string;
+    exportPath?: string;
+    isFile?: boolean;
+  } {
+    return parseHookIdentifier(hookIdentifier);
   }
 }
