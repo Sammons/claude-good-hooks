@@ -1,0 +1,182 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "exported": "2025-09-13T15:01:55.813Z",
+    "source": [
+      "local"
+    ],
+    "generator": "claude-good-hooks-cli",
+    "description": "Exported hooks configuration from local settings"
+  },
+  "settings": {
+    "$schema": "https://github.com/sammons/claude-good-hooks/schemas/claude-settings.json",
+    "version": "1.0.0",
+    "hooks": {
+      "PreToolUse": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Pre-tool validation for Write/Edit operations\"",
+              "timeout": 30,
+              "enabled": true
+            }
+          ],
+          "matcher": "Write|Edit"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Validating bash command before execution\"",
+              "enabled": true
+            }
+          ],
+          "matcher": "Bash"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Universal pre-tool hook\"",
+              "timeout": 10,
+              "enabled": true
+            }
+          ],
+          "matcher": ".*"
+        }
+      ],
+      "PostToolUse": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"File written, running post-validation\"",
+              "enabled": true
+            }
+          ],
+          "matcher": "Write"
+        },
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Files edited, checking formatting\"",
+              "timeout": 45,
+              "enabled": true
+            }
+          ],
+          "matcher": "Edit|MultiEdit"
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Processing user prompt, adding context\"",
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "SessionStart": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session started, initializing environment\"",
+              "timeout": 60,
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude stopped, running cleanup tasks\"",
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "SubagentStop": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Subagent task completed\"",
+              "timeout": 20,
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "SessionEnd": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Session ended, final cleanup\"",
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "Notification": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Claude notification received\"",
+              "enabled": true
+            }
+          ]
+        }
+      ],
+      "PreCompact": [
+        {
+          "enabled": true,
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo \"Before compacting conversation\"",
+              "timeout": 15,
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    "meta": {
+      "createdAt": "2025-09-13T15:01:53.470Z",
+      "updatedAt": "2025-09-13T15:01:53.470Z",
+      "source": "local",
+      "migrations": [
+        {
+          "version": "1.0.0",
+          "appliedAt": "2025-09-13T15:01:53.470Z",
+          "description": "Converted from legacy settings format",
+          "changes": [
+            "Added versioning and metadata",
+            "Applied schema validation"
+          ]
+        }
+      ]
+    }
+  }
+}

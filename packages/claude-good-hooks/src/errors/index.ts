@@ -57,7 +57,7 @@ export const HookError = class extends AppError {
 export const FileSystemError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
-      code: ERROR_CODES.FILE_READ_FAILED,
+      code: ERROR_CODES.FILESYSTEM_OPERATION_FAILED,
       ...options,
     });
   }
@@ -81,7 +81,7 @@ export const PermissionError = class extends AppError {
 export const CommandError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
-      code: ERROR_CODES.COMMAND_FAILED,
+      code: ERROR_CODES.COMMAND_EXECUTION_FAILED,
       ...options,
     });
   }
@@ -93,7 +93,8 @@ export const CommandError = class extends AppError {
 export const NetworkError = class extends AppError {
   constructor(message: string, options: any = {}) {
     super(message, {
-      code: ERROR_CODES.NETWORK_ERROR,
+      code: ERROR_CODES.NETWORK_REQUEST_FAILED,
+      suggestion: options.suggestion || 'Check your internet connection and try again.',
       ...options,
     });
   }
@@ -104,8 +105,10 @@ export const NetworkError = class extends AppError {
  */
 export const InternalError = class extends AppError {
   constructor(message: string, options: any = {}) {
-    super(message, {
+    super(`Internal error: ${message}`, {
       code: ERROR_CODES.INTERNAL,
+      isUserFacing: false,
+      suggestion: options.suggestion || 'This is likely a bug in claude-good-hooks. Please report it.',
       ...options,
     });
   }

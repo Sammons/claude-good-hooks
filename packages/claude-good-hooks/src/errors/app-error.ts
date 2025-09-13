@@ -62,7 +62,7 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 const EXIT_CODES: Record<ErrorCode, number> = {
   // General errors
   [ERROR_CODES.UNKNOWN]: 1,
-  [ERROR_CODES.INTERNAL]: 1,
+  [ERROR_CODES.INTERNAL]: 99,
 
   // Validation errors - exit code 2
   [ERROR_CODES.VALIDATION_FAILED]: 2,
@@ -107,6 +107,13 @@ const EXIT_CODES: Record<ErrorCode, number> = {
   // Network errors - exit code 9
   [ERROR_CODES.NETWORK_ERROR]: 9,
   [ERROR_CODES.NETWORK_TIMEOUT]: 9,
+  [ERROR_CODES.NETWORK_REQUEST_FAILED]: 9,
+
+  // Additional mappings for completeness
+  [ERROR_CODES.FILESYSTEM_OPERATION_FAILED]: 6,
+  [ERROR_CODES.COMMAND_EXECUTION_FAILED]: 8,
+  [ERROR_CODES.MODULE_NOT_FOUND]: 5,
+  [ERROR_CODES.TIMEOUT]: 10,
 };
 
 export interface AppErrorOptions {
@@ -115,7 +122,20 @@ export interface AppErrorOptions {
   suggestion?: string;
   cause?: Error;
   details?: Record<string, unknown>;
+  context?: Record<string, unknown>;
   isUserFacing?: boolean;
+  // For specific error types
+  configPath?: string;
+  configKey?: string;
+  hookName?: string;
+  hookPath?: string;
+  path?: string;
+  operation?: string;
+  url?: string;
+  statusCode?: number;
+  command?: string;
+  stdout?: string;
+  stderr?: string;
 }
 
 /**
@@ -128,6 +148,7 @@ export class AppError extends Error {
   public readonly suggestion?: string;
   public readonly cause?: Error;
   public readonly details?: Record<string, unknown>;
+  public readonly context?: Record<string, unknown>;
   public readonly isUserFacing: boolean;
   public readonly timestamp: Date;
 
@@ -140,6 +161,7 @@ export class AppError extends Error {
     this.suggestion = options.suggestion;
     this.cause = options.cause;
     this.details = options.details;
+    this.context = options.context || this.buildContext(options);
     this.isUserFacing = options.isUserFacing ?? true;
     this.timestamp = new Date();
 
@@ -147,6 +169,61 @@ export class AppError extends Error {
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
+  }
+
+  /**
+   * Build context from specific options
+   */
+  protected buildContext(options: AppErrorOptions): Record<string, unknown> | undefined {
+    const context: Record<string, unknown> = {};
+    let hasContext = false;
+
+    if (options.configPath) {
+      context.configPath = options.configPath;
+      hasContext = true;
+    }
+    if (options.configKey) {
+      context.configKey = options.configKey;
+      hasContext = true;
+    }
+    if (options.hookName) {
+      context.hookName = options.hookName;
+      hasContext = true;
+    }
+    if (options.hookPath) {
+      context.hookPath = options.hookPath;
+      hasContext = true;
+    }
+    if (options.path) {
+      context.path = options.path;
+      hasContext = true;
+    }
+    if (options.operation) {
+      context.operation = options.operation;
+      hasContext = true;
+    }
+    if (options.url) {
+      context.url = options.url;
+      hasContext = true;
+    }
+    if (options.statusCode !== undefined) {
+      context.statusCode = options.statusCode;
+      hasContext = true;
+    }
+    if (options.command) {
+      context.command = options.command;
+      hasContext = true;
+    }
+    if (options.stdout) {
+      context.stdout = options.stdout;
+      hasContext = true;
+    }
+    if (options.stderr) {
+      context.stderr = options.stderr;
+      hasContext = true;
+    }
+
+    return hasContext ? context : undefined;
   }
 
   /**
@@ -182,10 +259,10 @@ export class AppError extends Error {
   /**
    * Create a file system error
    */
-  static fileSystem(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
+  static filesystem(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
     return new AppError(message, {
       ...options,
-      code: ERROR_CODES.FILE_READ_FAILED,
+      code: ERROR_CODES.FILESYSTEM_OPERATION_FAILED,
     });
   }
 
@@ -193,8 +270,14 @@ export class AppError extends Error {
    * Create a permission error
    */
   static permission(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
+    // Auto-add suggestion if path is provided
+    const suggestion = options.path
+      ? `Check file permissions for ${options.path}`
+      : options.suggestion;
+
     return new AppError(message, {
       ...options,
+      suggestion,
       code: ERROR_CODES.PERMISSION_DENIED,
     });
   }
@@ -205,7 +288,7 @@ export class AppError extends Error {
   static command(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
     return new AppError(message, {
       ...options,
-      code: ERROR_CODES.COMMAND_FAILED,
+      code: ERROR_CODES.COMMAND_EXECUTION_FAILED,
     });
   }
 
@@ -215,7 +298,30 @@ export class AppError extends Error {
   static module(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
     return new AppError(message, {
       ...options,
-      code: ERROR_CODES.MODULE_NOT_INSTALLED,
+      code: ERROR_CODES.MODULE_NOT_FOUND,
+    });
+  }
+
+  /**
+   * Create a network error
+   */
+  static network(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
+    return new AppError(message, {
+      ...options,
+      suggestion: options.suggestion || 'Check your internet connection and try again.',
+      code: ERROR_CODES.NETWORK_REQUEST_FAILED,
+    });
+  }
+
+  /**
+   * Create an internal error
+   */
+  static internal(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
+    return new AppError(`Internal error: ${message}`, {
+      ...options,
+      code: ERROR_CODES.INTERNAL,
+      isUserFacing: false,
+      suggestion: options.suggestion || 'This is likely a bug in claude-good-hooks. Please report it.',
     });
   }
 
@@ -265,19 +371,39 @@ export function isAppError(error: unknown): error is AppError {
  */
 export function formatError(
   error: unknown,
-  options: { json?: boolean; stack?: boolean } = {}
+  options: { isJson?: boolean; showStackTrace?: boolean; includeDetails?: boolean } = {}
 ): string {
+  // Handle legacy option names for backward compatibility
+  const isJson = options.isJson;
+  const showStackTrace = options.showStackTrace;
+
   if (isAppError(error)) {
-    if (options.json) {
-      const output = error.toJSON();
-      if (!options.stack) {
-        delete output.stack;
+    if (isJson) {
+      const output: Record<string, unknown> = {
+        success: false,
+        error: error.message,
+        errorType: 'AppError',
+        errorCode: error.code,
+        exitCode: error.exitCode,
+      };
+
+      if (error.suggestion) {
+        output.suggestion = error.suggestion;
       }
-      return JSON.stringify(output, null, 2);
+
+      if (options.includeDetails && error.context) {
+        output.context = error.context;
+      }
+
+      if (showStackTrace && error.stack) {
+        output.stack = error.stack;
+      }
+
+      return JSON.stringify(output);
     }
 
     let output = error.toString();
-    if (options.stack && error.stack) {
+    if (showStackTrace && error.stack) {
       output += `\n\nStack trace:\n${error.stack}`;
     }
     return output;
@@ -286,24 +412,23 @@ export function formatError(
   // Handle non-AppError errors
   const message = error instanceof Error ? error.message : String(error);
 
-  if (options.json) {
+  if (isJson) {
     const output: Record<string, unknown> = {
       success: false,
       error: message,
-      code: ERROR_CODES.UNKNOWN,
+      errorType: 'UnknownError',
       exitCode: 1,
-      timestamp: new Date(),
     };
 
-    if (options.stack && error instanceof Error && error.stack) {
+    if (showStackTrace && error instanceof Error && error.stack) {
       output.stack = error.stack;
     }
 
-    return JSON.stringify(output, null, 2);
+    return JSON.stringify(output);
   }
 
   let output = `Error: ${message}`;
-  if (options.stack && error instanceof Error && error.stack) {
+  if (showStackTrace && error instanceof Error && error.stack) {
     output += `\n\nStack trace:\n${error.stack}`;
   }
   return output;

@@ -4,7 +4,7 @@
 
 import chalk from 'chalk';
 import { basename, extname } from 'path';
-import type { ClaudeSettings } from '../types';
+import type { ClaudeSettings } from '../../types/index.js';
 import { SettingsService, type SettingsScope } from '../../services/settings.service.js';
 import { FileSystemService } from '../../services/file-system.service.js';
 import { ProcessService } from '../../services/process.service.js';

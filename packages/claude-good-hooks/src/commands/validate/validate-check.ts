@@ -11,7 +11,7 @@ import {
   printValidationResults,
 } from '../../utils/validator.js';
 import { atomicReadFile, createVersionedSettings, isLegacySettings } from '../../settings/index.js';
-import type { VersionedClaudeSettings } from '../types';
+import type { VersionedClaudeSettings } from '../../types/index.js';
 import { ProcessService } from '../../services/process.service.js';
 import { SettingsService } from '../../services/settings.service.js';
 import type { ValidateSubCommand } from './validate-types.js';

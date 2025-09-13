@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
 import { ModuleService } from '../../services/module.service.js';
 import type { HelpInfo } from '../command-registry.js';
-import type { HookConfiguration } from '../types';
+import type { HookConfiguration } from '../../types/index.js';
 
 interface ValidationResult {
   valid: boolean;

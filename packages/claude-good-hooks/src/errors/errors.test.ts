@@ -4,6 +4,11 @@
 
 import { describe, it, expect } from 'vitest';
 import {
+  AppError,
+  ERROR_CODES,
+  isAppError,
+  formatError,
+  // Test the deprecated aliases still work
   CLIError,
   ValidationError,
   ConfigError,
@@ -13,181 +18,299 @@ import {
   PermissionError,
   CommandError,
   InternalError,
-  isCLIError,
-  hasErrorSuggestion,
-  formatError,
 } from './index.js';
 
-describe('Error Classes', () => {
-  describe('CLIError', () => {
-    it('should create a basic CLI error', () => {
-      const error = new CLIError('Test error');
+describe('AppError', () => {
+  describe('Basic functionality', () => {
+    it('should create a basic error with default code', () => {
+      const error = new AppError('Test error');
 
       expect(error.message).toBe('Test error');
-      expect(error.name).toBe('CLIError');
+      expect(error.name).toBe('AppError');
+      expect(error.code).toBe(ERROR_CODES.UNKNOWN);
       expect(error.exitCode).toBe(1);
       expect(error.isUserFacing).toBe(true);
       expect(error.suggestion).toBeUndefined();
     });
 
-    it('should create a CLI error with custom options', () => {
-      const error = new CLIError('Test error', {
-        exitCode: 2,
+    it('should create an error with specific code', () => {
+      const error = new AppError('Validation failed', {
+        code: ERROR_CODES.VALIDATION_FAILED,
+      });
+
+      expect(error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+      expect(error.exitCode).toBe(2); // Validation errors use exit code 2
+    });
+
+    it('should create an error with all options', () => {
+      const cause = new Error('Original error');
+      const error = new AppError('Test error', {
+        code: ERROR_CODES.CONFIG_INVALID,
+        exitCode: 3,
         isUserFacing: false,
         suggestion: 'Try again later',
+        cause,
+        context: {
+          configPath: '/path/to/config',
+          configKey: 'test.key',
+        },
       });
 
-      expect(error.exitCode).toBe(2);
+      expect(error.code).toBe(ERROR_CODES.CONFIG_INVALID);
+      expect(error.exitCode).toBe(3);
       expect(error.isUserFacing).toBe(false);
       expect(error.suggestion).toBe('Try again later');
-    });
-
-    it('should create a CLI error with cause', () => {
-      const cause = new Error('Original error');
-      const error = new CLIError('Test error', { cause });
-
       expect(error.cause).toBe(cause);
+      expect(error.context?.configPath).toBe('/path/to/config');
+      expect(error.context?.configKey).toBe('test.key');
     });
   });
 
-  describe('ValidationError', () => {
-    it('should create a validation error with default settings', () => {
-      const error = new ValidationError('Invalid input');
-
-      expect(error.message).toBe('Invalid input');
-      expect(error.name).toBe('ValidationError');
-      expect(error.exitCode).toBe(1);
-      expect(error.isUserFacing).toBe(true);
-    });
-
-    it('should create a validation error with suggestion', () => {
-      const error = new ValidationError('Invalid input', {
-        suggestion: 'Check your arguments',
+  describe('Factory methods', () => {
+    it('should create validation error', () => {
+      const error = AppError.validation('Invalid input', {
+        suggestion: 'Check your input',
       });
 
-      expect(error.suggestion).toBe('Check your arguments');
+      expect(error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+      expect(error.exitCode).toBe(2); // Validation errors use exit code 2
+      expect(error.suggestion).toBe('Check your input');
     });
-  });
 
-  describe('ConfigError', () => {
-    it('should create a config error with path and key', () => {
-      const error = new ConfigError('Invalid config', {
+    it('should create config error', () => {
+      const error = AppError.config('Invalid config', {
         configPath: '/path/to/config',
-        configKey: 'some.key',
+        configKey: 'test.key',
       });
 
-      expect(error.configPath).toBe('/path/to/config');
-      expect(error.configKey).toBe('some.key');
+      expect(error.code).toBe(ERROR_CODES.CONFIG_INVALID);
+      expect(error.exitCode).toBe(3); // Config errors use exit code 3
+      expect(error.context?.configPath).toBe('/path/to/config');
+      expect(error.context?.configKey).toBe('test.key');
     });
-  });
 
-  describe('HookError', () => {
-    it('should create a hook error with hook details', () => {
-      const error = new HookError('Hook failed', {
+    it('should create hook error', () => {
+      const error = AppError.hook('Hook failed', {
         hookName: 'test-hook',
         hookPath: '/path/to/hook',
       });
 
-      expect(error.hookName).toBe('test-hook');
-      expect(error.hookPath).toBe('/path/to/hook');
+      expect(error.code).toBe(ERROR_CODES.HOOK_EXECUTION_FAILED);
+      expect(error.exitCode).toBe(4); // Hook errors use exit code 4
+      expect(error.context?.hookName).toBe('test-hook');
+      expect(error.context?.hookPath).toBe('/path/to/hook');
     });
-  });
 
-  describe('NetworkError', () => {
-    it('should create a network error with default suggestion', () => {
-      const error = new NetworkError('Connection failed');
+    it('should create network error with default suggestion', () => {
+      const error = AppError.network('Connection failed');
 
+      expect(error.code).toBe(ERROR_CODES.NETWORK_REQUEST_FAILED);
+      expect(error.exitCode).toBe(9); // Network errors use exit code 9
       expect(error.suggestion).toBe('Check your internet connection and try again.');
     });
 
-    it('should create a network error with URL and status', () => {
-      const error = new NetworkError('HTTP error', {
-        url: 'https://example.com',
-        statusCode: 404,
-      });
-
-      expect(error.url).toBe('https://example.com');
-      expect(error.statusCode).toBe(404);
-    });
-  });
-
-  describe('FileSystemError', () => {
-    it('should create a filesystem error with path and operation', () => {
-      const error = new FileSystemError('File not found', {
+    it('should create filesystem error', () => {
+      const error = AppError.filesystem('File not found', {
         path: '/path/to/file',
         operation: 'read',
       });
 
-      expect(error.path).toBe('/path/to/file');
-      expect(error.operation).toBe('read');
+      expect(error.code).toBe(ERROR_CODES.FILESYSTEM_OPERATION_FAILED);
+      expect(error.exitCode).toBe(6); // Filesystem errors use exit code 6
+      expect(error.context?.path).toBe('/path/to/file');
+      expect(error.context?.operation).toBe('read');
     });
-  });
 
-  describe('PermissionError', () => {
-    it('should create a permission error with default suggestion', () => {
-      const error = new PermissionError('Access denied', {
+    it('should create permission error with auto suggestion', () => {
+      const error = AppError.permission('Access denied', {
         path: '/path/to/file',
       });
 
-      expect(error.path).toBe('/path/to/file');
+      expect(error.code).toBe(ERROR_CODES.PERMISSION_DENIED);
+      expect(error.exitCode).toBe(7); // Permission errors use exit code 7
+      expect(error.context?.path).toBe('/path/to/file');
       expect(error.suggestion).toContain('Check file permissions for /path/to/file');
     });
-  });
 
-  describe('CommandError', () => {
-    it('should create a command error with execution details', () => {
-      const error = new CommandError('Command failed', {
+    it('should create command error', () => {
+      const error = AppError.command('Command failed', {
         command: 'npm install',
         stdout: 'Installing...',
         stderr: 'Error occurred',
-        exitCode: 1,
       });
 
-      expect(error.command).toBe('npm install');
-      expect(error.stdout).toBe('Installing...');
-      expect(error.stderr).toBe('Error occurred');
-      expect(error.exitCode).toBe(1);
+      expect(error.code).toBe(ERROR_CODES.COMMAND_EXECUTION_FAILED);
+      expect(error.exitCode).toBe(8); // Command errors use exit code 8
+      expect(error.context?.command).toBe('npm install');
+      expect(error.context?.stdout).toBe('Installing...');
+      expect(error.context?.stderr).toBe('Error occurred');
     });
-  });
 
-  describe('InternalError', () => {
-    it('should create an internal error with appropriate settings', () => {
-      const error = new InternalError('Something went wrong');
+    it('should create internal error', () => {
+      const error = AppError.internal('Something went wrong');
 
-      expect(error.message).toBe('Internal error: Something went wrong');
+      expect(error.code).toBe(ERROR_CODES.INTERNAL);
+      expect(error.exitCode).toBe(99);
       expect(error.isUserFacing).toBe(false);
       expect(error.suggestion).toContain('bug in claude-good-hooks');
     });
   });
+
+  describe('Error code to exit code mapping', () => {
+    it('should map error codes to exit codes correctly', () => {
+      const testCases = [
+        { code: ERROR_CODES.VALIDATION_FAILED, expectedExit: 2 },
+        { code: ERROR_CODES.CONFIG_INVALID, expectedExit: 3 },
+        { code: ERROR_CODES.HOOK_EXECUTION_FAILED, expectedExit: 4 },
+        { code: ERROR_CODES.NETWORK_REQUEST_FAILED, expectedExit: 9 },
+        { code: ERROR_CODES.FILESYSTEM_OPERATION_FAILED, expectedExit: 6 },
+        { code: ERROR_CODES.PERMISSION_DENIED, expectedExit: 7 },
+        { code: ERROR_CODES.COMMAND_EXECUTION_FAILED, expectedExit: 8 },
+        { code: ERROR_CODES.MODULE_NOT_FOUND, expectedExit: 5 },
+        { code: ERROR_CODES.TIMEOUT, expectedExit: 10 },
+        { code: ERROR_CODES.INTERNAL, expectedExit: 99 },
+        { code: ERROR_CODES.UNKNOWN, expectedExit: 1 },
+      ];
+
+      testCases.forEach(({ code, expectedExit }) => {
+        const error = new AppError('Test', { code });
+        expect(error.exitCode).toBe(expectedExit);
+      });
+    });
+  });
+});
+
+describe('Deprecated error classes (backward compatibility)', () => {
+  it('should still support ValidationError', () => {
+    const error = new ValidationError('Invalid input', {
+      suggestion: 'Check your arguments',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.VALIDATION_FAILED);
+    expect(error.suggestion).toBe('Check your arguments');
+  });
+
+  it('should still support ConfigError', () => {
+    const error = new ConfigError('Invalid config', {
+      configPath: '/path/to/config',
+      configKey: 'some.key',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.CONFIG_INVALID);
+    expect(error.context?.configPath).toBe('/path/to/config');
+    expect(error.context?.configKey).toBe('some.key');
+  });
+
+  it('should still support HookError', () => {
+    const error = new HookError('Hook failed', {
+      hookName: 'test-hook',
+      hookPath: '/path/to/hook',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.HOOK_EXECUTION_FAILED);
+    expect(error.context?.hookName).toBe('test-hook');
+    expect(error.context?.hookPath).toBe('/path/to/hook');
+  });
+
+  it('should still support NetworkError', () => {
+    const error = new NetworkError('Connection failed', {
+      url: 'https://example.com',
+      statusCode: 404,
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.NETWORK_REQUEST_FAILED);
+    expect(error.context?.url).toBe('https://example.com');
+    expect(error.context?.statusCode).toBe(404);
+  });
+
+  it('should still support FileSystemError', () => {
+    const error = new FileSystemError('File not found', {
+      path: '/path/to/file',
+      operation: 'read',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.FILESYSTEM_OPERATION_FAILED);
+    expect(error.context?.path).toBe('/path/to/file');
+    expect(error.context?.operation).toBe('read');
+  });
+
+  it('should still support PermissionError', () => {
+    const error = new PermissionError('Access denied', {
+      path: '/path/to/file',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.PERMISSION_DENIED);
+    expect(error.context?.path).toBe('/path/to/file');
+  });
+
+  it('should still support CommandError', () => {
+    const error = new CommandError('Command failed', {
+      command: 'npm install',
+      stdout: 'Installing...',
+      stderr: 'Error occurred',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.COMMAND_EXECUTION_FAILED);
+    expect(error.context?.command).toBe('npm install');
+  });
+
+  it('should still support InternalError', () => {
+    const error = new InternalError('Something went wrong');
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.INTERNAL);
+    expect(error.message).toContain('Internal error');
+  });
+
+  it('should still support CLIError', () => {
+    const error = new CLIError('CLI error', {
+      exitCode: 2,
+      isUserFacing: false,
+      suggestion: 'Try again later',
+    });
+
+    expect(error instanceof AppError).toBe(true);
+    expect(error.code).toBe(ERROR_CODES.UNKNOWN);
+    expect(error.exitCode).toBe(2);
+    expect(error.isUserFacing).toBe(false);
+    expect(error.suggestion).toBe('Try again later');
+  });
 });
 
 describe('Type Guards', () => {
-  it('should identify CLI errors correctly', () => {
-    const cliError = new CLIError('CLI error');
+  it('should identify AppError correctly', () => {
+    const appError = new AppError('App error');
     const regularError = new Error('Regular error');
 
-    expect(isCLIError(cliError)).toBe(true);
-    expect(isCLIError(regularError)).toBe(false);
-    expect(isCLIError('string')).toBe(false);
-    expect(isCLIError(null)).toBe(false);
+    expect(isAppError(appError)).toBe(true);
+    expect(isAppError(regularError)).toBe(false);
+    expect(isAppError('string')).toBe(false);
+    expect(isAppError(null)).toBe(false);
   });
 
   it('should identify errors with suggestions', () => {
-    const errorWithSuggestion = new CLIError('Error', { suggestion: 'Try this' });
-    const errorWithoutSuggestion = new CLIError('Error');
-    const errorWithEmptySuggestion = new CLIError('Error', { suggestion: '' });
+    const errorWithSuggestion = new AppError('Error', { suggestion: 'Try this' });
+    const errorWithoutSuggestion = new AppError('Error');
+    const errorWithEmptySuggestion = new AppError('Error', { suggestion: '' });
 
-    expect(hasErrorSuggestion(errorWithSuggestion)).toBe(true);
-    expect(hasErrorSuggestion(errorWithoutSuggestion)).toBe(false);
-    expect(hasErrorSuggestion(errorWithEmptySuggestion)).toBe(false);
-    expect(hasErrorSuggestion(new Error('Regular error'))).toBe(false);
+    expect(errorWithSuggestion.suggestion).toBe('Try this');
+    expect(errorWithoutSuggestion.suggestion).toBeUndefined();
+    expect(errorWithEmptySuggestion.suggestion).toBe('');
   });
 });
 
 describe('Error Formatting', () => {
   describe('Console Output', () => {
-    it('should format CLI error for console', () => {
-      const error = new CLIError('Test error', {
+    it('should format AppError for console', () => {
+      const error = new AppError('Test error', {
+        code: ERROR_CODES.VALIDATION_FAILED,
         suggestion: 'Try again',
       });
 
@@ -197,8 +320,8 @@ describe('Error Formatting', () => {
       expect(formatted).toContain('💡 Suggestion: Try again');
     });
 
-    it('should format CLI error without suggestion', () => {
-      const error = new CLIError('Test error');
+    it('should format AppError without suggestion', () => {
+      const error = new AppError('Test error');
 
       const formatted = formatError(error);
 
@@ -220,7 +343,7 @@ describe('Error Formatting', () => {
     });
 
     it('should include stack trace when requested', () => {
-      const error = new CLIError('Test error');
+      const error = new AppError('Test error');
 
       const formatted = formatError(error, { showStackTrace: true });
 
@@ -229,8 +352,9 @@ describe('Error Formatting', () => {
   });
 
   describe('JSON Output', () => {
-    it('should format CLI error as JSON', () => {
-      const error = new CLIError('Test error', {
+    it('should format AppError as JSON', () => {
+      const error = new AppError('Test error', {
+        code: ERROR_CODES.CONFIG_INVALID,
         exitCode: 2,
         suggestion: 'Try again',
       });
@@ -240,7 +364,8 @@ describe('Error Formatting', () => {
 
       expect(parsed.success).toBe(false);
       expect(parsed.error).toBe('Test error');
-      expect(parsed.errorType).toBe('CLIError');
+      expect(parsed.errorType).toBe('AppError');
+      expect(parsed.errorCode).toBe(ERROR_CODES.CONFIG_INVALID);
       expect(parsed.exitCode).toBe(2);
       expect(parsed.suggestion).toBe('Try again');
     });
@@ -257,10 +382,13 @@ describe('Error Formatting', () => {
       expect(parsed.exitCode).toBe(1);
     });
 
-    it('should include type-specific details when requested', () => {
-      const error = new ConfigError('Config error', {
-        configPath: '/path/to/config',
-        configKey: 'some.key',
+    it('should include context details when requested', () => {
+      const error = new AppError('Config error', {
+        code: ERROR_CODES.CONFIG_INVALID,
+        context: {
+          configPath: '/path/to/config',
+          configKey: 'some.key',
+        },
       });
 
       const formatted = formatError(error, {
@@ -269,12 +397,12 @@ describe('Error Formatting', () => {
       });
       const parsed = JSON.parse(formatted);
 
-      expect(parsed.configPath).toBe('/path/to/config');
-      expect(parsed.configKey).toBe('some.key');
+      expect(parsed.context.configPath).toBe('/path/to/config');
+      expect(parsed.context.configKey).toBe('some.key');
     });
 
     it('should include stack trace in JSON when requested', () => {
-      const error = new CLIError('Test error');
+      const error = new AppError('Test error');
 
       const formatted = formatError(error, {
         isJson: true,
@@ -289,15 +417,19 @@ describe('Error Formatting', () => {
 
 describe('Error Inheritance', () => {
   it('should maintain proper inheritance chain', () => {
+    const appError = new AppError('Test');
     const validationError = new ValidationError('Validation failed');
 
-    expect(validationError instanceof ValidationError).toBe(true);
-    expect(validationError instanceof CLIError).toBe(true);
+    expect(appError instanceof AppError).toBe(true);
+    expect(appError instanceof Error).toBe(true);
+
+    expect(validationError instanceof AppError).toBe(true);
     expect(validationError instanceof Error).toBe(true);
   });
 
-  it('should have correct constructor names', () => {
+  it('should have AppError as the name for all errors', () => {
     const errors = [
+      new AppError('test'),
       new ValidationError('test'),
       new ConfigError('test'),
       new HookError('test'),
@@ -308,19 +440,9 @@ describe('Error Inheritance', () => {
       new InternalError('test'),
     ];
 
-    const expectedNames = [
-      'ValidationError',
-      'ConfigError',
-      'HookError',
-      'NetworkError',
-      'FileSystemError',
-      'PermissionError',
-      'CommandError',
-      'InternalError',
-    ];
-
-    errors.forEach((error, index) => {
-      expect(error.name).toBe(expectedNames[index]);
+    errors.forEach((error) => {
+      expect(error.name).toBe('AppError');
+      expect(error instanceof AppError).toBe(true);
     });
   });
 });
