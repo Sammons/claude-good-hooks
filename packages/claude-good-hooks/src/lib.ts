@@ -9,6 +9,26 @@
 // This includes schemas, utils, helpers, and migration tools
 export * from './settings/index.js';
 
+// Export error classes
+export {
+  AppError,
+  ERROR_CODES,
+  type ErrorCode,
+  type AppErrorOptions,
+  isAppError,
+  formatError,
+  // Deprecated aliases for backward compatibility
+  CLIError,
+  ValidationError,
+  ConfigError,
+  HookError,
+  NetworkError,
+  FileSystemError,
+  PermissionError,
+  CommandError,
+  InternalError,
+} from './errors/index.js';
+
 // Export service classes
 export { SettingsService } from './services/settings.service.js';
 export { DualSettingsService } from './services/dual-settings.service.js';
