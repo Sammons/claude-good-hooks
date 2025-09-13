@@ -12,7 +12,6 @@
  * To preserve unmanaged hooks, they should be in different event types from managed ones.
  */
 
-import type { ClaudeSettings } from '../../types/index.js';
 import { readSettingsAndMetadata } from '../readers/read-settings-and-metadata.js';
 import { writeSettingsAndMetadata } from '../writers/write-settings-and-metadata.js';
 import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
