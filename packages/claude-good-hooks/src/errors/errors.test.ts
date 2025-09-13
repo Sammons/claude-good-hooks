@@ -440,7 +440,7 @@ describe('Error Inheritance', () => {
       new InternalError('test'),
     ];
 
-    errors.forEach((error) => {
+    errors.forEach(error => {
       expect(error.name).toBe('AppError');
       expect(error instanceof AppError).toBe(true);
     });

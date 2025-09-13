@@ -108,7 +108,8 @@ export const InternalError = class extends AppError {
     super(`Internal error: ${message}`, {
       code: ERROR_CODES.INTERNAL,
       isUserFacing: false,
-      suggestion: options.suggestion || 'This is likely a bug in claude-good-hooks. Please report it.',
+      suggestion:
+        options.suggestion || 'This is likely a bug in claude-good-hooks. Please report it.',
       ...options,
     });
   }
