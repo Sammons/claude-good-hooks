@@ -1,6 +1,6 @@
 {
   "name": "@sammons/claude-good-hooks",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "CLI for managing Claude Code hooks",
   "bin": {
     "claude-good-hooks": "./dist/index.mjs"

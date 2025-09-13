@@ -1,6 +1,6 @@
 {
   "name": "@sammons/git-dirty-hook",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Git dirty status hook for Claude Code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
