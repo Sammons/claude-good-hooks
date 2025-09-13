@@ -1,7 +1,3 @@
-/**
- * Refactored ModuleService using single-function files (already mostly done)
- */
-
 import type { HookPlugin } from '../types/index.js';
 import { detectPackageManager } from '../utils/detect-package-manager.js';
 import { PackageManagerHelper } from '../helpers/package-manager-helper.js';
@@ -12,7 +8,6 @@ import { loadHookPlugin } from './functions/load-hook-plugin.js';
 import { getInstalledHookModules } from './functions/get-installed-hook-modules.js';
 import { getModuleVersion } from './functions/get-module-version.js';
 import { extractModuleNameFromHookName } from './functions/extract-module-name-from-hook-name.js';
-import { isPluginExported } from './functions/is-plugin-exported.js';
 
 export class ModuleService {
   private packageManagerHelper: PackageManagerHelper;
@@ -43,6 +38,12 @@ export class ModuleService {
   }
 
   async isPluginExported(hookName: string, global: boolean = false): Promise<boolean> {
-    return isPluginExported(hookName, this.packageManagerHelper, global);
+    try {
+      const plugin = await this.loadHookPlugin(hookName, global);
+      return plugin !== null;
+    } catch (error) {
+      console.error(`Error checking plugin export for ${hookName}:`, error);
+      return false;
+    }
   }
 }

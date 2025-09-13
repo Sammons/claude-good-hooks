@@ -1,27 +1,33 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+/**
+ * Refactored PackageService using single-function files
+ */
 
-export interface PackageInfo {
-  name: string;
-  version: string;
-}
+// Import single-function modules
+import { getPackageInfo, type PackageInfo } from './package/get-package-info.js';
+import { findPackageJson } from './package/find-package-json.js';
+import { getPackageVersion } from './package/get-package-version.js';
+import { updatePackageJson } from './package/update-package-json.js';
+
+// Re-export types
+export type { PackageInfo };
 
 export class PackageService {
   constructor() {}
 
   getPackageInfo(): PackageInfo | null {
-    try {
-      // Use process.cwd() and navigate to package.json
-      const packagePath = join(process.cwd(), 'package.json');
-      const content = readFileSync(packagePath, 'utf-8');
-      const packageJson = JSON.parse(content);
+    return getPackageInfo();
+  }
 
-      return {
-        name: packageJson.name,
-        version: packageJson.version,
-      };
-    } catch {
-      return null;
-    }
+  // Additional methods for completeness
+  findPackageJson(): string {
+    return findPackageJson();
+  }
+
+  getPackageVersion(packagePath: string): string | null {
+    return getPackageVersion(packagePath);
+  }
+
+  updatePackageJson(packagePath: string, updates: Record<string, unknown>): boolean {
+    return updatePackageJson(packagePath, updates);
   }
 }

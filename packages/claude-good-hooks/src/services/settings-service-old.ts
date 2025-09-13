@@ -1,55 +1,79 @@
-/**
- * Refactored SettingsService using single-function files
- */
-
 import type { ClaudeSettings, HookConfiguration } from '../types';
 import { SettingsHelper as CoreSettingsHelper } from '../settings/index.js';
 import type { SettingsScope } from '../settings/index.js';
-
-// Import single-function modules
-import { createFileSystemProvider } from './settings/create-file-system-provider.js';
-import { readSettings } from './settings/read-settings.js';
-import { writeSettings } from './settings/write-settings.js';
-import { updateSettings } from './settings/update-settings.js';
-import { deleteSettings } from './settings/delete-settings.js';
-import { getSettingsPath } from './settings/get-settings-path.js';
+import { readFile, writeFile, access, mkdir, constants } from 'fs/promises';
+import { join, dirname } from 'path';
+import { homedir } from 'os';
+import { cwd } from 'process';
 
 // Re-export the SettingsScope type for backwards compatibility
 export type { SettingsScope };
 
 /**
+ * File system provider that implements the duck-typed interface
+ * expected by the core SettingsService from the settings package.
+ */
+const fileSystemProvider = {
+  async readFile(path: string, encoding?: string): Promise<string> {
+    const buffer = await readFile(path, (encoding as BufferEncoding) || 'utf-8');
+    return buffer.toString();
+  },
+
+  async writeFile(path: string, content: string, encoding?: string): Promise<void> {
+    await writeFile(path, content, encoding as any);
+  },
+
+  async exists(path: string): Promise<boolean> {
+    try {
+      await access(path, constants.F_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  async mkdir(path: string, options?: { recursive?: boolean }): Promise<void> {
+    await mkdir(path, options);
+  },
+
+  dirname(path: string): string {
+    return dirname(path);
+  },
+
+  join(...paths: string[]): string {
+    return join(...paths);
+  },
+
+  homedir(): string {
+    return homedir();
+  },
+
+  cwd(): string {
+    return cwd();
+  }
+};
+
+/**
  * Thin wrapper around the core SettingsHelper that provides backwards compatibility
- * for existing CLI code while delegating all operations to single-function modules.
+ * for existing CLI code while delegating all operations to the settings package.
  */
 export class SettingsService {
   private coreSettingsHelper: CoreSettingsHelper;
 
   constructor() {
-    const fileSystemProvider = createFileSystemProvider();
     this.coreSettingsHelper = new CoreSettingsHelper(fileSystemProvider);
   }
 
   getSettingsPath(scope: SettingsScope): string {
-    return getSettingsPath(scope);
+    return this.coreSettingsHelper.getSettingsPath(scope);
   }
 
   async readSettings(scope: SettingsScope): Promise<ClaudeSettings> {
-    return readSettings(scope);
+    return await this.coreSettingsHelper.readSettings(scope);
   }
 
   async writeSettings(scope: SettingsScope, settings: ClaudeSettings): Promise<void> {
-    return writeSettings(scope, settings);
-  }
-
-  async updateSettings(
-    scope: SettingsScope,
-    updateFn: (settings: ClaudeSettings) => ClaudeSettings | Promise<ClaudeSettings>
-  ): Promise<void> {
-    return updateSettings(scope, updateFn);
-  }
-
-  async deleteSettings(scope: SettingsScope): Promise<void> {
-    return deleteSettings(scope);
+    return await this.coreSettingsHelper.writeSettings(scope, settings);
   }
 
   async addHookToSettings(
