@@ -19,7 +19,7 @@
   ],
   "references": [
     {
-      "path": "../claude-good-hooks-types"
+      "path": "../claude-good-hooks"
     }
   ]
 }
