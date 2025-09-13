@@ -173,8 +173,9 @@ export class AppError extends Error {
 
   /**
    * Build context from specific options
+   * @internal
    */
-  protected buildContext(options: AppErrorOptions): Record<string, unknown> | undefined {
+  public buildContext(options: AppErrorOptions): Record<string, unknown> | undefined {
     const context: Record<string, unknown> = {};
     let hasContext = false;
 
