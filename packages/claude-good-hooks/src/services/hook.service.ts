@@ -10,18 +10,14 @@ import { listInstalledHooks } from './hooks/list-installed-hooks.js';
 import { listAvailableHooks } from './hooks/list-available-hooks.js';
 import { regenerateHooks, type RegenerateAllHooksResult } from './hooks/regenerate-hooks.js';
 import { parseHookArgsFromSaved } from './hooks/parse-hook-args-from-saved.js';
-import { getSettingsDirectoryPath } from './hooks/get-settings-directory-path.js';
 
 // Re-export types
 export type { ApplyHookResult, HookHelpInfo, RegenerateAllHooksResult };
 
 import type { HookMetadata, HookPlugin } from '../types/index.js';
 import type { SettingsScope } from './dual-settings.service.js';
-import { DualSettingsService } from './dual-settings.service.js';
 
 export class HookService {
-  private settingsService = new DualSettingsService();
-
   constructor() {}
 
   async applyHook(
@@ -60,7 +56,4 @@ export class HookService {
     return parseHookArgsFromSaved(savedArgs, plugin);
   }
 
-  private getSettingsDirectoryPath(scope: SettingsScope): string {
-    return getSettingsDirectoryPath(scope, this.settingsService);
-  }
 }
