@@ -1,6 +1,6 @@
-# @sammons/dirty-good-claude-hook
+# @sammons/git-dirty-hook
 
-[![npm version](https://img.shields.io/npm/v/@sammons/dirty-good-claude-hook)](https://www.npmjs.com/package/@sammons/dirty-good-claude-hook)
+[![npm version](https://img.shields.io/npm/v/@sammons/git-dirty-hook)](https://www.npmjs.com/package/@sammons/git-dirty-hook)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A Claude Code hook that automatically provides Git repository status information to Claude, helping it understand the current state of your project before making suggestions or modifications.

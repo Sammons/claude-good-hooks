@@ -85,10 +85,10 @@ export class RemoveCommand {
         },
       ],
       examples: [
-        'claude-good-hooks remove @sammons/dirty-good-claude-hook',
-        'claude-good-hooks remove --global @sammons/dirty-good-claude-hook',
+        'claude-good-hooks remove @sammons/git-dirty-hook',
+        'claude-good-hooks remove --global @sammons/git-dirty-hook',
         'claude-good-hooks remove ./test-hook.js',
-        'claude-good-hooks remove --all @sammons/dirty-good-claude-hook',
+        'claude-good-hooks remove --all @sammons/git-dirty-hook',
       ],
     };
   }

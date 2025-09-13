@@ -99,7 +99,7 @@ claude-good-hooks version --json
 ### NPM Packages
 Install and apply community hooks:
 ```bash
-npm install -g @sammons/dirty-good-claude-hook
+npm install -g @sammons/git-dirty-hook
 claude-good-hooks apply dirty --global
 ```
 
@@ -186,9 +186,8 @@ DEBUG=claude-good-hooks* claude-good-hooks <command>
 
 ## Related Packages
 
-- [`@sammons/claude-good-hooks-types`](../claude-good-hooks-types) - TypeScript type definitions
-- [`@sammons/dirty-good-claude-hook`](../dirty-good-claude-hook) - Git status hook implementation
-- [`@sammons/claude-good-hooks-template-hook`](../claude-good-hooks-template-hook) - Template hook for creating new hooks
+- [`@sammons/git-dirty-hook`](../git-dirty-hook) - Git status hook implementation
+- [`@sammons/code-outline-hook`](../code-outline-hook) - Code outline hook for analyzing code structure
 
 ## Contributing
 

@@ -27,24 +27,24 @@ export function showApplyHelp(isJson?: boolean): void {
 
   console.log(chalk.bold('Examples:'));
   console.log('  # Apply default hook from package');
-  console.log('  claude-good-hooks apply @sammons/dirty-good-claude-hook');
-  console.log('  claude-good-hooks apply --global @sammons/dirty-good-claude-hook');
-  console.log('  claude-good-hooks apply --local @sammons/dirty-good-claude-hook --staged');
+  console.log('  claude-good-hooks apply @sammons/git-dirty-hook');
+  console.log('  claude-good-hooks apply --global @sammons/git-dirty-hook');
+  console.log('  claude-good-hooks apply --local @sammons/git-dirty-hook --staged');
   console.log('  ');
   console.log('  # Apply specific hook variant via deep import');
-  console.log('  claude-good-hooks apply @sammons/claude-good-hooks-code-outline/minimal');
-  console.log('  claude-good-hooks apply @sammons/claude-good-hooks-code-outline/detailed');
+  console.log('  claude-good-hooks apply @sammons/code-outline-hook/minimal');
+  console.log('  claude-good-hooks apply @sammons/code-outline-hook/detailed');
   console.log('  ');
   console.log('  # Apply hook from local file');
   console.log('  claude-good-hooks apply --project ./my-hook.js');
   console.log('  claude-good-hooks apply --project ../shared/company-hook.mjs');
   console.log('  ');
   console.log('  # Get help for a specific hook');
-  console.log('  claude-good-hooks apply @sammons/dirty-good-claude-hook --help');
+  console.log('  claude-good-hooks apply @sammons/git-dirty-hook --help');
   console.log('  ');
   console.log('  # Regenerate hooks');
   console.log('  claude-good-hooks apply --regenerate');
-  console.log('  claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook');
+  console.log('  claude-good-hooks apply --regenerate @sammons/git-dirty-hook');
   console.log('');
 
   console.log(chalk.bold('Help:'));
@@ -99,12 +99,12 @@ export function getApplyHelpInfo(): HelpInfo {
       },
     ],
     examples: [
-      'claude-good-hooks apply @sammons/dirty-good-claude-hook',
-      'claude-good-hooks apply --global @sammons/dirty-good-claude-hook',
-      'claude-good-hooks apply @sammons/claude-good-hooks-code-outline/minimal',
-      'claude-good-hooks apply @sammons/dirty-good-claude-hook --staged --filenames',
+      'claude-good-hooks apply @sammons/git-dirty-hook',
+      'claude-good-hooks apply --global @sammons/git-dirty-hook',
+      'claude-good-hooks apply @sammons/code-outline-hook/minimal',
+      'claude-good-hooks apply @sammons/git-dirty-hook --staged --filenames',
       'claude-good-hooks apply --regenerate',
-      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook',
+      'claude-good-hooks apply --regenerate @sammons/git-dirty-hook',
     ],
   };
 }

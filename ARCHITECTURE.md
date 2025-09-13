@@ -61,7 +61,7 @@ This monorepo follows a layered architecture with clear separation of concerns. 
 ### 2. Implementation Layer
 
 #### Hook Implementation Packages
-Examples: `@sammons/dirty-good-claude-hook`, `@sammons/claude-good-hooks-template-hook`, `@sammons/claude-good-hooks-code-outline`
+Examples: `@sammons/git-dirty-hook`, `@sammons/code-outline-hook`
 
 - **Purpose**: Concrete hook implementations
 - **Responsibilities**:
@@ -174,11 +174,11 @@ export const detailed = { ...mainHook, /* custom config */ };
 
 ```bash
 # Apply default hook
-claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline
+claude-good-hooks apply --project @sammons/code-outline-hook
 
 # Apply specific variant via deep import
-claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/minimal
-claude-good-hooks apply --project @sammons/claude-good-hooks-code-outline/detailed
+claude-good-hooks apply --project @sammons/code-outline-hook/minimal
+claude-good-hooks apply --project @sammons/code-outline-hook/detailed
 ```
 
 This pattern allows:

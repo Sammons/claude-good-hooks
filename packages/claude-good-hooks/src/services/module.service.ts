@@ -37,7 +37,7 @@ export class ModuleService {
   /**
    * Parse module name and export path from a hook identifier
    * Examples:
-   * - "@sammons/dirty-good-claude-hook" -> { moduleName: "@sammons/dirty-good-claude-hook", exportPath: undefined, isFile: false }
+   * - "@sammons/git-dirty-hook" -> { moduleName: "@sammons/git-dirty-hook", exportPath: undefined, isFile: false }
    * - "@sammons/code-outline/code-outline" -> { moduleName: "@sammons/code-outline", exportPath: "code-outline", isFile: false }
    * - "./my-hook.js" -> { moduleName: "./my-hook.js", exportPath: undefined, isFile: true }
    * - "/absolute/path/hook.mjs" -> { moduleName: "/absolute/path/hook.mjs", exportPath: undefined, isFile: true }
@@ -223,7 +223,7 @@ export class ModuleService {
 
   /**
    * Extract module name from claudegoodhooks.name
-   * Example: "@sammons/dirty-good-claude-hook/dirty" -> "@sammons/dirty-good-claude-hook"
+   * Example: "@sammons/git-dirty-hook/dirty" -> "@sammons/git-dirty-hook"
    * Example: "./my-hook.js/my-hook" -> "./my-hook.js"
    * Example: "./packages/code-outline/dist/index.mjs/code-outline" -> "./packages/code-outline/dist/index.mjs"
    */

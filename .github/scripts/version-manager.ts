@@ -108,15 +108,12 @@ const WORKSPACE_ROOT = process.cwd();
 const PACKAGES_DIR = join(WORKSPACE_ROOT, 'packages');
 
 const PUBLISHABLE_PACKAGES = [
-  'claude-good-hooks-cli',
-  'claude-good-hooks-types',
-  'claude-good-hooks-template-hook',
-  'dirty-good-claude-hook'
+  'claude-good-hooks',
+  'git-dirty-hook',
+  'code-outline-hook'
 ];
 
 const INTERNAL_PACKAGES = [
-  'claude-good-hooks-smoke-tests',
-  'claude-good-hooks-examples',
   'landing-page'
 ];
 

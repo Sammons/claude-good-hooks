@@ -67,7 +67,7 @@ describe('ModuleService', () => {
     });
 
     it('should not identify npm packages as file paths', () => {
-      expect((moduleService as any).isFilePath('@sammons/dirty-good-claude-hook')).toBe(false);
+      expect((moduleService as any).isFilePath('@sammons/git-dirty-hook')).toBe(false);
       expect((moduleService as any).isFilePath('my-npm-package')).toBe(false);
       expect((moduleService as any).isFilePath('package-name/export')).toBe(false);
     });
@@ -93,9 +93,9 @@ describe('ModuleService', () => {
     });
 
     it('should parse scoped package without suffix', () => {
-      const result = (moduleService as any).parseHookIdentifier('@sammons/dirty-good-claude-hook');
+      const result = (moduleService as any).parseHookIdentifier('@sammons/git-dirty-hook');
       expect(result).toEqual({
-        moduleName: '@sammons/dirty-good-claude-hook',
+        moduleName: '@sammons/git-dirty-hook',
         exportPath: undefined,
         isFile: false,
       });
@@ -103,10 +103,10 @@ describe('ModuleService', () => {
 
     it('should parse scoped package with suffix', () => {
       const result = (moduleService as any).parseHookIdentifier(
-        '@sammons/claude-good-hooks-code-outline/code-outline'
+        '@sammons/code-outline-hook/code-outline'
       );
       expect(result).toEqual({
-        moduleName: '@sammons/claude-good-hooks-code-outline',
+        moduleName: '@sammons/code-outline-hook',
         exportPath: 'code-outline',
         isFile: false,
       });
@@ -145,14 +145,14 @@ describe('ModuleService', () => {
   describe('extractModuleNameFromHookName', () => {
     it('should extract module name from scoped package with suffix', () => {
       const result = moduleService.extractModuleNameFromHookName(
-        '@sammons/claude-good-hooks-code-outline/code-outline'
+        '@sammons/code-outline-hook/code-outline'
       );
-      expect(result).toBe('@sammons/claude-good-hooks-code-outline');
+      expect(result).toBe('@sammons/code-outline-hook');
     });
 
     it('should return full name when no suffix', () => {
-      const result = moduleService.extractModuleNameFromHookName('@sammons/dirty-good-claude-hook');
-      expect(result).toBe('@sammons/dirty-good-claude-hook');
+      const result = moduleService.extractModuleNameFromHookName('@sammons/git-dirty-hook');
+      expect(result).toBe('@sammons/git-dirty-hook');
     });
 
     it('should handle non-scoped packages', () => {

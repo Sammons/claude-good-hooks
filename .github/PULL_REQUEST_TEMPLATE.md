@@ -29,11 +29,9 @@
 
 <!-- Check all that apply -->
 
-- [ ] `claude-good-hooks-cli`
-- [ ] `claude-good-hooks-types`
-- [ ] `claude-good-hooks-template-hook`
-- [ ] `claude-good-hooks-examples`
-- [ ] `dirty-good-claude-hook`
+- [ ] `claude-good-hooks`
+- [ ] `git-dirty-hook`
+- [ ] `code-outline-hook`
 - [ ] `landing-page`
 - [ ] Root workspace
 

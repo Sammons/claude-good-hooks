@@ -15,19 +15,14 @@ The code structure outline is available at: @./.claude/code-outline.md
 ## Package Documentation
 
 ### Core Packages
-- [CLI Package](./packages/claude-good-hooks-cli/README.md) - Command-line interface for Claude Good Hooks
-- [Types Package](./packages/claude-good-hooks-types/README.md) - TypeScript type definitions
+- [CLI Package](./packages/claude-good-hooks/README.md) - Command-line interface for Claude Good Hooks
 
-### Example and Template Packages
-- [Dirty Good Claude Hook](./packages/dirty-good-claude-hook/README.md) - Git status hook implementation
-- [Code Outline Hook](./packages/claude-good-hooks-code-outline/README.md) - Code structure analysis hook
+### Hook Packages
+- [Git Dirty Hook](./packages/git-dirty-hook/README.md) - Git status hook implementation
+- [Code Outline Hook](./packages/code-outline-hook/README.md) - Code structure analysis hook
 
-### Testing and Website
-- [Smoke Tests](./packages/claude-good-hooks-smoke-tests/README.md) - Smoke test suite
+### Website
 - [Landing Page](./packages/landing-page/README.md) - Project landing page
-
-### Additional Documentation
-- [CLI Errors Documentation](./packages/claude-good-hooks-cli/src/errors/README.md) - Error handling in the CLI
 
 ### Original Prompt
 
@@ -41,8 +36,8 @@ The code structure outline is available at: @./.claude/code-outline.md
     e. claude-good-hooks apply --global <npm-package-name> --help # outputs help, including custom args supported by hook
     f. claude-good-hooks apply --project <npm-package-name> # sets up hook with default params, in the current directory
     g. claude-good-hooks apply --project <npm-package-name>/variant # apply specific hook variant via deep import
-    h. claude-good-hooks apply --project @sammons/dirty-good-claude-hook --staged --filenames # example with args
-    i. claude-good-hooks apply --local @sammons/dirty-good-claude-hook --diffs # example hook that outputs unstaged changes
+    h. claude-good-hooks apply --project @sammons/git-dirty-hook --staged --filenames # example with args
+    i. claude-good-hooks apply --local @sammons/git-dirty-hook --diffs # example hook that outputs unstaged changes
     j. claude-good-hooks update # updates itself via npm install -g
     k. claude-good-hooks doctor # detects if missing from the PATH
     l. claude-good-hooks version # outputs current version
@@ -51,9 +46,9 @@ The code structure outline is available at: @./.claude/code-outline.md
   4. update the name in the package to be @sammons/claude-good-hooks
   5. a hook ought to have a HookPlugin export from its module entrypoint, which has properties .matcher and .hooks per https://docs.anthropic.com/en/docs/claude-code/hooks
   6. this is a monorepo
-    - ./packages/claude-good-hooks-cli # @sammons/claude-good-hooks
-    - ./packages/claude-good-hooks-types # @sammons/claude-good-hooks-types
-    - ./packages/dirty-hook # @sammons/dirty-good-claude-hook # consumes types, and exports a HookPlugin
+    - ./packages/claude-good-hooks # @sammons/claude-good-hooks
+    - ./packages/git-dirty-hook # @sammons/git-dirty-hook # exports a HookPlugin
+    - ./packages/code-outline-hook # @sammons/code-outline-hook # exports a HookPlugin
   7. some additional points:
     - applying globally, the referenced module must be installed globally already via npm, and if it is not, then a clear warning should be shown indicating that it needs to 
   be installed

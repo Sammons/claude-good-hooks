@@ -80,11 +80,10 @@ pnpm workspace:sync:fix  # Fix version mismatches
 
 This is a pnpm workspace monorepo with the following packages:
 
-- `@sammons/claude-good-hooks` - Main CLI package
-- `@sammons/claude-good-hooks-types` - TypeScript type definitions
-- `@sammons/dirty-good-claude-hook` - Git status hook
-- `@sammons/claude-good-hooks-template-hook` - Template for creating hooks
-- Additional utility and testing packages
+- `@sammons/claude-good-hooks` - Main CLI package with types
+- `@sammons/git-dirty-hook` - Git status hook
+- `@sammons/code-outline-hook` - Code outline hook
+- `landing-page` - Project website
 
 ## Guidelines
 

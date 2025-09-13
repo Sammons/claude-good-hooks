@@ -1,4 +1,4 @@
-# @sammons/claude-good-hooks-code-outline
+# @sammons/code-outline-hook
 
 A Claude Code hook that generates code structure outlines using the `@sammons/code-outline-cli` tool. This hook automatically runs at session start to provide Claude with an understanding of your codebase structure.
 
@@ -14,7 +14,7 @@ A Claude Code hook that generates code structure outlines using the `@sammons/co
 ## Installation
 
 ```bash
-npm install @sammons/claude-good-hooks-code-outline
+npm install @sammons/code-outline-hook
 ```
 
 ## Usage

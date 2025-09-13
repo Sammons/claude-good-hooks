@@ -5,7 +5,7 @@ import { createCommonErrorAttributes } from './common.js';
 import { CLIError } from './cli-error.js';
 
 export class ValidationError extends CLIError {
-  public readonly name: string = 'ValidationError';
+  public override readonly name: string = 'ValidationError';
 
   constructor(
     message: string,

@@ -26,11 +26,9 @@
     "composite": true
   },
   "references": [
-    { "path": "./packages/claude-good-hooks-types" },
-    { "path": "./packages/claude-good-hooks-settings" },
-    { "path": "./packages/claude-good-hooks-cli" },
-    { "path": "./packages/claude-good-hooks-template-hook" },
-    { "path": "./packages/claude-good-hooks-code-outline" },
-    { "path": "./packages/dirty-good-claude-hook" }
+    { "path": "./packages/claude-good-hooks" },
+    { "path": "./packages/code-outline-hook" },
+    { "path": "./packages/git-dirty-hook" },
+    { "path": "./packages/landing-page" }
   ]
 }

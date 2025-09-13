@@ -88,7 +88,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.18.0)
 
-  packages/claude-good-hooks-code-outline:
+  packages/code-outline-hook:
     dependencies:
       '@sammons/claude-good-hooks':
         specifier: workspace:*
@@ -107,7 +107,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)
 
-  packages/dirty-good-claude-hook:
+  packages/git-dirty-hook:
     dependencies:
       '@sammons/claude-good-hooks':
         specifier: workspace:*

@@ -37,7 +37,7 @@ describe('ApplyCommand --regenerate', () => {
   });
 
   it('should accept hook name with --regenerate flag', () => {
-    const validation = applyCommand.validate(['@sammons/dirty-good-claude-hook/dirty'], {
+    const validation = applyCommand.validate(['@sammons/git-dirty-hook/dirty'], {
       regenerate: true,
     });
     expect(validation).toEqual({
@@ -69,7 +69,7 @@ describe('ApplyCommand --regenerate', () => {
   });
 
   it('should call regenerateHooks with specific hook name when provided', async () => {
-    const hookName = '@sammons/dirty-good-claude-hook/dirty';
+    const hookName = '@sammons/git-dirty-hook/dirty';
     const mockResult = {
       results: [],
       totalProcessed: 0,
@@ -109,7 +109,7 @@ describe('ApplyCommand --regenerate', () => {
 
     expect(help.examples).toContain('claude-good-hooks apply --regenerate');
     expect(help.examples).toContain(
-      'claude-good-hooks apply --regenerate @sammons/dirty-good-claude-hook'
+      'claude-good-hooks apply --regenerate @sammons/git-dirty-hook'
     );
   });
 });

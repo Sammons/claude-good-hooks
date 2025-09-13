@@ -1,7 +1,7 @@
 {
-  "name": "@sammons/dirty-good-claude-hook",
+  "name": "@sammons/code-outline-hook",
   "version": "1.0.0",
-  "description": "Git dirty status hook for Claude Code",
+  "description": "Code outline hook for Claude Code using code-outline-cli",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -10,14 +10,17 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean --tsconfig tsconfig.build.json",
     "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix"
   },
   "keywords": [
     "claude",
     "hooks",
-    "git",
-    "dirty"
+    "code-outline",
+    "ast",
+    "typescript",
+    "javascript"
   ],
   "author": "Sammons Software LLC",
   "license": "MIT",
@@ -28,7 +31,8 @@
     "typescript": ">=5.0.0"
   },
   "dependencies": {
-    "@sammons/claude-good-hooks": "workspace:*"
+    "@sammons/claude-good-hooks": "workspace:*",
+    "@sammons/code-outline-cli": "^2.0.3"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

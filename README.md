@@ -29,7 +29,7 @@ npm install -g @sammons/claude-good-hooks
 
 # Install the dirty hook for example
 # The dirty hook will tell claude what changes you have locally that aren't committed
-npm install -g @sammons/dirty-good-claude-hook
+npm install -g @sammons/git-dirty-hook
 
 # Apply the dirty hook globally
 claude-good-hooks apply --global dirty
