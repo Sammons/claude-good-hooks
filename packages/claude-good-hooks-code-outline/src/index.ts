@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+import type { HookPlugin } from '@sammons/claude-good-hooks';
 import { generateCodeOutlineScript } from './script-generator';
 import { generateSearchInterceptScript } from './search-script-generator';
 

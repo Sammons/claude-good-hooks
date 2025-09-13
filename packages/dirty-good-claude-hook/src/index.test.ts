@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import dirtyHook from './index.js';
-import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+import type { HookPlugin } from '@sammons/claude-good-hooks';
 
 describe('dirty-hook plugin', () => {
   let tempDir: string;

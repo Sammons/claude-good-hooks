@@ -60,11 +60,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@24.3.0)
 
-  packages/claude-good-hooks-cli:
+  packages/claude-good-hooks:
     dependencies:
-      '@sammons/claude-good-hooks-types':
-        specifier: workspace:*
-        version: link:../claude-good-hooks-types
       ajv:
         specifier: ^8.12.0
         version: 8.17.1
@@ -78,9 +75,6 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5
     devDependencies:
-      '@sammons/dirty-good-claude-hook':
-        specifier: workspace:*
-        version: link:../dirty-good-claude-hook
       '@types/node':
         specifier: ^22.0.0
         version: 22.18.0
@@ -96,9 +90,9 @@ importers:
 
   packages/claude-good-hooks-code-outline:
     dependencies:
-      '@sammons/claude-good-hooks-types':
+      '@sammons/claude-good-hooks':
         specifier: workspace:*
-        version: link:../claude-good-hooks-types
+        version: link:../claude-good-hooks
       '@sammons/code-outline-cli':
         specifier: ^2.0.3
         version: 2.0.3
@@ -113,23 +107,11 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)
 
-  packages/claude-good-hooks-types:
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.0(postcss@8.5.6)(tsx@4.20.5)(typescript@5.9.2)(yaml@2.8.1)
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.2
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@24.3.0)
-
   packages/dirty-good-claude-hook:
     dependencies:
-      '@sammons/claude-good-hooks-types':
+      '@sammons/claude-good-hooks':
         specifier: workspace:*
-        version: link:../claude-good-hooks-types
+        version: link:../claude-good-hooks
     devDependencies:
       tsup:
         specifier: ^8.0.0

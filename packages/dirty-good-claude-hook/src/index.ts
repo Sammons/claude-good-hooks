@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { HookPlugin } from '@sammons/claude-good-hooks-types';
+import type { HookPlugin } from '@sammons/claude-good-hooks';
 
 const SCRIPT_CONTENT = `#!/usr/bin/env node
 
