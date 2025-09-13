@@ -105,7 +105,7 @@ export const NetworkError = class extends AppError {
  */
 export const InternalError = class extends AppError {
   constructor(message: string, options: any = {}) {
-    super(`Internal error: ${message}`, {
+    super(message, {
       code: ERROR_CODES.INTERNAL,
       isUserFacing: false,
       suggestion:

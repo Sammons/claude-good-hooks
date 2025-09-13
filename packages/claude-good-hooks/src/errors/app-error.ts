@@ -278,10 +278,10 @@ export class AppError extends Error {
    * Create a permission error
    */
   static permission(message: string, options: Omit<AppErrorOptions, 'code'> = {}): AppError {
-    // Auto-add suggestion if path is provided
+    // Auto-add suggestion if path is provided, otherwise provide default
     const suggestion = options.path
       ? `Check file permissions for ${options.path}`
-      : options.suggestion;
+      : options.suggestion || 'Check your permissions and try again';
 
     return new AppError(message, {
       ...options,
@@ -380,18 +380,18 @@ export function isAppError(error: unknown): error is AppError {
  */
 export function formatError(
   error: unknown,
-  options: { isJson?: boolean; showStackTrace?: boolean; includeDetails?: boolean } = {}
+  options: { json?: boolean; isJson?: boolean; showStackTrace?: boolean; includeStack?: boolean; includeDetails?: boolean; context?: Record<string, unknown> } = {}
 ): string {
   // Handle legacy option names for backward compatibility
-  const isJson = options.isJson;
-  const showStackTrace = options.showStackTrace;
+  const isJson = options.json ?? options.isJson;
+  const showStackTrace = options.includeStack ?? options.showStackTrace;
 
   if (isAppError(error)) {
     if (isJson) {
       const output: Record<string, unknown> = {
         success: false,
-        error: error.message,
-        errorType: 'AppError',
+        message: error.message,
+        name: 'AppError',
         errorCode: error.code,
         exitCode: error.exitCode,
       };
@@ -402,6 +402,10 @@ export function formatError(
 
       if (options.includeDetails && error.context) {
         output.context = error.context;
+      }
+
+      if (options.context) {
+        output.context = options.context;
       }
 
       if (showStackTrace && error.stack) {
@@ -424,8 +428,8 @@ export function formatError(
   if (isJson) {
     const output: Record<string, unknown> = {
       success: false,
-      error: message,
-      errorType: 'UnknownError',
+      message: message,
+      name: 'Error',
       exitCode: 1,
     };
 
