@@ -72,7 +72,7 @@ concurrency:
 env:
   CANARY_REGISTRY: 'https://registry.npmjs.org'
   NODE_VERSION: '20.x'
-  PNPM_VERSION: '10.12.4'
+  PNPM_VERSION: '10.16.1'
 
 jobs:
   # ===================================================================

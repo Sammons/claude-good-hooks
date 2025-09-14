@@ -78,7 +78,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4 # Pin version for consistency
+          version: 10.16.1 # Pin version for consistency
           run_install: false # Manual control over installation
           
       # Step 4: Setup dependency caching

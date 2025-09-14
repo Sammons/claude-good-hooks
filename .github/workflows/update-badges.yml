@@ -90,7 +90,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
+          version: 10.16.1
           run_install: false
 
       # Step 4: Setup dependency caching

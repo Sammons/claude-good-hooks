@@ -70,7 +70,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
+          version: 10.16.1
           run_install: false
           
       # Step 4: Get pnpm store directory for caching
@@ -225,7 +225,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
+          version: 10.16.1
           run_install: false
           
       # Step 5: Install dependencies for better analysis
@@ -266,7 +266,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
+          version: 10.16.1
           run_install: false
           
       # Step 4: Install dependencies

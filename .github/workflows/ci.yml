@@ -64,7 +64,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4 # Pinned version for consistency
+          version: 10.16.1 # Pinned version for consistency
           run_install: false # We'll install manually to use caching
           
       # Step 4: Get pnpm store location for caching
@@ -207,7 +207,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.12.4
+          version: 10.16.1
           run_install: false
           
       # Step 4: Get pnpm store directory for caching
@@ -283,7 +283,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10.16.1
           
       # Step 3: Setup Node.js
       - name: Setup Node.js
