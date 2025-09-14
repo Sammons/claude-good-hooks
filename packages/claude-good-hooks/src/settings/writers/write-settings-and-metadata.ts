@@ -7,7 +7,7 @@ import { atomicWriteFile } from './atomic-write-file.js';
 import { getSettingsPath } from '../paths/get-settings-path.js';
 import { getMetadataPath } from '../paths/get-metadata-path.js';
 
-export type SettingsScope = 'global' | 'project' | 'local';
+import type { SettingsScope } from '../settings-types.js';
 
 import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
 

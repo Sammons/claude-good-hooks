@@ -3,7 +3,7 @@
  */
 
 import type { ClaudeGoodHooksMetadata } from '../../types/index.js';
-import type { SettingsScope } from '../dual-settings-helper.js';
+import type { SettingsScope } from '../settings-types.js';
 
 /**
  * Create a new metadata file template for a given scope

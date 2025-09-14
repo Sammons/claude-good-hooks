@@ -1,6 +1,5 @@
 import chalk from 'chalk';
-import { CommandRegistry } from '../command-registry.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo, CommandLike } from '../command-types.js';
 import { detectPackageManager } from '../../utils/detect-package-manager.js';
 import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 
@@ -21,8 +20,11 @@ interface HelpOptions {
 export class HelpCommand {
   name = 'help';
   description = 'Show help information';
+  private getAllCommands?: () => CommandLike[];
 
-  constructor() {}
+  constructor(getAllCommands?: () => CommandLike[]) {
+    this.getAllCommands = getAllCommands;
+  }
 
   /**
    * Check if this command handles the given input
@@ -61,12 +63,18 @@ export class HelpCommand {
    */
   async execute(args: string[], options: HelpOptions): Promise<void> {
     const isJson = options.parent?.json;
-    const commandRegistry = new CommandRegistry();
+
+    if (!this.getAllCommands) {
+      throw new Error('HelpCommand not properly initialized with getAllCommands callback');
+    }
+
+    const allCommands = this.getAllCommands();
 
     if (args.length > 0) {
       // Show help for a specific command
       const command = args[0];
-      const helpInfo = commandRegistry.getCommandHelp(command!);
+      const commandObj = allCommands.find(cmd => cmd.match(command!));
+      const helpInfo = commandObj?.getHelp();
 
       if (!helpInfo) {
         console.log(`No help available for command: ${command}`);
@@ -81,8 +89,12 @@ export class HelpCommand {
     } else {
       // Show general help
       if (isJson) {
-        const generalHelp = commandRegistry.getGeneralHelp();
-        const commandsObj = generalHelp.commands.reduce(
+        const commands = allCommands.map(cmd => {
+          const help = cmd.getHelp();
+          return { name: help.name, description: help.description };
+        });
+
+        const commandsObj = commands.reduce(
           (acc, cmd) => {
             acc[cmd.name] = cmd.description;
             return acc;
@@ -101,8 +113,15 @@ export class HelpCommand {
    * Show general help information
    */
   private showGeneralHelp(): void {
-    const commandRegistry = new CommandRegistry();
-    const generalHelp = commandRegistry.getGeneralHelp();
+    if (!this.getAllCommands) {
+      throw new Error('HelpCommand not properly initialized with getAllCommands callback');
+    }
+
+    const allCommands = this.getAllCommands();
+    const commands = allCommands.map(cmd => {
+      const help = cmd.getHelp();
+      return { name: help.name, description: help.description };
+    });
 
     console.log(chalk.bold('claude-good-hooks') + ' - CLI for managing Claude Code hooks\n');
 
@@ -110,7 +129,7 @@ export class HelpCommand {
     console.log('  claude-good-hooks <command> [options]\n');
 
     console.log(chalk.bold('COMMANDS'));
-    for (const cmd of generalHelp.commands) {
+    for (const cmd of commands) {
       const padding = ' '.repeat(Math.max(0, 42 - cmd.name.length));
       console.log(`  ${chalk.cyan(cmd.name)}${padding}${cmd.description}`);
     }

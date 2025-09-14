@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { SettingsService } from '../../services/settings.service.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 import type { ExportOptions } from './export-options.js';
 import { validateExportCommand } from './export-options.js';
 import type { ValidationResult } from '../common-validation-types.js';

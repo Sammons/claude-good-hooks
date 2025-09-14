@@ -2,7 +2,7 @@
  * Get the path to the metadata file for the specified scope
  */
 
-export type SettingsScope = 'global' | 'project' | 'local';
+import type { SettingsScope } from '../settings-types.js';
 
 import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
 

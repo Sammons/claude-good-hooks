@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { PackageService } from '../../services/package.service.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 
 interface ValidationResult {
   valid: boolean;

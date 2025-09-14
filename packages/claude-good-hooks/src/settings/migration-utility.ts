@@ -6,7 +6,8 @@
  * and claude-good-hooks.json contains all the metadata.
  */
 
-import { DualSettingsHelper, type SettingsScope } from './dual-settings-helper.js';
+import { DualSettingsHelper } from './dual-settings-helper.js';
+import type { SettingsScope } from './settings-types.js';
 import type { MigrationStatus } from '../types/index.js';
 
 /**

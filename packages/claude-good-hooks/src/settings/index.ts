@@ -15,5 +15,8 @@ export { SettingsHelper } from './settings-helper.js';
 // Re-export from dual-settings-helper (including SettingsScope from here)
 export * from './dual-settings-helper.js';
 
+// Re-export shared settings types
+export * from './settings-types.js';
+
 // Re-export migration utilities
 export * from './migration-utility.js';

@@ -5,7 +5,7 @@ import type {
   CommandOptionResult,
 } from './cli-parser/types.js';
 import { CommandRegistry } from '../commands/command-registry.js';
-import type { HelpInfo } from '../commands/command-registry.js';
+import type { HelpInfo } from '../commands/command-types.js';
 import chalk from 'chalk';
 
 // Global option processors

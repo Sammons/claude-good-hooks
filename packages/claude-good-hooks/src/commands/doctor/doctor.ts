@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 import { detectPackageManager } from '../../utils/detect-package-manager.js';
 import { PackageManagerHelper } from '../../helpers/package-manager-helper.js';
 

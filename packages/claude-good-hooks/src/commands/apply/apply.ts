@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { HookService } from '../../services/hook.service.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 import type { ApplyOptions } from './apply-options.js';
 import { validateApplyCommand } from './apply-options.js';
 import { getApplyHelpInfo } from './apply-command-help.js';

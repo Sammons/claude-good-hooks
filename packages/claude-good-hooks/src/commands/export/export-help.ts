@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import type { ExportSubCommand } from './export-types.js';
 import type { ExportOptions } from './export-options.js';
 import type { ValidationResult } from '../common-validation-types.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 
 export class ExportHelpCommand implements ExportSubCommand {
   /**

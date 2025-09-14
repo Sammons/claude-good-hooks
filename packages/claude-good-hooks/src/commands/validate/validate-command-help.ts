@@ -3,7 +3,7 @@
  */
 
 import chalk from 'chalk';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 
 export function getValidateHelpInfo(): HelpInfo {
   return {

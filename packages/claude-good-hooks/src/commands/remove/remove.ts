@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { SettingsService } from '../../services/settings.service.js';
 import { ModuleService } from '../../services/module.service.js';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 
 interface RemoveOptions {
   global?: boolean;

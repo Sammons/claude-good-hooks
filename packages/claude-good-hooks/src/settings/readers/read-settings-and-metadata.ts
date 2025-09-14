@@ -12,7 +12,7 @@ import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
 import { getSettingsPath } from '../paths/get-settings-path.js';
 import { getMetadataPath } from '../paths/get-metadata-path.js';
 
-export type SettingsScope = 'global' | 'project' | 'local';
+import type { SettingsScope } from '../settings-types.js';
 
 /**
  * Read both settings and metadata files for a scope

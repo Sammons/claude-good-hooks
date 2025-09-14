@@ -9,7 +9,7 @@ import type { FileSystemProvider } from '../interfaces/file-system-provider.js';
 import { createMetadataTemplate } from '../utils/metadata-template.js';
 import { extractCleanConfigAndMetadata } from '../metadata/extract-clean-config-and-metadata.js';
 
-export type SettingsScope = 'global' | 'project' | 'local';
+import type { SettingsScope } from '../settings-types.js';
 
 // CleanHookConfiguration is just HookConfiguration without our metadata
 type CleanHookConfiguration = HookConfiguration;

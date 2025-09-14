@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { HelpInfo } from '../command-registry.js';
+import type { HelpInfo } from '../command-types.js';
 import type { ValidateOptions } from './validate-options.js';
 import { validateValidateCommand } from './validate-options.js';
 import { getValidateHelpInfo } from './validate-command-help.js';

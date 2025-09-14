@@ -27,8 +27,7 @@ import { synchronizeSettings } from './sync/synchronize-settings.js';
 import { checkMigrationStatus } from './validation/check-migration-status.js';
 import { migrateScope } from './migration/migrate-scope.js';
 
-export type SettingsScope = 'global' | 'project' | 'local';
-
+import type { SettingsScope } from './settings-types.js';
 import type { FileSystemProvider } from './interfaces/file-system-provider.js';
 
 /**
