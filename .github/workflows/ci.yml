@@ -300,7 +300,7 @@ jobs:
       - name: Build CLI package
         run: |
           echo "🔨 Building CLI package for smoke tests..."
-          cd packages/claude-good-hooks-cli
+          cd packages/claude-good-hooks
           pnpm build
           cd ../..
         
@@ -325,7 +325,7 @@ jobs:
           docker run -d \
             --name claude-good-hooks-smoke-tests \
             -v "$(pwd)/../../packages/claude-good-hooks-types:/app/packages/claude-good-hooks-types" \
-            -v "$(pwd)/../../packages/claude-good-hooks-cli:/app/packages/claude-good-hooks-cli" \
+            -v "$(pwd)/../../packages/claude-good-hooks:/app/packages/claude-good-hooks" \
             -v "$(pwd):/app/packages/claude-good-hooks-smoke-tests" \
             -v "$(pwd)/../../package.json:/app/package.json" \
             -v "$(pwd)/../../pnpm-workspace.yaml:/app/pnpm-workspace.yaml" \

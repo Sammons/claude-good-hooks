@@ -281,7 +281,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           PUBLISHABLE_PACKAGES=(
-            "claude-good-hooks-cli"
+            "claude-good-hooks"
             "claude-good-hooks-types"
             "dirty-hook"
             "claude-good-hooks-template-hook"
